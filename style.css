@@ -1,0 +1,1963 @@
+/* =========================================================
+   BIẾN MÀU THEME (TÍM ĐÊM NEON / TÍM OẢI HƯƠNG SÁNG)
+   ========================================================= */
+body.dark-theme {
+  --bg-main: #0f0c1b;          /* Tím đêm rất đậm làm nền */
+  --panel-bg: #1a152e;        /* Tím panel nổi khối */
+  --board-bg: #141024;        /* Tím lòng bàn cờ */
+  --tile-bg: #251d42;         /* Tím ô cờ tương phản rõ */
+  --text-main: #f0edfd;       /* Chữ trắng tím nhạt */
+  --text-sub: #a89bc9;        /* Chữ phụ tím nhạt */
+  --border-color: #4a3b78;    /* Đường viền tím tím nổi bật */
+  --tile-hover: #362a5e;      /* Màu ô khi di chuột vào */
+  --tile-shadow: rgba(0, 0, 0, 0.4);
+}
+
+body.light-theme {
+  --bg-main: #f3f0f9;          /* Tím oải hương rất nhạt */
+  --panel-bg: #ffffff;
+  --board-bg: #e5def3;
+  --tile-bg: #ffffff;
+  --text-main: #1d1536;
+  --text-sub: #6e5f94;
+  --border-color: #baaaee;
+  --tile-hover: #f1ecfc;
+  --tile-shadow: rgba(100, 80, 160, 0.15);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+html, body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+}
+
+#app-container {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  padding: 8px;
+  gap: 8px;
+  overflow: hidden;
+}
+
+/* =========================================================
+   SIDEBARS (KHU VỰC ĐIỀU KHIỂN & CHAT)
+   ========================================================= */
+.panel {
+  background-color: var(--panel-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  gap: 12px;
+  box-shadow: 0 4px 15px var(--tile-shadow);
+}
+
+#left-sidebar {
+  width: 260px;
+  min-width: 240px;
+}
+
+.left-sidebar-section {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-height: 0;
+  gap: 8px;
+}
+
+#right-sidebar {
+  width: 280px;
+  min-width: 260px;
+  overflow-y: auto;
+}
+
+.trade-section { min-height: 0; }
+#trade-form, #trade-requests { display: flex; flex-direction: column; gap: 6px; }
+#trade-requests { max-height: 230px; overflow-y: auto; margin-top: 8px; }
+.trade-field { display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: var(--text-sub); }
+.trade-field input, .trade-field select {
+  width: 100%; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px;
+  background: var(--bg-main); color: var(--text-main);
+}
+.trade-properties { max-height: 72px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 4px; padding: 4px; }
+.trade-property-option { display: block; font-size: 11px; margin: 3px 0; color: var(--text-main); }
+.trade-empty { color: var(--text-sub); font-size: 11px; font-style: italic; }
+.trade-submit, .trade-action { border: 0; border-radius: 4px; padding: 7px; color: #fff; background: #6c5ce7; cursor: pointer; font-weight: 600; }
+.trade-action.decline { background: #8e3b46; }
+.trade-actions { display: flex; gap: 5px; margin-top: 6px; }
+.trade-request { border: 1px solid var(--border-color); border-radius: 5px; padding: 7px; font-size: 11px; background: var(--bg-main); }
+.trade-request-title { font-weight: 700; }
+.trade-request-detail { color: var(--text-sub); margin-top: 3px; }
+.trade-modal-content { width: min(620px, 92vw); }
+.trade-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 14px 0; text-align: left; }
+.trade-column { border: 1px solid var(--border-color); border-radius: 6px; padding: 9px; }
+.trade-column h4 { margin-bottom: 8px; color: var(--text-main); }
+.trade-column .trade-properties { margin-top: 8px; max-height: 180px; }
+@media (max-width: 520px) { .trade-columns { grid-template-columns: 1fr; } }
+
+.panel-header {
+  font-weight: bold;
+  font-size: 14px;
+  color: var(--text-sub);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+#chat-box {
+  flex: 1;
+  background-color: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 8px;
+  overflow-y: auto;
+  font-size: 12px;
+}
+
+.chat-msg { margin-bottom: 6px; }
+.chat-msg.system { color: #81c784; font-style: italic; }
+
+.chat-input-wrapper {
+  display: flex;
+  gap: 6px;
+}
+
+#chat-input-wrapper input {
+  min-width: 0;
+  flex: 1;
+  padding: 8px;
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  border-radius: 4px;
+}
+
+#chat-send-btn {
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: #6c5ce7;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+#chat-send-btn:disabled,
+#chat-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+#inventory-box {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 2px;
+}
+
+.inventory-item,
+.inventory-empty {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-main);
+  padding: 8px;
+  font-size: 12px;
+}
+
+.inventory-item-name { font-weight: 700; }
+.inventory-item-meta { color: var(--text-sub); margin-top: 3px; }
+.inventory-empty { color: var(--text-sub); font-style: italic; }
+
+#theme-btn {
+  width: 100%;
+  padding: 10px;
+  background-color: #6c5ce7;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(108, 92, 231, 0.4);
+}
+
+#theme-btn:hover {
+  background-color: #5b4bc4;
+}
+
+/* =========================================================
+   BÀN CỜ FULL SCREEN 100%
+   ========================================================= */
+#board-wrapper {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+#board {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(9, 1fr) 1.4fr;
+  grid-template-rows: 1.4fr repeat(9, 1fr) 1.4fr;
+  height: min(100%, calc(100vh - 16px));
+  width: min(100%, calc(100vh - 16px));
+  max-width: calc(100vw - 560px);
+  max-height: calc(100vw - 560px);
+  aspect-ratio: 1 / 1;
+  background-color: var(--board-bg);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(108, 92, 231, 0.2);
+  gap: 0;
+}
+
+/* BẢNG TRUNG TÂM */
+#center-panel {
+  grid-column: 2 / 11;
+  grid-row: 2 / 11;
+  background-color: var(--panel-bg);
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
+}
+
+.logo {
+  font-weight: 900;
+  font-size: 24px;
+  letter-spacing: 2px;
+  color: #a29bfe;
+  text-shadow: 0 0 10px rgba(162, 155, 254, 0.5);
+}
+
+#roll-btn {
+  padding: 12px 30px;
+  font-size: 15px;
+  font-weight: bold;
+  background: linear-gradient(135deg, #fdcb6e, #e17055);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(225, 112, 85, 0.4);
+  transition: transform 0.1s;
+}
+
+#roll-btn:active { transform: translateY(2px); }
+
+/* =========================================================
+   CÁC Ô CỜ - TĂNG ĐỘ NỔI BẬT & HIỆU ỨNG
+   ========================================================= */
+.tile {
+  background-color: var(--tile-bg);
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.tile:hover {
+  background-color: var(--tile-hover);
+  border-color: #a29bfe;
+  z-index: 5;
+}
+
+.tile.side-tile {
+  flex-direction: row;
+}
+
+.tile-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.tile-name {
+  font-size: clamp(8px, 0.72vw, 11px);
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.15;
+  color: var(--text-main);
+  word-break: break-word;
+  margin: auto 0;
+}
+
+.tile-price {
+  font-size: clamp(8px, 0.68vw, 10px);
+  color: #ffeaa7; /* Màu vàng kim giúp giá tiền cực kỳ nổi bật */
+  font-weight: bold;
+}
+
+/* THANH MÀU NHÓM ĐẤT SẮC NÉT */
+.group-bar {
+  width: 100%;
+  height: 18px; /* Nới rộng để nhà/khách sạn hiển thị rõ hơn */
+  flex-shrink: 0;
+  box-shadow: 0 0 4px rgba(0,0,0,0.3);
+}
+
+.side-tile .group-bar {
+  width: 18px; /* Nới rộng thanh dọc của ô cạnh */
+  height: 100%;
+  flex-shrink: 0;
+}
+
+/* MÀU CÁC NHÓM ĐẤT (TĂNG ĐỘ TƯƠI SÁNG ĐỂ NỔI BẬT TRÊN NỀN TÍM) */
+.group-BROWN { background-color: #a0522d; }
+.group-LIGHT_BLUE { background-color: #00cec9; }
+.group-PINK { background-color: #e84393; }
+.group-ORANGE { background-color: #ff7675; }
+.group-RED { background-color: #d63031; }
+.group-YELLOW { background-color: #fdcb6e; }
+.group-GREEN { background-color: #00b894; }
+.group-DARK_BLUE { background-color: #0984e3; }
+
+/* QUÂN CỜ PHÁT SÁNG CỰC KỲ DỄ NHÌN */
+.player-token {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  position: absolute;
+  border: 2px solid #fff;
+  z-index: 20;
+  box-shadow: 0 0 8px rgba(255,255,255,0.8);
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  line-height: 1;
+  overflow: hidden;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+}
+/* Token nhỏ hơn khi nhiều người chơi (đặt trong buildPlayersUI) */
+.player-token.small-token {
+  width: 16px;
+  height: 16px;
+  font-size: 10px;
+}
+/* Xếp chồng quân cờ khi nhiều người cùng đứng trên 1 ô */
+.player-token.token-stacked {
+  border-color: rgba(255,255,255,0.9);
+}
+.token-p1 { background-color: #ff4757; bottom: 3px; left: 3px; }
+.token-p2 { background-color: #1e90ff; bottom: 3px; right: 3px; }
+
+/* PLAYER CARDS */
+.player-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  transition: border-color 0.2s;
+}
+.player-card.active {
+  border-color: #fdcb6e;
+  background: var(--tile-hover);
+  box-shadow: 0 0 10px rgba(253, 203, 110, 0.2);
+}
+.player-badge { width: 12px; height: 12px; border-radius: 50%; }
+.p1-bg { background: #ff4757; }
+.p2-bg { background: #1e90ff; }
+.player-name { flex: 1; font-size: 13px; font-weight: bold; }
+.player-money { font-weight: bold; color: #55efc4; }
+
+#rules-list ul { list-style: none; font-size: 12px; color: var(--text-sub); }
+#rules-list li { margin-bottom: 6px; }
+
+/* =========================================================
+   POP-UP MUA ĐẤT PHONG CÁCH RICHUP.IO
+   ========================================================= */
+/* =========================================================
+   1. POP-UP HỎI MUA ĐẤT (ĐƠN GIẢN)
+   ========================================================= */
+.modal {
+  position: absolute;
+  z-index: 50;
+  background: var(--panel-bg);
+  border: 2px solid #a29bfe;
+  border-radius: 10px;
+  padding: 14px;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(162, 155, 254, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 220px;
+  animation: popIn 0.2s ease-out;
+}
+
+.modal.hidden, .property-card-modal.hidden {
+  display: none !important;
+}
+
+@keyframes popIn {
+  from { transform: scale(0.85); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal-title {
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--text-sub);
+  text-transform: uppercase;
+}
+
+.modal-tile {
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--text-main);
+}
+
+.modal-price {
+  font-size: 14px;
+  font-weight: bold;
+  color: #ffeaa7;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.modal-actions button {
+  flex: 1;
+  padding: 8px 0;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 12px;
+  transition: transform 0.1s, opacity 0.2s;
+}
+
+.btn-confirm { background: #00b894; color: #fff; box-shadow: 0 3px 0 #008b6f; }
+.btn-cancel { background: #d63031; color: #fff; box-shadow: 0 3px 0 #a32223; }
+
+/* =========================================================
+   2. THẺ THÔNG TIN RICHUP.IO KHI HOVER Ô ĐẤT
+   ========================================================= */
+.property-card-modal {
+  position: absolute;
+  z-index: 60;
+  background: #1b2234;
+  border: 1px solid #36415e;
+  border-radius: 12px;
+  padding: 14px;
+  width: 230px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  animation: popIn 0.15s ease-out;
+  pointer-events: none; /* Không cản trở hover chuột */
+}
+
+.card-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffffff;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.card-table {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  color: #7b8ba5;
+  font-weight: 600;
+  font-size: 11px;
+  border-bottom: 1px dashed #2f3a52;
+  padding-bottom: 3px;
+  margin-bottom: 2px;
+}
+
+.table-row {
+  display: flex;
+  justify-content: space-between;
+  color: #c5d1e5;
+}
+
+.rent-price {
+  font-weight: 700;
+  color: #9aaec4;
+}
+
+.card-divider {
+  height: 1px;
+  background-color: #2f3a52;
+  margin: 10px 0;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+}
+
+.footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.footer-label {
+  font-size: 11px;
+  color: #7b8ba5;
+  font-weight: 600;
+}
+
+.footer-val {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+}
+/* NÚT BẤM DƯỚI CARD */
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.modal-actions button {
+  flex: 1;
+  padding: 10px 0;
+  border: none;
+  border-radius: 6px;
+  font-weight: 800;
+  cursor: pointer;
+  font-size: 13px;
+  transition: transform 0.1s, background-color 0.2s;
+}
+
+.btn-confirm {
+  background: #00b894;
+  color: #fff;
+  box-shadow: 0 3px 0 #008b6f;
+}
+
+.btn-confirm:hover {
+  background: #00d2a4;
+}
+
+.btn-cancel {
+  background: #d63031;
+  color: #fff;
+  box-shadow: 0 3px 0 #a32223;
+}
+
+.btn-cancel:hover {
+  background: #ff7675;
+}
+
+.modal-actions button:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+.btn-confirm {
+  background: #00b894;
+  color: #fff;
+  box-shadow: 0 3px 0 #008b6f;
+}
+
+.btn-cancel {
+  background: #d63031;
+  color: #fff;
+  box-shadow: 0 3px 0 #a32223;
+}
+
+.modal-actions button:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+/* NÚT BẤM TRUNG TÂM */
+.center-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+#end-turn-btn {
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: bold;
+  background: linear-gradient(135deg, #00b894, #008b6f);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 184, 148, 0.4);
+  transition: all 0.2s;
+}
+
+#end-turn-btn:hover:not(:disabled) {
+  background: #00d2a4;
+}
+
+#end-turn-btn:disabled {
+  background: #352f4c;
+  color: #6c638a;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+#roll-btn:disabled {
+  background: #352f4c;
+  color: #6c638a;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* OVERLAY NÂNG CẤP NHÀ KHỦNG HOVER TRÊN Ô ĐẤT */
+.upgrade-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 16, 36, 0.92);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+  padding: 2px;
+  border-radius: 4px;
+  animation: fadeIn 0.15s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.btn-upgrade-house {
+  background: linear-gradient(135deg, #fdcb6e, #e17055);
+  color: #1a152e;
+  border: none;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 5px 4px;
+  cursor: pointer;
+  width: 92%;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  transition: transform 0.1s;
+}
+
+.btn-upgrade-house:hover {
+  transform: scale(1.03);
+  background: #ffeaa7;
+}
+
+/* =========================================================
+   THẺ THÔNG TIN RICHUP.IO & QUẢN LÝ ĐẤT (SỬA LỖI CLICK)
+   ========================================================= */
+#center-panel {
+  position: relative;
+}
+
+.property-card-modal {
+  position: absolute;
+  z-index: 100; /* Đảm bảo nổi lên trên cùng */
+  pointer-events: auto !important; /* Mở lại khả năng tương tác chuột */
+  background: #1b2234;
+  border: 1px solid #36415e;
+  border-radius: 12px;
+  padding: 12px 14px;
+  width: 230px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  animation: popIn 0.15s ease-out;
+  transition: top 0.2s, bottom 0.2s, left 0.2s, right 0.2s;
+}
+
+.modal {
+  pointer-events: auto !important;
+  z-index: 90;
+}
+
+.modal.hidden, .property-card-modal.hidden {
+  display: none !important;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.close-btn {
+  background: #2f3a52;
+  border: none;
+  color: #a29bfe;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: bold;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.close-btn:hover {
+  color: #ffffff;
+  background: #d63031;
+}
+
+/* NÚT THAO TÁC QUẢN LÝ ĐẤT */
+.card-controls {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px dashed #2f3a52;
+}
+
+.control-row {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-action {
+  flex: 1;
+  padding: 8px 0;
+  border: none;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 11px;
+  cursor: pointer;
+  transition: transform 0.1s, opacity 0.2s, background-color 0.2s;
+}
+
+.btn-action:active {
+  transform: translateY(1px);
+}
+
+.btn-build {
+  background: #fdcb6e;
+  color: #1a152e;
+}
+.btn-build:hover:not(:disabled) { background: #ffeaa7; }
+
+.btn-downgrade {
+  background: #e17055;
+  color: #ffffff;
+}
+.btn-downgrade:hover:not(:disabled) { background: #ff7675; }
+
+.btn-mortgage {
+  background: #6c5ce7;
+  color: #ffffff;
+  width: 100%;
+}
+.btn-mortgage:hover:not(:disabled) { background: #a29bfe; }
+
+.btn-action:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   NHẬN DIỆN SỞ HỮU ĐẤT (OWNERSHIP IDENTIFICATION)
+   ========================================================= */
+
+/* Trạng thái ô thuộc sở hữu P1 (Sài Gòn Pro - Màu Đỏ) */
+.tile.owned-p1 {
+  border: 2px solid #ff4757 !important;
+  background-color: rgba(255, 71, 87, 0.15) !important;
+  box-shadow: inset 0 0 10px rgba(255, 71, 87, 0.3);
+}
+
+/* Trạng thái ô thuộc sở hữu P2 (Chợ Lớn VIP - Màu Xanh) */
+.tile.owned-p2 {
+  border: 2px solid #1e90ff !important;
+  background-color: rgba(30, 144, 255, 0.15) !important;
+  box-shadow: inset 0 0 10px rgba(30, 144, 255, 0.3);
+}
+
+/* Huy hiệu hiển thị tên chủ sở hữu ở góc ô */
+.owner-badge {
+  position: absolute;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 4px;
+  color: #ffffff;
+  z-index: 14;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  letter-spacing: 0.5px;
+}
+
+.owner-badge-p1 {
+  background: #ff4757;
+  bottom: 2px;
+  left: 2px;
+}
+
+.owner-badge-p2 {
+  background: #1e90ff;
+  bottom: 2px;
+  left: 2px;
+}
+
+/* Styling Icon cho các ô đặc biệt */
+.tile-icon {
+  font-size: 18px;
+  line-height: 1;
+  margin-bottom: 3px;
+  display: block;
+  text-align: center;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+
+/* Hiệu ứng nảy mượt khi quân cờ di chuyển qua từng ô */
+.player-token {
+  transition: transform 0.1s ease-in-out;
+}
+
+.player-token.moving {
+  top: 50% !important;
+  left: 50% !important;
+  bottom: auto !important;
+  right: auto !important;
+  transform: translate(-50%, -50%) scale(1.4);
+  z-index: 100 !important;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.6));
+}
+
+/* Style cho Thẻ Cơ Hội & Khí Vận Pop-up */
+.modal-content.card-theme {
+  background: linear-gradient(145deg, #1f2430, #2a324b);
+  border: 2px solid #f39c12;
+  box-shadow: 0 0 25px rgba(243, 156, 18, 0.4);
+  text-align: center;
+  padding: 25px;
+  border-radius: 12px;
+  max-width: 380px;
+}
+
+.card-badge {
+  display: inline-block;
+  background: #e67e22;
+  color: #fff;
+  font-weight: bold;
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: 1px;
+}
+
+/* NÚT MUA - MÀU XANH LÁ / NGỌC */
+.btn-buy, #btn-buy, #buy-yes-btn {
+  background: linear-gradient(135deg, #10ac84, #1dd1a1) !important;
+  color: #ffffff !important;
+  border: 1px solid #10ac84 !important;
+  box-shadow: 0 4px 12px rgba(29, 209, 161, 0.35) !important;
+}
+
+.btn-buy:hover, #btn-buy:hover, #buy-yes-btn:hover {
+  background: linear-gradient(135deg, #1dd1a1, #10ac84) !important;
+  transform: translateY(-2px);
+}
+
+/* NÚT BỎ QUA - MÀU ĐỎ */
+.btn-skip, #btn-skip, #buy-no-btn {
+  background: linear-gradient(135deg, #ee5253, #ff6b6b) !important;
+  color: #ffffff !important;
+  border: 1px solid #ee5253 !important;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.35) !important;
+}
+
+.btn-skip:hover, #btn-skip:hover, #buy-no-btn:hover {
+  background: linear-gradient(135deg, #ff6b6b, #ee5253) !important;
+  transform: translateY(-2px);
+}
+
+/* =========================================================
+   FIX TRIỆT ĐỂ LỖI Z-INDEX (ĐẦU LỚP POP-UP LÊN TRÊN CÙNG)
+   ========================================================= */
+
+/* 1. Hạ z-index của Bảng trung tâm (Nút Kết thúc lượt / Gieo xúc xắc) */
+.center-box,
+.center-area,
+#center-area,
+#controls,
+.controls-container {
+  z-index: 10 !important;
+}
+
+/* 2. Thẻ thông tin chi tiết ô đất (Property Info Card) nổi lên trên bàn cờ */
+#property-info-card {
+  z-index: 10000 !important;
+  position: absolute !important;
+  pointer-events: auto !important;
+}
+
+/* Fix Modal Mua đất & Lá bài nằm trên cùng */
+.modal {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99999 !important;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Fix Bảng chi tiết đất (Huyện Bình Chánh, Gò Vấp...) không che khu vực nút bấm trung tâm */
+#property-info-card {
+  z-index: 1000 !important;
+  position: absolute !important;
+  pointer-events: auto !important;
+}
+
+/* Đảm bảo khi ẩn thì không cản trở click chuột */
+.modal.hidden, 
+#property-info-card.hidden {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+/* =========================================================
+   1. FIX KHUNG MUA ĐẤT BỊ XUYÊN THẤU (ẢNH 2)
+   ========================================================= */
+.modal-content {
+  background-color: #1e1b2e !important; /* Phông nền tối đặc, che hoàn toàn chữ bàn cờ bên dưới */
+  border: 2px solid #3b4261 !important;
+  border-radius: 16px !important;
+  padding: 24px 32px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8) !important;
+  text-align: center !important;
+  min-width: 300px !important;
+  max-width: 90vw !important;
+  position: relative !important;
+  z-index: 100002 !important;
+}
+
+/* =========================================================
+   2. FIX BẢNG THÔNG TIN ĐẤT BỊ TRÀN NÚT BẤM (ẢNH 1)
+   ========================================================= */
+#property-info-card {
+  background-color: #1e1b2e !important;
+  border: 2px solid #3b4261 !important;
+  border-radius: 16px !important;
+  padding: 16px !important;
+  box-sizing: border-box !important; /* Đảm bảo padding không đẩy phần tử ra ngoài */
+  width: 320px !important;
+  height: auto !important; /* Tự động co giãn theo số lượng nút bấm */
+  max-height: 90vh !important;
+  overflow: hidden !important; /* Cắt gọn phần thừa, không cho tràn viền */
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  z-index: 9999 !important;
+}
+
+/* Đảm bảo các nút bên trong thẻ đất nằm gọn 100% chiều rộng */
+#property-info-card button,
+#property-info-card .btn,
+#property-info-card .action-btn {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  margin: 2px 0 !important;
+}
+
+/* =========================================================
+   3. KHẮC PHỤC LỖI NÚT BẤM KHÔNG PHẢN HỒI (POINTER EVENTS)
+   ========================================================= */
+button, 
+.btn, 
+.close-btn, 
+#buy-yes-btn, 
+#buy-no-btn {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+/* =========================================================
+   FIX BẢNG CHI TIẾT ĐẤT: THU GỌN NÚT X & MỞ KHÓA NÚT BẤM
+   ========================================================= */
+
+/* 1. Sắp xếp lại thanh tiêu đề của Pop-up */
+#property-info-card .card-header,
+#property-info-card > div:first-child {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+}
+
+/* 2. Thu gọn nút X về hình tròn nhỏ cố định (không bị co dãn) */
+#close-info-card-btn,
+#property-info-card .close-btn,
+#property-info-card .card-close {
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  max-width: 28px !important;
+  flex: 0 0 28px !important; /* Khóa không cho flexbox kéo dãn */
+  border-radius: 50% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  border: none !important;
+  cursor: pointer !important;
+}
+
+#close-info-card-btn:hover,
+#property-info-card .close-btn:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* 3. Đảm bảo toàn bộ bảng và các nút bấm nhận sự kiện click */
+#property-info-card {
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+}
+
+#property-info-card button,
+#property-info-card .btn,
+#property-info-card .action-btn {
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 10000 !important;
+  cursor: pointer !important;
+}
+
+CSS
+#property-info-card button * {
+  pointer-events: none !important;
+}
+.modal, #property-info-card, #buy-modal {
+  z-index: 9999 !important; /* Luôn nổi lên trên cùng */
+  pointer-events: auto !important; /* Nhận toàn bộ click chuột */
+}
+
+/* =========================================================
+   FIX DỨT ĐIỂM: NÚT BẤM TRONG POP-UP ĐẤT KHÔNG BẤM ĐƯỢC
+   (ĐẶT Ở CUỐI FILE ĐỂ CHIẾN THẮNG MỌI QUY TẮC XUNG ĐỘT)
+   ========================================================= */
+
+/* 1. Nâng hẳn thẻ đất lên trên cùng, cao hơn cả lớp phủ .modal toàn màn hình */
+#property-info-card {
+  z-index: 999999 !important;
+  pointer-events: auto !important;
+  position: absolute !important;
+}
+
+/* 2. Mở khóa pointer-events cho MỌI thành phần bên trong thẻ đất,
+      ghi đè hẳn quy tắc `#property-info-card button * { pointer-events: none }` */
+#property-info-card,
+#property-info-card * {
+  pointer-events: auto !important;
+}
+
+/* 3. Đảm bảo các nút bên trong thẻ đất luôn nhận được click */
+#property-info-card button,
+#property-info-card .btn,
+#property-info-card .btn-action,
+#property-info-card .close-btn {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  position: relative !important;
+  z-index: 999999 !important;
+}
+
+/* 4. Vô hiệu hóa quy tắc cũ gây chặn click (nếu còn sót lại) */
+#property-info-card button * {
+  pointer-events: auto !important;
+}
+
+/* =========================================================
+   MÀN HÌNH LOBBY (CHỌN CHẾ ĐỘ CHƠI) & PHÒNG CHỜ
+   ========================================================= */
+#lobby-overlay,
+#room-waiting-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999998;
+  background: rgba(8, 6, 16, 0.94);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Quy tắc ẩn dùng chung cho các overlay */
+#lobby-overlay.hidden,
+#room-waiting-overlay.hidden,
+#settings-overlay.hidden {
+  display: none !important;
+}
+
+.lobby-box {
+  background: #1a152e;
+  border: 2px solid #a29bfe;
+  border-radius: 16px;
+  padding: 28px 34px;
+  width: 420px;
+  max-width: 92vw;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-shadow: 0 0 40px rgba(162, 155, 254, 0.4);
+  color: #f0edfd;
+  text-align: center;
+}
+
+.lobby-title {
+  font-size: 24px;
+  font-weight: 900;
+  color: #a29bfe;
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+}
+
+.lobby-subtitle {
+  font-size: 13px;
+  color: #a89bc9;
+  margin-bottom: 20px;
+}
+
+.lobby-name-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  margin-bottom: 16px;
+}
+
+.lobby-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #a89bc9;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+#lobby-name {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #4a3b78;
+  background: #251d42;
+  color: #f0edfd;
+  font-size: 15px;
+}
+
+.lobby-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.lobby-join-row {
+  display: flex;
+  gap: 8px;
+}
+
+#lobby-room-code {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #4a3b78;
+  background: #251d42;
+  color: #f0edfd;
+  font-size: 15px;
+  text-transform: uppercase;
+  text-align: center;
+  letter-spacing: 3px;
+}
+
+.lobby-actions .btn-buy {
+  flex: 0 0 auto;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.lobby-error {
+  color: #ff6b6b;
+  font-size: 13px;
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.lobby-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #a89bc9;
+  font-size: 12px;
+  margin: 16px 0;
+}
+.lobby-divider::before,
+.lobby-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #4a3b78;
+}
+
+.offline-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(108, 92, 231, 0.4);
+  transition: transform 0.1s, opacity 0.2s;
+}
+.offline-btn:hover { opacity: 0.9; }
+.offline-btn:active { transform: translateY(2px); }
+
+/* PHÒNG CHỜ */
+.room-code {
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: 8px;
+  color: #ffeaa7;
+  background: #251d42;
+  border: 1px dashed #a29bfe;
+  border-radius: 10px;
+  padding: 10px;
+  margin: 12px 0;
+}
+
+.room-players {
+  margin: 12px 0;
+  text-align: left;
+}
+
+.room-player-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #251d42;
+  border: 1px solid #4a3b78;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.room-you {
+  color: #55efc4;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+/* HÀNG MÃ PHÒNG + NÚT SAO CHÉP */
+.room-code-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.room-code {
+  margin: 0;
+  padding: 10px 16px;
+  font-size: 30px;
+  letter-spacing: 6px;
+}
+
+#room-copy-code-btn {
+  flex: 0 0 auto;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+/* BỘ CHỌN NHÂN VẬT TRONG PHÒNG CHỜ */
+.room-token-section {
+  margin: 14px 0;
+  text-align: left;
+}
+
+.room-token-picker {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  max-height: 160px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.room-token-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 2px;
+  background: #1a152e;
+  border: 1px solid #4a3b78;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #f0edfd;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+}
+
+.room-token-option:hover:not(.taken) {
+  border-color: #a29bfe;
+  background: #362a5e;
+}
+
+.room-token-option.selected {
+  border-color: #fdcb6e;
+  background: #3a2f14;
+  box-shadow: 0 0 8px rgba(253, 203, 110, 0.4);
+}
+
+.room-token-option.taken {
+  opacity: 0.35;
+  cursor: not-allowed;
+  filter: grayscale(0.8);
+}
+
+#room-start-btn-wrap {
+  margin: 12px 0;
+}
+
+.room-waiting-note {
+  color: #a89bc9;
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* =========================================================
+   MÀN HÌNH CÀI ĐẶT LUẬT CHƠI (PRE-GAME)
+   ========================================================= */
+#settings-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999999;
+  background: rgba(8, 6, 16, 0.92);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#settings-overlay.hidden {
+  display: none;
+}
+
+.settings-box {
+  background: #1a152e;
+  border: 2px solid #a29bfe;
+  border-radius: 16px;
+  padding: 28px 34px;
+  width: 460px;
+  max-width: 92vw;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-shadow: 0 0 40px rgba(162, 155, 254, 0.4);
+  color: #f0edfd;
+}
+
+.settings-title {
+  font-size: 22px;
+  font-weight: 900;
+  text-align: center;
+  color: #a29bfe;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+}
+
+.settings-section {
+  margin-bottom: 18px;
+}
+
+.settings-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #a89bc9;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.player-count-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.player-count-control .count-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: none;
+  background: #6c5ce7;
+  color: #fff;
+  font-size: 22px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.player-count-control .count-btn:hover { background: #a29bfe; }
+
+#player-count-val {
+  font-size: 28px;
+  font-weight: 900;
+  color: #ffeaa7;
+  min-width: 40px;
+  text-align: center;
+}
+
+.count-hint {
+  font-size: 12px;
+  color: #a89bc9;
+}
+
+.settings-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #4a3b78;
+  background: #251d42;
+  color: #f0edfd;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  font-size: 14px;
+  color: #f0edfd;
+  cursor: pointer;
+}
+.toggle-row input {
+  width: 18px;
+  height: 18px;
+  accent-color: #6c5ce7;
+  cursor: pointer;
+}
+
+.start-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #10ac84, #1dd1a1);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(29, 209, 161, 0.4);
+  transition: transform 0.1s, opacity 0.2s;
+  margin-top: 8px;
+}
+.start-btn:hover { opacity: 0.9; }
+.start-btn:active { transform: translateY(2px); }
+
+/* GLOW nhóm màu theo từng người chơi (động) */
+.group-glow-p1 {
+  box-shadow: inset 0 0 12px rgba(255, 71, 87, 0.6) !important;
+}
+.group-glow-p2 {
+  box-shadow: inset 0 0 12px rgba(30, 144, 255, 0.6) !important;
+}
+.group-glow-p3 {
+  box-shadow: inset 0 0 12px rgba(46, 213, 115, 0.6) !important;
+}
+.group-glow-p4 {
+  box-shadow: inset 0 0 12px rgba(253, 203, 110, 0.6) !important;
+}
+.group-glow-p5 {
+  box-shadow: inset 0 0 12px rgba(232, 67, 147, 0.6) !important;
+}
+.group-glow-p6 {
+  box-shadow: inset 0 0 12px rgba(0, 184, 148, 0.6) !important;
+}
+.group-glow-p7 {
+  box-shadow: inset 0 0 12px rgba(162, 155, 254, 0.6) !important;
+}
+.group-glow-p8 {
+  box-shadow: inset 0 0 12px rgba(255, 159, 67, 0.6) !important;
+}
+
+/* =========================================================
+   HIỆU ỨNG GLOW KHI SỞ HỮU TRỌN 1 NHÓM MÀU (MONOPOLY)
+   ========================================================= */
+/* P1 (Sài Gòn Pro - Đỏ) -> ánh tím phát sáng xung quanh ô */
+.tile.group-glow-purple {
+  animation: glowPurple 1.6s ease-in-out infinite;
+  z-index: 6 !important;
+}
+
+/* P2 (Chợ Lớn VIP - Xanh) -> ánh vàng phát sáng xung quanh ô */
+.tile.group-glow-gold {
+  animation: glowGold 1.6s ease-in-out infinite;
+  z-index: 6 !important;
+}
+
+@keyframes glowPurple {
+  0%, 100% {
+    box-shadow: 0 0 6px 2px rgba(162, 155, 254, 0.5), inset 0 0 8px rgba(162, 155, 254, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 16px 6px rgba(162, 155, 254, 0.95), inset 0 0 14px rgba(162, 155, 254, 0.6);
+  }
+}
+
+@keyframes glowGold {
+  0%, 100% {
+    box-shadow: 0 0 6px 2px rgba(253, 203, 110, 0.5), inset 0 0 8px rgba(253, 203, 110, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 16px 6px rgba(253, 203, 110, 0.95), inset 0 0 14px rgba(253, 203, 110, 0.6);
+  }
+}
+
+/* =========================================================
+   THU GỌN & ĐẶT POP-UP THẺ ĐẤT SÁT BÊN Ô (NHỎ GỌN HƠN)
+   ========================================================= */
+#property-info-card {
+  width: 190px !important;
+  padding: 8px 10px !important;
+  border-radius: 10px !important;
+  gap: 6px !important;
+  font-size: 11px !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.7) !important;
+}
+
+#property-info-card .card-header {
+  margin-bottom: 4px !important;
+}
+
+#property-info-card .card-title,
+#property-info-card #info-card-name {
+  font-size: 13px !important;
+  margin-bottom: 0 !important;
+}
+
+#property-info-card .card-table {
+  gap: 2px !important;
+  font-size: 10px !important;
+  width: 100% !important;
+}
+
+#property-info-card .table-header,
+#property-info-card .table-row {
+  width: 100% !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+#property-info-card .table-row > span:first-child {
+  flex: 1 1 auto !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+#property-info-card .table-row > span:last-child {
+  flex: 0 0 auto !important;
+  text-align: right !important;
+  white-space: nowrap !important;
+}
+
+#property-info-card .table-header {
+  font-size: 9px !important;
+  padding-bottom: 2px !important;
+  margin-bottom: 1px !important;
+  border-bottom: 1px dashed #2f3a52 !important;
+}
+
+#property-info-card .card-divider {
+  margin: 5px 0 !important;
+}
+
+#property-info-card .card-footer {
+  gap: 4px !important;
+}
+
+#property-info-card .footer-label {
+  font-size: 9px !important;
+}
+
+#property-info-card .footer-val {
+  font-size: 11px !important;
+}
+
+/* Nút đóng (X) nhỏ gọn hơn */
+#close-info-card-btn,
+#property-info-card .close-btn {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  max-width: 18px !important;
+  flex: 0 0 18px !important;
+  font-size: 10px !important;
+}
+
+/* Nút thao tác (Xây / Dỡ / Cầm cố) nhỏ gọn hơn */
+#property-info-card .card-controls {
+  margin-top: 6px !important;
+  gap: 4px !important;
+  padding-top: 6px !important;
+}
+
+#property-info-card .btn-action,
+#property-info-card button,
+#property-info-card .action-btn {
+  font-size: 9px !important;
+  padding: 5px 0 !important;
+}
+
+/* =========================================================
+   ICON NHÀ NẰM TRONG THANH MÀU (GROUP-BAR) CỦA Ô ĐẤT
+   ========================================================= */
+.group-bar {
+  position: relative; /* Để định vị badge con bên trong */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.house-tile-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px; /* Tăng kích thước icon nhà/khách sạn cho rõ hơn */
+  line-height: 1;
+  font-weight: bold;
+  color: #ffeaa7;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+  z-index: 16;
+  white-space: nowrap;
+}
+
+/* Với ô cạnh (side-tile), thanh màu nằm dọc -> icon nhà xoay dọc theo */
+.side-tile .house-tile-badge {
+  writing-mode: vertical-rl;
+  transform: translate(-50%, -50%) rotate(180deg);
+}
+
+/* =========================================================
+   ĐÁNH DẤU Ô ĐẤT ĐANG BỊ CẦM CỐ (🔒)
+   ========================================================= */
+.mortgage-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  z-index: 17;
+  font-size: 11px;
+  line-height: 1;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 50%;
+  padding: 1px;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
+}
+
+/* =========================================================
+   POP-UP ĐẤU GIÁ (AUCTION)
+   ========================================================= */
+#auction-modal .modal-content {
+  background: linear-gradient(145deg, #1f2430, #3b2d52) !important;
+  border: 2px solid #fdcb6e !important;
+  box-shadow: 0 0 25px rgba(253, 203, 110, 0.4) !important;
+  text-align: center;
+  padding: 24px 30px !important;
+  border-radius: 12px !important;
+  max-width: 400px !important;
+  min-width: 320px !important;
+}
+
+#auction-modal h3 {
+  color: #fdcb6e;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+#auction-modal p {
+  color: #f0edfd;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+/* BADGE TIÊU ĐỀ ĐẤU GIÁ */
+.auction-badge {
+  background: #d35400;
+  font-size: 15px;
+  padding: 6px 18px;
+  margin-bottom: 14px;
+}
+
+/* KHU VỰC THÔNG TIN ĐẤU GIÁ */
+.auction-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0 14px 0;
+  width: 100%;
+}
+
+.auction-row {
+  color: #f0edfd;
+  font-size: 14px;
+}
+
+.auction-row b {
+  color: #ffeaa7;
+}
+
+/* HÀNG BỘ ĐẾM THỜI GIAN NHUỘM THEME VÀNG */
+.auction-timer-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 8px 0;
+  width: 100%;
+}
+
+.auction-timer-label {
+  font-size: 13px;
+  color: #f0edfd;
+}
+
+#auction-timer-track {
+  width: min(260px, 72%);
+  height: 12px;
+  background: #1a152e;
+  border: 1px solid #4a3b78;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+#dice-result { display: flex; gap: 10px; min-height: 44px; align-items: center; justify-content: center; }
+.dice-face { display: inline-grid; place-items: center; width: 38px; height: 38px; border-radius: 8px; background: #fff; color: #2d234b; font-size: 25px; font-weight: 900; box-shadow: 0 3px 0 #b8b0c9; }
+.dice-face.rolling { animation: dice-roll 0.12s linear infinite; }
+@keyframes dice-roll { 50% { transform: rotate(18deg) scale(0.88); } }
+.inventory-item { border-left: 5px solid var(--border-color); }
+.inventory-item-name .inventory-icon { margin-right: 5px; }
+
+.auction-timer-bar {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #fdcb6e, #f39c12);
+  transition: width 0.1s linear, background 0.2s ease;
+}
+
+/* QUÂN CỜ NGƯỜI TRẢ GIÁ CAO NHẤT */
+.auction-highest {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.auction-token {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  display: inline-block;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+}
+
+/* HÀNG NÚT ĐẶT GIÁ NHANH (+2 / +10 / +100) */
+.auction-bid-buttons {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+  width: 100%;
+}
+
+.auction-add-btn {
+  flex: 1;
+  padding: 10px 0;
+  border: none;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  background: #6c5ce7;
+  color: #fff;
+  transition: transform 0.1s, background 0.2s;
+}
+
+.auction-add-btn:hover {
+  background: #a29bfe;
+}
+
+.auction-add-btn:active {
+  transform: translateY(2px);
+}
+
+
+/* =========================================================
+   CHỌN NHÂN VẬT (QUÂN CỜ) TRONG MÀN HÌNH CÀI ĐẶT
+   ========================================================= */
+#character-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.char-picker-player {
+  background: #251d42;
+  border: 1px solid #4a3b78;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.char-picker-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffeaa7;
+  margin-bottom: 6px;
+}
+.char-picker-label small {
+  color: #a89bc9;
+  font-weight: 400;
+}
+
+.char-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.char-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 2px;
+  background: #1a152e;
+  border: 1px solid #4a3b78;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+}
+
+.char-option:hover:not(.taken) {
+  border-color: #a29bfe;
+  background: #362a5e;
+}
+
+.char-option.selected {
+  border-color: #fdcb6e;
+  background: #3a2f14;
+  box-shadow: 0 0 8px rgba(253, 203, 110, 0.4);
+}
+
+.char-option.taken {
+  opacity: 0.35;
+  cursor: not-allowed;
+  filter: grayscale(0.8);
+}
+
+.char-emoji {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.char-name {
+  font-size: 8px;
+  color: #f0edfd;
+  text-align: center;
+  line-height: 1.1;
+  word-break: break-word;
+}
