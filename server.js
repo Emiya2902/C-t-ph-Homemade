@@ -9,8 +9,7 @@ const http = require('http');
 const express = require('express');
 const { Server } = require('socket.io');
 
-// Shared game logic (works on both server & client)
-const { createGame, applyAction } = require('./shared/gameServer.js');
+
 
 const app = express();
 app.use(express.static(path.join(__dirname, '.')));
