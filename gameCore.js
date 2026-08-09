@@ -1,5 +1,5 @@
 /**
- * GAME CORE LOGIC - Cờ Tỉ Phú Nhà Làm
+ * GAME CORE LOGIC - Cờ Tỉ Phú Nhà Làm (Fixed Edition)
  */
 
 window.GameCore = {
@@ -22,26 +22,24 @@ window.GameCore = {
     { title: "🎟️ Trúng Thưởng Hội Chợ", text: "Trúng giải thưởng mua sắm tại Phố đi bộ Nguyễn Huệ! Nhận $80.", action: "MONEY", amount: 80 }
   ],
 
-// CÀI ĐẶT LUẬT CHƠI (Người chơi có thể tuỳ chỉnh trước khi bắt đầu)
+  // CÀI ĐẶT LUẬT CHƠI
   settings: {
-    // Công tắc (bật/tắt)
     doubleRentOnFullGroup: true,   // Nhân đôi tiền thuê khi sở hữu trọn nhóm
     mortgageInsteadOfSell: true,   // Cầm cố thay vì bán đất
     jackpotOnFreeParking: true,    // Jackpot ở ô Bãi xe tự do
-receiveRentWhileJailed: false, // Vẫn nhận tiền thuê khi ở tù
+    receiveRentWhileJailed: false, // Vẫn nhận tiền thuê khi ở tù
     auctionMode: false,            // Chế độ đấu giá
-// Số tiền
-initialMoney: 1500,            // Tiền khởi tạo
+    initialMoney: 1500,            // Tiền khởi tạo
     passGoMoney: 200,              // Tiền khi đi qua ô "Bắt đầu"
     playerCount: 2,                // Số người chơi (2 - 8)
-    chosenTokens: []               // Nhân vật (quân cờ) mỗi người chơi đã chọn
+    chosenTokens: []               // Nhân vật mỗi người chơi đã chọn
   },
 
-// TÊN & MÀU MẶC ĐỊNH CHO NGƯỜI CHƠI (hỗ trợ tối đa 8 người)
+  // TÊN & MÀU MẶC ĐỊNH CHO NGƯỜI CHƠI (tối đa 8 người)
   playerNames: ["Sài Gòn Pro", "Chợ Lớn VIP", "Hà Nội Pro", "Đà Nẵng VIP", "Cần Thơ Pro", "Vũng Tàu VIP", "Huế Pro", "Nha Trang VIP"],
   playerColors: ["#ff4757", "#1e90ff", "#2ed573", "#fdcb6e", "#e84393", "#00b894", "#a29bfe", "#ff9f43"],
 
-// DANH SÁCH NHÂN VẬT (QUÂN CỜ) CHO NGƯỜI CHƠI LỰA CHỌN
+  // DANH SÁCH NHÂN VẬT (QUÂN CỜ)
   animalTokens: [
     { name: "Sài Gòn Cá Sấu", emoji: "🐊" },
     { name: "Chợ Lớn Mèo", emoji: "🐱" },
@@ -58,14 +56,14 @@ initialMoney: 1500,            // Tiền khởi tạo
     currentPlayerIndex: 0,
     board: [],
     pendingTile: null,
-    pendingCard: null, // Lưu lá bài đang đợi người chơi xác nhận
+    pendingCard: null,
     lastRoll: 0,
     logs: [],
-    jackpot: 0,        // Quỹ Jackpot (tích luỹ tiền thuế khi bật Jackpot)
-    auctionTile: null  // Ô đang đấu giá
+    jackpot: 0,
+    auctionTile: null,
+    auctionState: null
   },
 
-  // ÁP DỤNG CÀI ĐẶT TỪ MÀN HÌNH CHỌN LUẬT CHƠI
   configure(options = {}) {
     const s = this.settings;
     if (typeof options.doubleRentOnFullGroup === 'boolean') s.doubleRentOnFullGroup = options.doubleRentOnFullGroup;
@@ -74,8 +72,8 @@ initialMoney: 1500,            // Tiền khởi tạo
     if (typeof options.receiveRentWhileJailed === 'boolean') s.receiveRentWhileJailed = options.receiveRentWhileJailed;
     if (typeof options.auctionMode === 'boolean') s.auctionMode = options.auctionMode;
     if (typeof options.initialMoney === 'number' && options.initialMoney > 0) s.initialMoney = options.initialMoney;
-if (typeof options.passGoMoney === 'number' && options.passGoMoney >= 0) s.passGoMoney = options.passGoMoney;
-if (typeof options.playerCount === 'number' && options.playerCount >= 2 && options.playerCount <= 8) s.playerCount = options.playerCount;
+    if (typeof options.passGoMoney === 'number' && options.passGoMoney >= 0) s.passGoMoney = options.passGoMoney;
+    if (typeof options.playerCount === 'number' && options.playerCount >= 2 && options.playerCount <= 8) s.playerCount = options.playerCount;
     if (Array.isArray(options.chosenTokens)) s.chosenTokens = options.chosenTokens;
   },
 
@@ -88,13 +86,13 @@ if (typeof options.playerCount === 'number' && options.playerCount >= 2 && optio
     this.state.logs = [];
     this.state.jackpot = 0;
     this.state.auctionTile = null;
+    this.state.auctionState = null;
 
-// Tạo người chơi động theo số lượng đã cài đặt (2 - 8)
-const count = this.settings.playerCount || 2;
+    const count = this.settings.playerCount || 2;
     const chosen = this.settings.chosenTokens || [];
     this.state.players = [];
+
     for (let i = 0; i < count; i++) {
-      // Gán nhân vật (quân cờ) mà người chơi đã chọn, nếu có
       const token = chosen[i] || this.animalTokens[i] || { name: this.playerNames[i], emoji: '🎯' };
       this.state.players.push({
         id: i + 1,
@@ -105,7 +103,7 @@ const count = this.settings.playerCount || 2;
         position: 0,
         money: this.settings.initialMoney,
         inJail: false,
-jailTurns: 0,
+        jailTurns: 0,
         isBankrupt: false
       });
     }
@@ -114,15 +112,14 @@ jailTurns: 0,
     return this.state;
   },
 
-getCurrentPlayer() {
+  getCurrentPlayer() {
     return this.state.players[this.state.currentPlayerIndex];
   },
 
   getOtherPlayer() {
-    return this.state.players[this.state.currentPlayerIndex === 0 ? 1 : 0];
+    return this.state.players.find((_, idx) => idx !== this.state.currentPlayerIndex && !this.state.players[idx].isBankrupt) || this.state.players[0];
   },
 
-  // Trả về tất cả người chơi còn lại (trừ người truyền vào)
   getOtherPlayers(p) {
     return this.state.players.filter(x => x.id !== p.id && !x.isBankrupt);
   },
@@ -131,16 +128,12 @@ getCurrentPlayer() {
     this.state.logs.push(msg);
   },
 
-  // --- HỖ TRỢ TJACKPOT / NHÓM MÀU / ĐẤU GIÁ ---
-
-  // Kiểm tra người chơi có sở hữu TRỌN nhóm màu của ô này không
   ownsFullGroup(tile) {
     if (!tile || !tile.group) return false;
     const groupTiles = this.state.board.filter(t => t.group === tile.group);
     return groupTiles.length > 0 && groupTiles.every(t => t.owner === tile.owner);
   },
 
-  // Tính tiền thuê cho ô đất/ga/nhà máy (có áp dụng nhân đôi nhóm màu)
   calculateRent(tile, owner) {
     let rent = 0;
     if (tile.type === "RAILROAD") {
@@ -153,7 +146,6 @@ getCurrentPlayer() {
     } else {
       const rents = tile.rent || [Math.round((tile.price || 100) * 0.1)];
       rent = rents[tile.houses || 0] || rents[0] || 0;
-      // Nhân đôi nếu sở hữu trọn nhóm màu (chỉ khi không có nhà)
       if (this.settings.doubleRentOnFullGroup && !tile.houses && this.ownsFullGroup(tile)) {
         rent *= 2;
       }
@@ -161,24 +153,24 @@ getCurrentPlayer() {
     return rent;
   },
 
-  // Thu tiền thuê từ người đi vào ô (có thể là nhiều người chơi)
   collectRent(payer, tile) {
     const owner = this.state.players.find(pl => pl.id === tile.owner);
-    if (!owner) return;
-    // Nếu chủ sở hữu đang ở tù và luật không cho nhận tiền thuê -> không thu
-    if (owner.inJail && !this.settings.receiveRentWhileJailed) return;
+    if (!owner) return 0;
+    if (owner.inJail && !this.settings.receiveRentWhileJailed) {
+      this.addLog(`🏛️ ${owner.name} đang ở tù nên không thể thu tiền thuê.`);
+      return 0;
+    }
     const rent = this.calculateRent(tile, owner);
-    if (rent <= 0) return;
+    if (rent <= 0) return 0;
     payer.money -= rent;
     owner.money += rent;
     this.addLog(`💸 ${payer.name} trả $${rent} tiền thuê cho ${owner.name}`);
+    return rent;
   },
 
-// Bắt đầu đấu giá một ô (chế độ đấu giá) - Hỗ trợ NHIỀU người chơi
   startAuction(tile, excludedPlayerId = null) {
     this.state.auctionTile = tile;
-    // Lọc ra những người chơi còn sống (không vỡ nợ)
-const bidders = this.state.players.filter(p => !p.isBankrupt && p.money > 0 && p.id !== excludedPlayerId);
+    const bidders = this.state.players.filter(p => !p.isBankrupt && p.money > 0 && p.id !== excludedPlayerId);
     if (!bidders.length) {
       this.state.auctionTile = null;
       this.state.auctionState = null;
@@ -191,14 +183,13 @@ const bidders = this.state.players.filter(p => !p.isBankrupt && p.money > 0 && p
       highestBidderIndex: -1,
       active: true,
       round: 0,
-      bidders: bidders.map(p => p.id),   // Danh sách id người còn tham gia
-      currentBidderIndex: 0,             // Ai đang đến lượt trả giá
-      passedCount: 0,                    // Số người đã bỏ lượt trong vòng hiện tại
-      timerDuration: 5,                  // Thời gian đếm ngược (giây)
-      timerEnd: Date.now() + 5000        // Thời điểm hết giờ (ms)
+      bidders: bidders.map(p => p.id),
+      currentBidderIndex: 0,
+      passedCount: 0,
+      timerDuration: 5,
+      timerEnd: Date.now() + 5000
     };
 
-// Chọn người bắt đầu lượt đấu giá đầu tiên (từ người KẾ TIẾP người vừa bỏ qua)
     const currentIdx = bidders.findIndex(b => b.id === this.state.players[this.state.currentPlayerIndex].id);
     if (currentIdx !== -1) {
       this.state.auctionState.currentBidderIndex = (currentIdx + 1) % bidders.length;
@@ -207,7 +198,6 @@ const bidders = this.state.players.filter(p => !p.isBankrupt && p.money > 0 && p
     this.addLog(`🔨 Đấu giá ô [${tile.name}]! Giá khởi điểm $0.`);
   },
 
-  // Người đang đến lượt trả giá
   getCurrentAuctionBidder() {
     const a = this.state.auctionState;
     if (!a || !a.active) return null;
@@ -215,68 +205,59 @@ const bidders = this.state.players.filter(p => !p.isBankrupt && p.money > 0 && p
     return this.state.players.find(p => p.id === id) || null;
   },
 
-  // Người chơi đặt giá
   placeBid(playerIndex, amount) {
-const p = this.state.players[playerIndex];
+    const p = this.state.players[playerIndex];
     const a = this.state.auctionState;
     if (!p || !a || !a.active) return false;
     if (this.getCurrentAuctionBidder()?.id !== p.id) return false;
     if (amount <= a.currentBid) return false;
     if (amount > p.money) return false;
+
     a.currentBid = amount;
     a.highestBidder = p;
     a.highestBidderIndex = playerIndex;
-    // Đặt giá thành công -> reset bộ đếm thời gian
     a.timerEnd = Date.now() + (a.timerDuration * 1000);
     this.addLog(`🔨 ${p.name} đặt giá $${amount}`);
-    // Sau khi đặt giá -> chuyển lượt cho người kế tiếp
     this.advanceAuction();
     return true;
   },
 
-  // Người chơi bỏ lượt (không trả giá)
   passBid(playerIndex) {
     const a = this.state.auctionState;
     if (!a || !a.active) return false;
     const p = this.state.players[playerIndex];
     if (!p) return false;
     if (this.getCurrentAuctionBidder()?.id !== p.id) return false;
-    // Loại người chơi này khỏi vòng đấu giá
+
     a.bidders.splice(a.currentBidderIndex, 1);
     a.passedCount++;
     this.addLog(`⏭️ ${p.name} bỏ lượt trong cuộc đấu giá.`);
-    // Nếu hết người -> kết thúc
-    if (a.bidders.length <= 0) {
+
+    if (a.bidders.length <= 0 || (a.bidders.length === 1 && a.highestBidder)) {
       this.endAuction();
       return true;
     }
-    // Điều chỉnh index (đã bớt 1 phần tử)
+
     if (a.currentBidderIndex >= a.bidders.length) a.currentBidderIndex = 0;
     a.timerEnd = Date.now() + (a.timerDuration * 1000);
-    // Nếu chỉ còn 1 người trả giá và đã có giá thầu -> kết thúc ngay
-    if (a.bidders.length === 1 && a.currentBid > 0) {
-      this.endAuction();
-    }
     return true;
   },
 
-  // Chuyển lượt trả giá cho người kế tiếp
   advanceAuction() {
     const a = this.state.auctionState;
     if (!a || !a.active) return;
-    // Nếu chỉ còn 1 người và có giá thầu -> kết thúc
-    if (a.bidders.length === 1 && a.currentBid > 0) {
+    if (a.bidders.length === 1 && a.highestBidder) {
       this.endAuction();
       return;
     }
     a.currentBidderIndex = (a.currentBidderIndex + 1) % a.bidders.length;
   },
 
-  // Kết thúc đấu giá (chấp nhận giá cao nhất)
   endAuction() {
     const a = this.state.auctionState;
     const tile = this.state.auctionTile;
     if (!a || !tile) return null;
+
     if (a.highestBidder && a.currentBid > 0) {
       a.highestBidder.money -= a.currentBid;
       tile.owner = a.highestBidder.id;
@@ -285,13 +266,13 @@ const p = this.state.players[playerIndex];
     } else {
       this.addLog(`⭕ Không ai trả giá, ô [${tile.name}] vẫn chưa có chủ.`);
     }
+
     const result = a.highestBidder ? { winner: a.highestBidder, amount: a.currentBid } : null;
     this.state.auctionTile = null;
     this.state.auctionState = null;
     return result;
   },
 
-  // Kiểm tra xem có đang đấu giá hay không
   isAuctionActive() {
     return !!(this.state.auctionState && this.state.auctionState.active);
   },
@@ -310,8 +291,6 @@ const p = this.state.players[playerIndex];
 
   rollDice() {
     const p = this.getCurrentPlayer();
-    const other = this.getOtherPlayer();
-
     const d1 = Math.floor(Math.random() * 6) + 1;
     const d2 = Math.floor(Math.random() * 6) + 1;
     const dice = d1 + d2;
@@ -341,7 +320,7 @@ const p = this.state.players[playerIndex];
       this.addLog(`🎲 ${p.name} gieo được ${dice} điểm (${d1} + ${d2})`);
     }
 
-const oldPos = p.position;
+    const oldPos = p.position;
     p.position = (p.position + dice) % 40;
 
     if (p.position < oldPos && !p.inJail) {
@@ -350,23 +329,15 @@ const oldPos = p.position;
       this.addLog(`💵 ${p.name} qua ô Bắt đầu (+ $${goBonus})`);
     }
 
-    // Chạy logic chung khi đáp xuống ô (chia sẻ giữa gieo xúc xắc & thẻ Cơ hội/Khí vận)
-    return this.processTileLanding(p, other, { startPos, dice });
+    return this.processTileLanding(p, { startPos, dice });
   },
 
-  // ===========================================================
-  // XỬ LÝ CHUNG KHI ĐÁP XUỐNG MỘT Ô TRÊN BÀN CỜ
-  // (Được dùng cả khi gieo xúc xắc lẫn khi bị thẻ Cơ hội/Khí vận
-  //  ép di chuyển -> đảm bảo hành vi giống hệt gieo xúc xắc)
-  // ===========================================================
-  processTileLanding(p, other, info = {}) {
-    // Nếu thiếu `other` (trường hợp được gọi từ rìa ngoài), tự lấy người chơi còn lại
-    if (!other) other = this.getOtherPlayer();
-
+  processTileLanding(p, info = {}) {
     const tile = this.state.board[p.position];
+    if (!tile) return { action: "END_ROLL", tile: null, ...info };
 
-    // 1. XỬ LÝ Ô VÀO TÙ (#30)
-    if (p.position === 30 || (tile && tile.type === "GOTO_JAIL")) {
+    // 1. Ô VÀO TÙ
+    if (p.position === 30 || tile.type === "GOTO_JAIL") {
       p.position = 10;
       p.inJail = true;
       p.jailTurns = 0;
@@ -374,9 +345,9 @@ const oldPos = p.position;
       return { action: "GO_TO_JAIL", tile, ...info };
     }
 
-    // 2. XỬ LÝ Ô CƠ HỘI & KHÍ VẬN (Nhận diện linh hoạt không phân biệt hoa/thường)
-    const tileName = (tile && tile.name) ? tile.name.toLowerCase() : "";
-    const tileType = (tile && tile.type) ? tile.type.toUpperCase() : "";
+    // 2. Ô CƠ HỘI & KHÍ VẬN
+    const tileName = tile.name ? tile.name.toLowerCase() : "";
+    const tileType = tile.type ? tile.type.toUpperCase() : "";
 
     const isChance = tileType === "CHANCE" || tileType === "CO_HOI" || tileName.includes("cơ hội");
     const isFortune = tileType === "FORTUNE" || tileType === "KHI_VAN" || tileType === "COMMUNITY" || tileName.includes("khí vận");
@@ -388,99 +359,96 @@ const oldPos = p.position;
       return { action: "DRAW_CARD", card: this.state.pendingCard, ...info };
     }
 
-    // 3. XỬ LÝ Ô THUẾ
-    if (p.position === 4) {
-      const taxAmount = Math.round(p.money * 0.10);
+    // 3. Ô THUẾ
+    if (p.position === 4 || tileType === "TAX") {
+      const taxAmount = p.position === 4 ? Math.round(p.money * 0.10) : 100;
       p.money -= taxAmount;
-      this.addLog(`💸 ${p.name} đỗ vào [Thuế Thu Nhập] -> Nộp $${taxAmount}`);
-      return { action: "PAID_TAX", taxAmount, ...info };
-    } 
-    else if (p.position === 38) {
-      const taxAmount = 100;
-      p.money -= taxAmount;
-      this.addLog(`💸 ${p.name} đỗ vào [Thuế Cao Cấp] -> Nộp $100`);
+      if (this.settings.jackpotOnFreeParking) {
+        this.state.jackpot += taxAmount;
+      }
+      this.addLog(`💸 ${p.name} đỗ vào [${tile.name || "Thuế"}] -> Nộp $${taxAmount}`);
       return { action: "PAID_TAX", taxAmount, ...info };
     }
 
-    // 4. XỬ LÝ Ô ĐẤT THƯỜNG
-    if (tile && tile.price && tile.type !== "TAX") {
+    // 4. Ô BÃI XE TỰ DO (JACKPOT)
+    if (p.position === 20 || tileType === "FREE_PARKING") {
+      if (this.settings.jackpotOnFreeParking && this.state.jackpot > 0) {
+        const winAmount = this.state.jackpot;
+        p.money += winAmount;
+        this.addLog(`🎉 ${p.name} đỗ vào Bãi Xe Tự Do và hốt sạch Jackpot $${winAmount}!`);
+        this.state.jackpot = 0;
+        return { action: "WIN_JACKPOT", amount: winAmount, ...info };
+      }
+    }
+
+    // 5. Ô ĐẤT / GA / NHÀ MÁY
+    if (tile.price && tile.type !== "TAX") {
       if (tile.owner === null || tile.owner === undefined) {
         if (p.money >= tile.price) {
           this.state.pendingTile = tile;
           return { action: "PROMPT_BUY", tile, ...info };
-} else {
+        } else {
           this.addLog(`💡 ${p.name} đỗ vào [${tile.name}] nhưng không đủ $${tile.price} để mua.`);
-          // Nếu bật chế độ đấu giá -> tự động tiến hành đấu giá ô này
           if (this.settings.auctionMode) {
             this.startAuction(tile);
             return { action: "AUCTION", tile, ...info };
           }
         }
-      }
-else if (tile.owner !== p.id) {
-        // Ô đã bị cầm cố (mortgaged) thì không thu tiền thuê
+      } else if (tile.owner !== p.id) {
         if (tile.mortgaged) {
           this.addLog(`🏦 [${tile.name}] đang bị cầm cố nên ${p.name} không phải trả tiền thuê.`);
           return { action: "END_ROLL", tile, ...info };
         }
-        const rents = tile.rent || [Math.round(tile.price * 0.1)];
-        const rent = rents[tile.houses || 0] || rents[0];
-        p.money -= rent;
-        other.money += rent;
-        this.addLog(`💸 ${p.name} trả $${rent} tiền thuê cho ${other.name}`);
+        // Gọi hàm thu tiền thuê chuẩn xác
+        this.collectRent(p, tile);
       }
     }
 
     return { action: "END_ROLL", tile, ...info };
   },
 
-  // THỰC THI LÁ BÀI CƠ HỘI / KHÍ VẬN
   applyCardEffect() {
     const card = this.state.pendingCard;
     if (!card) return null;
 
     const p = this.getCurrentPlayer();
-    const other = this.getOtherPlayer();
-
     this.addLog(`🎴 ${p.name} rút thẻ [${card.type}]: ${card.title}`);
 
     if (card.action === "MONEY") {
       p.money += card.amount;
       this.addLog(`  -> ${p.name} ${card.amount >= 0 ? '+' : ''}$${card.amount}`);
-    } 
-    else if (card.action === "COLLECT_OTHER") {
-      p.money += card.amount;
-      other.money -= card.amount;
-      this.addLog(`  -> ${p.name} nhận $${card.amount} từ ${other.name}`);
-    } 
-    else if (card.action === "GO_TO_JAIL") {
+    } else if (card.action === "COLLECT_OTHER") {
+      const others = this.getOtherPlayers(p);
+      let totalCollected = 0;
+      others.forEach(other => {
+        other.money -= card.amount;
+        totalCollected += card.amount;
+      });
+      p.money += totalCollected;
+      this.addLog(`  -> ${p.name} nhận $${card.amount} từ mỗi người chơi (Tổng nhận: $${totalCollected})`);
+    } else if (card.action === "GO_TO_JAIL") {
       p.position = 10;
       p.inJail = true;
       p.jailTurns = 0;
       this.addLog(`  -> ${p.name} bị áp giải vào Tù (#10)!`);
-    } 
-else if (card.action === "MOVE_TO") {
+    } else if (card.action === "MOVE_TO") {
       p.position = card.target;
-      if (card.getGoBonus) p.money += 200;
+      if (card.getGoBonus) p.money += this.settings.passGoMoney;
       this.addLog(`  -> ${p.name} di chuyển đến ô #${card.target}`);
-    } 
-    else if (card.action === "MOVE_STEPS") {
+    } else if (card.action === "MOVE_STEPS") {
       p.position = (p.position + card.steps + 40) % 40;
       this.addLog(`  -> ${p.name} dịch chuyển ${card.steps} bước (về ô #${p.position})`);
     }
 
     const resultCard = { ...card, finalPos: p.position };
 
-    // Nếu thẻ ép người chơi DI CHUYỂN (đi lùi / đi thẳng tới ô khác),
-    // thì sau khi đến vị trí mới, xử lý đúng như đáp xuống ô đó bằng xúc xắc
-    // (mua đất / trả tiền thuê / nộp thuế / vào tù / rút tiếp thẻ khác...)
     if (card.action === "MOVE_TO" || card.action === "MOVE_STEPS") {
-      resultCard.landing = this.processTileLanding(p, other, { startPos: card.finalPos });
+      resultCard.landing = this.processTileLanding(p, { startPos: card.finalPos });
     }
 
     this.state.pendingCard = null;
     return resultCard;
-},
+  },
 
   buyPendingProperty() {
     const p = this.getCurrentPlayer();
@@ -500,11 +468,13 @@ else if (card.action === "MOVE_TO") {
     const tile = this.state.pendingTile;
     if (tile) {
       this.addLog(`⏭️ ${p.name} BỎ QUA không mua [${tile.name}]`);
+      if (this.settings.auctionMode) {
+        this.startAuction(tile);
+      }
     }
     this.state.pendingTile = null;
   },
 
-  // XÂY NHÀ / KHÁCH SẠN trên ô đất của mình
   buildHouse(index) {
     const p = this.getCurrentPlayer();
     const tile = this.state.board[index];
@@ -524,7 +494,6 @@ else if (card.action === "MOVE_TO") {
     return true;
   },
 
-  // DỠ NHÀ / KHÁCH SẠN (hoàn lại nửa tiền)
   sellHouse(index) {
     const p = this.getCurrentPlayer();
     const tile = this.state.board[index];
@@ -543,7 +512,6 @@ else if (card.action === "MOVE_TO") {
     return true;
   },
 
-// CẦM CỐ (giữ đất) HOẶC BÁN HẲN đất (tuỳ theo cài đặt)
   mortgageProperty(index) {
     const p = this.getCurrentPlayer();
     const tile = this.state.board[index];
@@ -552,9 +520,7 @@ else if (card.action === "MOVE_TO") {
     const price = tile.price || 0;
     const value = Math.round(price / 2);
 
-    // NẾU BẬT "CẦM CỐ THAY VÌ BÁN" -> giữ đất, chỉ đánh dấu đã cầm cố
     if (this.settings.mortgageInsteadOfSell) {
-      // Đã cầm cố rồi -> cho phép CHUỘC LẠI (trả lại tiền + 10% phí)
       if (tile.mortgaged) {
         const redeemCost = value + Math.round(value * 0.1);
         if (p.money < redeemCost) {
@@ -567,14 +533,12 @@ else if (card.action === "MOVE_TO") {
         return true;
       }
 
-      // Chưa cầm cố -> cầm cố, vẫn giữ quyền sở hữu (owner giữ nguyên)
       p.money += value;
       tile.mortgaged = true;
       this.addLog(`🏦 ${p.name} cầm cố [${tile.name}] (+$${value}) — đất vẫn thuộc về ${p.name}`);
       return true;
     }
 
-    // NẾU TẮT "CẦM CỐ" -> bán hẳn đất (mất quyền sở hữu)
     p.money += value;
     tile.owner = null;
     tile.houses = 0;
@@ -583,9 +547,8 @@ else if (card.action === "MOVE_TO") {
     return true;
   },
 
-endTurn() {
+  endTurn() {
     const total = this.state.players.length;
-    // Chuyển sang người chơi kế tiếp còn sống (bỏ qua người vỡ nợ isBankrupt)
     let next = this.state.currentPlayerIndex;
     for (let i = 0; i < total; i++) {
       next = (next + 1) % total;
