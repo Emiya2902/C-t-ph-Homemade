@@ -1,20 +1,31 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cờ Tỉ Phú Nhà Làm</title>
+  <title>Cờ Tỉ Phú</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body class="dark-theme">
 
-<!-- =========================================================
+  <!-- =========================================================
        MÀN HÌNH LOBBY (TẠO / THAM GIA PHÒNG CHƠI ONLINE)
        ========================================================= -->
   <div id="lobby-overlay">
     <div class="lobby-box">
-<h2 class="lobby-title">🎮 CỜ TỈ PHÚ NHÀ LÀM</h2>
+      <h2 class="lobby-title">🎮 CỜ TỈ PHÚ</h2>
       <p class="lobby-subtitle">Chơi online cùng bạn bè hoặc chơi offline</p>
+
+      <!-- BANNER PHỤC HỒI KẾT NỐI LOBBY -->
+      <div id="reconnect-banner" class="reconnect-banner hidden">
+        <div class="reconnect-text">⚡ Bạn có ván đấu đang diễn ra ở phòng <b id="reconnect-room-code">----</b>!</div>
+        <div class="reconnect-actions">
+          <button id="reconnect-join-btn" class="btn btn-buy">VÀO LẠI (2 PHÚT)</button>
+          <button id="reconnect-dismiss-btn" class="btn btn-skip">BỎ QUA</button>
+        </div>
+      </div>
 
       <div class="lobby-name-row">
         <label class="lobby-label">👤 Tên của bạn</label>
@@ -36,7 +47,7 @@
     </div>
   </div>
 
-<!-- PHÒNG CHỜ (SAU KHI TẠO/THAM GIA PHÒNG) -->
+  <!-- PHÒNG CHỜ (SAU KHI TẠO/THAM GIA PHÒNG) -->
   <div id="room-waiting-overlay" class="hidden">
     <div class="lobby-box">
       <h2 class="lobby-title">🕹️ PHÒNG CHỜ</h2>
@@ -61,73 +72,190 @@
     </div>
   </div>
 
-<!-- =========================================================
+  <!-- =========================================================
        MÀN HÌNH CÀI ĐẶT LUẬT CHƠI (HIỆN RA TRƯỚC KHI BẮT ĐẦU)
        Dùng chung cho cả OFFLINE & ONLINE (chọn nhân vật + luật chơi)
        ========================================================= -->
-<div id="settings-overlay" class="hidden">
+  <!-- =========================================================
+       MÀN HÌNH CÀI ĐẶT LUẬT CHƠI (HIỆN RA TRƯỚC KHI BẮT ĐẦU)
+       Dùng chung cho cả OFFLINE & ONLINE (chọn nhân vật + luật chơi)
+       ========================================================= -->
+  <div id="settings-overlay" class="hidden">
     <div class="settings-box">
-      <h2 class="settings-title">⚙️ CÀI ĐẶT LUẬT CHƠI</h2>
+      <div class="settings-header">
+        <div class="settings-badge">⚙️ PHÒNG CHƠI</div>
+        <h2 class="settings-title">CÀI ĐẶT LUẬT CHƠI</h2>
+        <p class="settings-subtitle">Tùy biến tài chính & luật nhà làm theo sở thích</p>
+      </div>
 
       <!-- OFFLINE ONLY: chọn số người chơi + nhân vật cho từng người -->
-      <div id="offline-settings-section">
-        <div class="settings-section">
-          <div class="settings-label">👥 Số người chơi</div>
+      <div id="offline-settings-section" class="settings-card-group">
+        <div class="settings-card">
+          <div class="settings-card-title">👥 Số lượng người chơi</div>
           <div class="player-count-control">
-            <button id="player-minus" class="count-btn">−</button>
+            <button id="player-minus" class="count-btn" type="button">−</button>
             <span id="player-count-val">2</span>
-            <button id="player-plus" class="count-btn">+</button>
+            <button id="player-plus" class="count-btn" type="button">+</button>
             <span class="count-hint">(2 - 8 người)</span>
           </div>
         </div>
-
-        <div class="settings-section">
-          <div class="settings-label">🎭 Chọn nhân vật cho từng người chơi</div>
-          <div id="character-picker"></div>
+        <div class="settings-card">
+          <div class="settings-card-title">🎭 Nhân vật từng người chơi</div>
+          <div id="offline-token-pickers" class="offline-token-pickers"></div>
         </div>
       </div>
 
-      <!-- ONLINE ONLY: mỗi người tự chọn nhân vật của riêng mình -->
-      <div id="online-settings-section" class="hidden">
-        <div class="settings-section">
-          <div class="settings-label">🎭 Chọn nhân vật của bạn</div>
-          <div id="room-token-picker" class="room-token-picker"></div>
+      <!-- KINH TẾ PHÒNG CHƠI (TIỀN KHỞI TẠO & LƯƠNG GO) -->
+      <div class="settings-card-group">
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <span class="settings-card-icon">💰</span>
+            <div>
+              <div class="settings-card-title">Tiền khởi tạo</div>
+              <div class="settings-card-desc">Số vốn ban đầu cấp cho mỗi người chơi</div>
+            </div>
+          </div>
+          <div class="settings-input-row">
+            <div class="stepper-wrap">
+              <button class="step-btn" type="button"
+                onclick="const el=document.getElementById('set-initial-money'); el.value=Math.max(500, Number(el.value)-200); el.dispatchEvent(new Event('input'));">−</button>
+              <input type="number" id="set-initial-money" value="1500" min="500" max="5000" step="100">
+              <button class="step-btn" type="button"
+                onclick="const el=document.getElementById('set-initial-money'); el.value=Math.min(5000, Number(el.value)+200); el.dispatchEvent(new Event('input'));">+</button>
+            </div>
+            <div class="presets-row">
+              <button type="button" class="preset-pill"
+                onclick="document.getElementById('set-initial-money').value=1000; document.getElementById('set-initial-money').dispatchEvent(new Event('input'));">$1000</button>
+              <button type="button" class="preset-pill"
+                onclick="document.getElementById('set-initial-money').value=1500; document.getElementById('set-initial-money').dispatchEvent(new Event('input'));">$1500</button>
+              <button type="button" class="preset-pill"
+                onclick="document.getElementById('set-initial-money').value=2000; document.getElementById('set-initial-money').dispatchEvent(new Event('input'));">$2000</button>
+              <button type="button" class="preset-pill"
+                onclick="document.getElementById('set-initial-money').value=3000; document.getElementById('set-initial-money').dispatchEvent(new Event('input'));">$3000</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <span class="settings-card-icon">💵</span>
+            <div>
+              <div class="settings-card-title">Lương qua ô Start (GO)</div>
+              <div class="settings-card-desc">Tiền thưởng nhận được khi đi qua ô Bắt đầu</div>
+            </div>
+          </div>
+          <div class="settings-input-row">
+            <div class="stepper-wrap">
+              <button class="step-btn" type="button"
+                onclick="const el=document.getElementById('set-pass-go'); el.value=Math.max(50, Number(el.value)-50); el.dispatchEvent(new Event('input'));">−</button>
+              <input type="number" id="set-pass-go" value="200" min="50" max="1000" step="50">
+              <button class="step-btn" type="button"
+                onclick="const el=document.getElementById('set-pass-go'); el.value=Math.min(1000, Number(el.value)+50); el.dispatchEvent(new Event('input'));">+</button>
+            </div>
+            <div class="presets-row">
+              <button type="button" class="preset-pill"
+                onclick="document.getElementById('set-pass-go').value=100; document.getElementById('set-pass-go').dispatchEvent(new Event('input'));">$100</button>
+              <button type="button" class="preset-pill"
+                onclick="document.getElementById('set-pass-go').value=200; document.getElementById('set-pass-go').dispatchEvent(new Event('input'));">$200</button>
+              <button type="button" class="preset-pill"
+                onclick="document.getElementById('set-pass-go').value=300; document.getElementById('set-pass-go').dispatchEvent(new Event('input'));">$300</button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="settings-section">
-        <div class="settings-label">💰 Tiền khởi tạo mỗi người</div>
-        <input type="number" id="set-initial-money" value="1500" min="100" step="100" class="settings-input">
+      <!-- LUẬT CHƠI TUỲ CHỈNH (HOUSE RULES GRID) -->
+      <div class="settings-rules-header">📜 LUẬT NHÀ LÀM TUỲ BIẾN</div>
+      <div class="settings-rules-grid">
+        <label class="rule-switch-card">
+          <div class="rule-info">
+            <span class="rule-icon">📈</span>
+            <div>
+              <div class="rule-name">Nhân đôi tiền thuê bộ màu</div>
+              <div class="rule-desc">Gấp đôi tiền thuê khi đủ trọn bộ nhóm màu (đất trống)</div>
+            </div>
+          </div>
+          <div class="switch-wrap">
+            <input type="checkbox" id="set-double-rent" checked>
+            <span class="switch-slider"></span>
+          </div>
+        </label>
+
+        <label class="rule-switch-card">
+          <div class="rule-info">
+            <span class="rule-icon">🏦</span>
+            <div>
+              <div class="rule-name">Cầm cố đất thay vì bán đứt</div>
+              <div class="rule-desc">Nhận 50% giá trị, vẫn giữ quyền sở hữu & chuộc lại sau</div>
+            </div>
+          </div>
+          <div class="switch-wrap">
+            <input type="checkbox" id="set-mortgage" checked>
+            <span class="switch-slider"></span>
+          </div>
+        </label>
+
+        <label class="rule-switch-card">
+          <div class="rule-info">
+            <span class="rule-icon">🚗</span>
+            <div>
+              <div class="rule-name">Jackpot Bãi xe tự do</div>
+              <div class="rule-desc">Ăn trọn quỹ tích lũy thuế và phí phạt khi đỗ vào ô Bãi xe</div>
+            </div>
+          </div>
+          <div class="switch-wrap">
+            <input type="checkbox" id="set-jackpot" checked>
+            <span class="switch-slider"></span>
+          </div>
+        </label>
+
+        <label class="rule-switch-card">
+          <div class="rule-info">
+            <span class="rule-icon">🏛️</span>
+            <div>
+              <div class="rule-name">Thu tiền thuê khi ở tù</div>
+              <div class="rule-desc">Vẫn được nhận tiền thuê đất của đối thủ khi đang thụ án</div>
+            </div>
+          </div>
+          <div class="switch-wrap">
+            <input type="checkbox" id="set-rent-jailed">
+            <span class="switch-slider"></span>
+          </div>
+        </label>
+
+        <label class="rule-switch-card">
+          <div class="rule-info">
+            <span class="rule-icon">🔨</span>
+            <div>
+              <div class="rule-name">Đấu giá bất động sản</div>
+              <div class="rule-desc">Mở phiên đấu giá cho toàn phòng khi người đỗ bỏ qua không mua</div>
+            </div>
+          </div>
+          <div class="switch-wrap">
+            <input type="checkbox" id="set-auction">
+            <span class="switch-slider"></span>
+          </div>
+        </label>
       </div>
 
-      <div class="settings-section">
-        <div class="settings-label">💵 Tiền qua ô Bắt đầu</div>
-        <input type="number" id="set-pass-go" value="200" min="0" step="50" class="settings-input">
+      <div class="settings-actions">
+        <button id="start-game-btn" class="start-btn" type="button">🚀 BẮT ĐẦU TRÒ CHƠI</button>
+        <p id="settings-waiting-note" class="room-waiting-note hidden">⏳ Đang chờ chủ phòng chốt cài đặt & bắt đầu...
+        </p>
+        <button id="settings-back-btn" class="offline-btn" type="button">🔙 QUAY LẠI</button>
       </div>
-
-      <div class="settings-section">
-        <div class="settings-label">⚖️ Luật chơi</div>
-        <label class="toggle-row"><input type="checkbox" id="set-double-rent" checked> <span>Nhân đôi tiền thuê khi sở hữu trọn nhóm màu</span></label>
-        <label class="toggle-row"><input type="checkbox" id="set-mortgage" checked> <span>Cầm cố thay vì bán đất</span></label>
-        <label class="toggle-row"><input type="checkbox" id="set-jackpot" checked> <span>Jackpot ở ô Bãi xe tự do</span></label>
-        <label class="toggle-row"><input type="checkbox" id="set-rent-jailed"> <span>Vẫn nhận tiền thuê khi ở tù</span></label>
-        <label class="toggle-row"><input type="checkbox" id="set-auction"> <span>Chế độ đấu giá khi bỏ qua mua đất</span></label>
-      </div>
-
-      <button id="start-game-btn" class="start-btn">🚀 BẮT ĐẦU TRÒ CHƠI</button>
-      <p id="settings-waiting-note" class="room-waiting-note hidden">⏳ Đang chờ chủ phòng cấu hình luật & bắt đầu trò chơi...</p>
-      <button id="settings-back-btn" class="offline-btn">⬅️ QUAY LẠI</button>
     </div>
   </div>
 
+  <!-- CONTAINER CHÍNH CỦA GAME (3 CỘT RESPONSIVE) -->
   <div id="app-container">
-    
-    <!-- CỘT 1 (BÊN TRÁI): CHAT & KHO ĐỒ -->
+
+    <!-- CỘT 1 (BÊN TRÁI): TRÒ CHUYỆN & KHO ĐỒ -->
     <aside id="left-sidebar" class="panel">
       <section class="left-sidebar-section chat-section">
         <div class="panel-header">💬 Trò chuyện</div>
         <div id="chat-box">
-          <div class="chat-msg system">Chào mừng bạn đến với Cờ Tỉ Phú Nhà Làm!</div>
+          <div class="chat-msg system">Chào mừng bạn đến với Cờ Tỉ Phú !</div>
         </div>
         <div class="chat-input-wrapper">
           <input type="text" id="chat-input" placeholder="Nhập tin nhắn..." disabled maxlength="500">
@@ -148,32 +276,125 @@
       <div id="board">
         <!-- Khu vực trung tâm bàn cờ -->
         <!-- BẢNG ĐIỀU KHIỂN TRUNG TÂM -->
-<!-- BẢNG ĐIỀU KHIỂN TRUNG TÂM -->
-<div id="center-panel">
-<div class="logo">CỜ TỈ PHÚ NHÀ LÀM</div>
-  <div id="dice-result" aria-live="polite">
-    <span id="dice-one" class="dice-face">?</span><span id="dice-two" class="dice-face">?</span>
-  </div>
-  
-  <div class="center-actions">
-    <button id="roll-btn">GIEO XÚC XẮC</button>
-    <button id="end-turn-btn" disabled>KẾT THÚC LƯỢT</button>
+        <div id="center-panel">
+          <div class="logo">CỜ TỈ PHÚ</div>
+
+          <!-- Banner Spectator (Khán giả) -->
+          <div id="spectator-banner" class="spectator-banner hidden">
+            <span class="spec-icon">👁️</span>
+            <span class="spec-text">Chế độ Khán Giả (Spectator) - Bạn sẽ tự động tham gia ở ván tiếp theo!</span>
+          </div>
+
+          <div id="dice-result" aria-live="polite">
+            <span id="dice-one" class="dice-face">?</span><span id="dice-two" class="dice-face">?</span>
+          </div>
+
+          <div class="center-actions">
+            <button id="roll-btn">GIEO XÚC XẮC</button>
+            <button id="end-turn-btn" disabled>KẾT THÚC LƯỢT</button>
+            <button id="surrender-btn" class="btn-surrender" title="Tuyên bố phá sản / Đầu hàng">💀 PHÁ SẢN</button>
+          </div>
+
+          <!-- Banner Cảnh báo Nợ nần khi âm tiền -->
+          <div id="debt-alert-banner" class="debt-alert-banner hidden">
+            <div class="debt-alert-content">
+              <span class="debt-icon">⚠️</span>
+              <span id="debt-alert-text">Đang nợ tiền! Hãy dỡ nhà, cầm cố đất hoặc giao dịch để trả nợ.</span>
+            </div>
+            <button id="debt-surrender-btn" class="btn-debt-surrender" type="button">ĐẦU HÀNG</button>
+          </div>
+
+          <!-- Pop-up Mua đất: NẰM GỌN TRONG LÒNG TRUNG TÂM BÀN CỜ (KHÔNG ĐÈ Ô ĐẤT) -->
+          <div id="buy-modal" class="buy-popover hidden">
+            <div class="buy-popover-content">
+              <h3>🛒 MUA BẤT ĐỘNG SẢN?</h3>
+              <p id="modal-tile-name">Tên ô đất</p>
+              <p id="modal-tile-price">Giá: $0</p>
+              <div class="modal-actions">
+                <button id="buy-yes-btn" class="btn btn-buy">MUA</button>
+                <button id="buy-auction-btn" class="btn btn-auction hidden">🔨 ĐẤU GIÁ</button>
+                <button id="buy-no-btn" class="btn btn-skip">BỎ QUA</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Jackpot Bãi xe hiển thị góc trên center-panel -->
+          <div id="jackpot-display" class="jackpot-display hidden">
+            <span class="jackpot-icon">🅿️</span>
+            <span class="jackpot-label">Jackpot</span>
+            <span id="jackpot-amount" class="jackpot-amount">$0</span>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- HINT CUỘN TRANG TRÊN MOBILE -->
+    <div class="mobile-scroll-hint">
+      <span>👇 Kéo xuống để xem Trò chuyện, Kho đồ, Giao dịch & Người chơi</span>
+    </div>
+
+    <!-- CỘT 3 (BÊN PHẢI): BẢNG NGƯỜI CHƠI & LUẬT CHƠI -->
+    <aside id="right-sidebar" class="panel">
+      <!-- Bảng danh sách người chơi -->
+      <div class="panel-section">
+        <div class="panel-header">👥 Người chơi</div>
+        <div id="players-list">
+          <div class="player-card active" id="card-p1">
+            <span class="player-badge p1-bg">🐊</span>
+            <span class="player-name">Sài Gòn Pro</span>
+            <span class="player-money">$<span id="p1-money">1500</span></span>
+          </div>
+          <div class="player-card" id="card-p2">
+            <span class="player-badge p2-bg">🐱</span>
+            <span class="player-name">Chợ Lớn VIP</span>
+            <span class="player-money">$<span id="p2-money">1500</span></span>
+          </div>
+        </div>
+      </div>
+
+      <section class="panel-section trade-section">
+        <div class="panel-header">🤝 Trao đổi</div>
+        <div id="trade-form"></div>
+        <div id="trade-requests"></div>
+      </section>
+
+      <!-- Bảng Luật chơi Custom -->
+      <div class="panel-section flex-grow">
+        <div class="panel-header">📜 Luật Chơi Phòng</div>
+        <div id="rules-list">
+          <ul>
+            <li>• Tiền khởi tạo: <b>$1500</b></li>
+            <li>• Lương qua ô Start: <b>$200</b></li>
+            <li>• Nhân đôi lương nếu đỗ đúng ô Start: <b>Tắt</b></li>
+            <li>• Thưởng JackPot Bãi xe: <b>Bật</b></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
   </div>
 
-<!-- Pop-up Mua đất -->
-<div id="buy-modal" class="modal hidden">
-  <div class="modal-content">
-    <h3>🛒 MUA BẤT ĐỘNG SẢN?</h3>
-    <p id="modal-tile-name">Tên ô đất</p>
-    <p id="modal-tile-price">Giá: $0</p>
-    <div class="modal-actions">
-      <button id="buy-yes-btn" class="btn btn-buy">MUA</button>
-      <button id="buy-no-btn" class="btn btn-skip">BỎ QUA</button>
+  <!-- =========================================================
+       TẤT CẢ CÁC MODAL & POPUP (FULL-SCREEN RESPONSIVE OVERLAYS)
+       ========================================================= -->
+
+  <!-- Modal Xác nhận Đầu Hàng / Phá Sản -->
+  <div id="surrender-confirm-modal" class="modal hidden">
+    <div class="modal-content surrender-theme">
+      <div class="card-badge surrender-badge">💀 ĐẦU HÀNG / PHÁ SẢN</div>
+      <h3 style="margin-top: 10px; color: #ff7675;">Xác nhận phá sản?</h3>
+      <p id="surrender-confirm-desc" style="margin: 10px 0; font-size: 13px; color: #dfe6e9; line-height: 1.4;">
+        Bạn có chắc chắn muốn tuyên bố phá sản và đầu hàng không? Toàn bộ tài sản sẽ bị chuyển giao/thu hồi!
+      </p>
+      <div class="modal-actions">
+        <button id="surrender-yes-btn" class="btn btn-surrender-confirm">ĐẦU HÀNG</button>
+        <button id="surrender-no-btn" class="btn btn-skip">TIẾP TỤC CHƠI</button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- POP-UP ĐẤU GIÁ -->
+
+
+  <!-- POP-UP ĐẤU GIÁ -->
   <div id="auction-modal" class="modal hidden">
     <div class="modal-content auction-theme">
       <div id="auction-tile-name" class="card-badge auction-badge">🔨 Đấu giá</div>
@@ -191,12 +412,14 @@
         </div>
         <div id="auction-current-bid" class="auction-row">💰 Giá hiện tại: <b>$0</b></div>
         <div id="auction-turn" class="auction-row">🎯 Đến lượt: <b>...</b></div>
+        <div id="auction-status-msg" class="auction-row auction-status-msg"></div>
       </div>
-      <!-- NÚT TRẢ GIÁ NHANH +2 / +10 / +100 -->
+      <!-- NÚT TRẢ GIÁ NHANH +2 / +10 / +100 VÀ BỎ QUA -->
       <div class="auction-bid-buttons">
         <button class="auction-add-btn" data-add="2">+2</button>
         <button class="auction-add-btn" data-add="10">+10</button>
         <button class="auction-add-btn" data-add="100">+100</button>
+        <button id="auction-pass-btn" class="auction-pass-btn" type="button">⏭️ Bỏ qua</button>
       </div>
     </div>
   </div>
@@ -257,20 +480,26 @@
   <div id="property-info-card" class="property-card-modal hidden">
     <div class="card-header">
       <span id="info-card-name" class="card-title">Rio</span>
-      <button id="close-info-card-btn" class="close-btn">✕</button>
+      <button id="close-info-card-btn" class="close-btn" type="button">✕</button>
     </div>
-    
-<div class="card-table">
+
+    <div class="card-table">
       <div class="table-header">
         <span id="info-table-when">Khi</span>
         <span id="info-table-get">Nhận</span>
       </div>
-      <div class="table-row"><span id="info-rent-0-label">Tiền thuê</span><span id="info-rent-0" class="rent-price">$ 4</span></div>
-      <div class="table-row"><span id="info-rent-1-label">Với 1 nhà</span><span id="info-rent-1" class="rent-price">$ 20</span></div>
-      <div class="table-row"><span id="info-rent-2-label">Với 2 nhà</span><span id="info-rent-2" class="rent-price">$ 60</span></div>
-      <div class="table-row"><span id="info-rent-3-label">Với 3 nhà</span><span id="info-rent-3" class="rent-price">$ 190</span></div>
-      <div class="table-row"><span id="info-rent-4-label">Với 4 nhà</span><span id="info-rent-4" class="rent-price">$ 330</span></div>
-      <div class="table-row"><span id="info-rent-5-label">Với khách sạn</span><span id="info-rent-5" class="rent-price">$ 460</span></div>
+      <div class="table-row"><span id="info-rent-0-label">Tiền thuê</span><span id="info-rent-0" class="rent-price">$
+          4</span></div>
+      <div class="table-row"><span id="info-rent-1-label">Với 1 nhà</span><span id="info-rent-1" class="rent-price">$
+          20</span></div>
+      <div class="table-row"><span id="info-rent-2-label">Với 2 nhà</span><span id="info-rent-2" class="rent-price">$
+          60</span></div>
+      <div class="table-row"><span id="info-rent-3-label">Với 3 nhà</span><span id="info-rent-3" class="rent-price">$
+          190</span></div>
+      <div class="table-row"><span id="info-rent-4-label">Với 4 nhà</span><span id="info-rent-4" class="rent-price">$
+          330</span></div>
+      <div class="table-row"><span id="info-rent-5-label">Với khách sạn</span><span id="info-rent-5"
+          class="rent-price">$ 460</span></div>
     </div>
 
     <div class="card-divider"></div>
@@ -299,55 +528,42 @@
       <button id="btn-mortgage" class="btn-action btn-mortgage">🏦 Cầm cố / Bán (50%)</button>
     </div>
   </div>
-</div>
-    </main>
 
-    <!-- CỘT 3 (BÊN PHẢI): BẢNG NGƯỜI CHƠI & LUẬT CHƠI -->
-    <aside id="right-sidebar" class="panel">
-      <div class="theme-toggle-wrapper">
-        <button id="theme-btn">🌓 Đổi Tông Màu (Tối/Sáng)</button>
-      </div>
-
-      <!-- Bảng danh sách người chơi -->
-      <div class="panel-section">
-        <div class="panel-header">👥 Người chơi</div>
-        <div id="players-list">
-          <div class="player-card active" id="card-p1">
-            <span class="player-badge p1-bg"></span>
-            <span class="player-name">Sài Gòn Pro</span>
-            <span class="player-money">$<span id="p1-money">1500</span></span>
-          </div>
-          <div class="player-card" id="card-p2">
-            <span class="player-badge p2-bg"></span>
-            <span class="player-name">Chợ Lớn VIP</span>
-            <span class="player-money">$<span id="p2-money">1500</span></span>
-          </div>
-        </div>
-      </div>
-
-      <section class="panel-section trade-section">
-        <div class="panel-header">🤝 Trao đổi</div>
-        <div id="trade-form"></div>
-        <div id="trade-requests"></div>
-      </section>
-
-      <!-- Bảng Luật chơi Custom -->
-      <div class="panel-section flex-grow">
-        <div class="panel-header">📜 Luật Chơi Phòng</div>
-        <div id="rules-list">
-          <ul>
-            <li>• Tiền khởi tạo: <b>$1500</b></li>
-            <li>• Lương qua ô Start: <b>$200</b></li>
-            <li>• Nhân đôi lương nếu đỗ đúng ô Start: <b>Tắt</b></li>
-            <li>• Thưởng JackPot Bãi xe: <b>Bật</b></li>
-          </ul>
-        </div>
-      </div>
-    </aside>
-
+  <!-- =========================================================
+     MODAL PHÁ SẢN (BANKRUPTCY NOTIFICATION)
+     ========================================================= -->
+  <div id="bankruptcy-modal" class="modal-overlay hidden">
+    <div class="modal-box bankruptcy-box">
+      <div class="bankruptcy-icon">💀</div>
+      <h2 class="bankruptcy-title">PHÁ SẢN!</h2>
+      <p id="bankruptcy-player-name" class="bankruptcy-player"></p>
+      <p class="bankruptcy-text">Không đủ tài sản để thanh toán. Toàn bộ đất đai đã bị thu hồi về ngân hàng.</p>
+      <button id="bankruptcy-close-btn" class="btn btn-buy">Tiếp tục</button>
+    </div>
   </div>
 
-<!-- 1. File chứa dữ liệu ô đất (board.js) -->
+  <!-- =========================================================
+     MÀN HÌNH CHIẾN THẮNG (VICTORY SCREEN)
+     ========================================================= -->
+  <div id="victory-overlay" class="hidden">
+    <div class="victory-box">
+      <div class="victory-fireworks" id="victory-fireworks"></div>
+      <div class="victory-content">
+        <div class="victory-trophy">🏆</div>
+        <h1 class="victory-title">CHIẾN THẮNG!</h1>
+        <div id="victory-winner-token" class="victory-token"></div>
+        <h2 id="victory-winner-name" class="victory-name"></h2>
+        <p id="victory-net-worth" class="victory-worth"></p>
+        <div id="victory-rankings" class="victory-rankings"></div>
+        <div class="victory-actions-row">
+          <button id="victory-play-again-btn" class="victory-btn">🎮 Ván mới ngay</button>
+          <button id="victory-lobby-btn" class="victory-btn victory-btn-secondary">🏠 Về phòng chờ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. File chứa dữ liệu ô đất (board.js) -->
   <script src="board.js"></script>
 
   <!-- Socket.io client (cho chế độ ONLINE) -->
@@ -363,4 +579,5 @@
   <script src="lobby.js"></script>
   <script src="online.js"></script>
 </body>
+
 </html>

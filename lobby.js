@@ -42,15 +42,43 @@
 
     socket.on('connect', () => {
       console.log('🔌 Đã kết nối server!');
+      clearError();
+
+      // Tự động kết nối lại nếu trước đó bị rớt mạng trong lúc đang chơi online
+      const session = getSavedOnlineSession();
+      if (session && session.roomCode && session.sessionToken && window.GameOnline && window.GameOnline.isOnline && window.GameOnline.isOnline()) {
+        socket.emit('room:reconnect', {
+          code: session.roomCode,
+          sessionToken: session.sessionToken,
+          name: session.name || getPlayerName()
+        }, (res) => {
+          if (res && res.ok) {
+            console.log('⚡ Đã tự động kết nối lại ván đấu thành công!');
+            myRoomCode = res.roomCode;
+            isHost = !!res.isHost;
+            if (window.GameOnline && window.GameOnline.setRoomCode) {
+              window.GameOnline.setRoomCode(res.roomCode);
+            }
+          }
+        });
+      }
     });
 
     socket.on('disconnect', () => {
       console.log('⚠️ Mất kết nối server!');
-      showError('Mất kết nối server. Vui lòng thử lại.');
+      if (window.GameOnline && window.GameOnline.isOnline && window.GameOnline.isOnline()) {
+        // Đang trong trận -> báo đang thử kết nối lại
+        console.warn('Đang cố gắng kết nối lại máy chủ...');
+      } else {
+        showError('Mất kết nối server. Vui lòng thử lại.');
+      }
     });
 
-socket.on('room:joined', (data) => {
+    socket.on('room:joined', (data) => {
       myRoomCode = data.roomCode;
+      if (data.sessionToken) {
+        saveOnlineSession(data.roomCode, data.sessionToken, getPlayerName(), !!data.isHost);
+      }
       // Quan trọng: cập nhật roomCode cho online.js để gửi hành động lên server
       if (window.GameOnline && window.GameOnline.setRoomCode) {
         window.GameOnline.setRoomCode(data.roomCode);
@@ -62,8 +90,13 @@ socket.on('room:joined', (data) => {
       updateHostUI();
     });
 
-socket.on('lobby:update', (data) => {
+    socket.on('lobby:update', (data) => {
       renderRoomPlayers(data);
+    });
+
+    socket.on('room:resetToLobby', (data) => {
+      myRoomCode = data.roomCode;
+      enterRoomWaiting(data.roomCode);
     });
 
     // Chủ phòng mở màn hình cài đặt -> tất cả người chơi cùng chuyển sang màn hình cài đặt
@@ -95,10 +128,14 @@ socket.on('lobby:update', (data) => {
     return socket;
   }
 
-function renderRoomPlayers(data) {
+  let currentPlayersCount = 0;
+
+  function renderRoomPlayers(data) {
     const listEl = $('room-players-list');
     if (!listEl) return;
     listEl.innerHTML = '';
+    currentPlayersCount = (data.players && data.players.length) || 0;
+
     data.players.forEach((p) => {
       const row = document.createElement('div');
       row.className = 'room-player-row';
@@ -114,18 +151,18 @@ function renderRoomPlayers(data) {
       listEl.appendChild(row);
     });
     isHost = data.hostId === socket.id;
-    updateHostUI();
+    updateHostUI(currentPlayersCount);
 
     // Hiển thị luật chơi phòng trong thời gian thực cho mọi người trong phòng chờ
     if (data.settings) {
       renderWaitingRules(data.settings);
     }
 
-    // Render bộ chọn nhân vật cho riêng người chơi này (trên màn hình cài đặt - chung cho online)
+    // Render bộ chọn nhân vật cho riêng người chơi này (trong phòng chờ)
     renderTokenPicker(data.players);
   }
 
-// Render bộ chọn nhân vật (quân cờ) cho người chơi hiện tại
+  // Render bộ chọn nhân vật (quân cờ) cho người chơi hiện tại
   function renderTokenPicker(players) {
     const pickerEl = $('room-token-picker');
     if (!pickerEl) return;
@@ -179,7 +216,7 @@ function renderRoomPlayers(data) {
     </ul>`;
   }
 
-// Sao chép mã phòng dự phòng (khi không có Clipboard API)
+  // Sao chép mã phòng dự phòng (khi không có Clipboard API)
   function fallbackCopy(text, btn) {
     const ta = document.createElement('textarea');
     ta.value = text;
@@ -199,16 +236,28 @@ function renderRoomPlayers(data) {
     document.body.removeChild(ta);
   }
 
-function updateHostUI() {
+  function updateHostUI(count = currentPlayersCount) {
     const startBtn = $('room-start-btn');
     const note = $('room-waiting-note');
     if (!startBtn || !note) return;
     if (isHost) {
       startBtn.classList.remove('hidden');
       note.classList.add('hidden');
+      if (count < 2) {
+        startBtn.disabled = true;
+        startBtn.style.opacity = '0.55';
+        startBtn.style.cursor = 'not-allowed';
+        startBtn.innerText = `⏳ CẦN ÍT NHẤT 2 NGƯỜI CHƠI (${count}/2)`;
+      } else {
+        startBtn.disabled = false;
+        startBtn.style.opacity = '1';
+        startBtn.style.cursor = 'pointer';
+        startBtn.innerText = '🚀 BẮT ĐẦU TRÒ CHƠI';
+      }
     } else {
       startBtn.classList.add('hidden');
       note.classList.remove('hidden');
+      note.innerText = 'Đang chờ chủ phòng bắt đầu...';
     }
   }
 
@@ -216,7 +265,6 @@ function updateHostUI() {
   // mode: 'online' | 'offline'
   function openSettingsScreen(mode, settings) {
     const offlineSection = $('offline-settings-section');
-    const onlineSection = $('online-settings-section');
     const startBtn = $('start-game-btn');
     const waitingNote = $('settings-waiting-note');
     const backBtn = $('settings-back-btn');
@@ -227,21 +275,39 @@ function updateHostUI() {
     show(settingsOverlay);
 
     if (mode === 'online') {
+      // Ẩn hoàn toàn ô chọn nhân vật/số người chơi của chế độ offline
       if (offlineSection) offlineSection.classList.add('hidden');
-      if (onlineSection) onlineSection.classList.remove('hidden');
       // Host có thể bắt đầu; người chơi khác chờ host bắt đầu
-      if (startBtn) startBtn.classList.toggle('hidden', !isHost);
+      if (startBtn) {
+        startBtn.classList.toggle('hidden', !isHost);
+        if (currentPlayersCount < 2) {
+          startBtn.disabled = true;
+          startBtn.style.opacity = '0.55';
+          startBtn.style.cursor = 'not-allowed';
+          startBtn.innerText = `⏳ CẦN ÍT NHẤT 2 NGƯỜI CHƠI (${currentPlayersCount}/2)`;
+        } else {
+          startBtn.disabled = false;
+          startBtn.style.opacity = '1';
+          startBtn.style.cursor = 'pointer';
+          startBtn.innerText = '🚀 BẮT ĐẦU TRÒ CHƠI';
+        }
+      }
       if (waitingNote) waitingNote.classList.toggle('hidden', isHost);
       if (backBtn) backBtn.classList.toggle('hidden', !isHost);
-      // Render bộ chọn nhân vật cho chính người chơi này
       if (settings) {
         applySettingsToForm(settings);
         renderWaitingRules(settings);
       }
     } else {
+      // Offline mode: hiện đầy đủ ô chọn nhân vật & số người chơi
       if (offlineSection) offlineSection.classList.remove('hidden');
-      if (onlineSection) onlineSection.classList.add('hidden');
-      if (startBtn) startBtn.classList.remove('hidden');
+      if (startBtn) {
+        startBtn.classList.remove('hidden');
+        startBtn.disabled = false;
+        startBtn.style.opacity = '1';
+        startBtn.style.cursor = 'pointer';
+        startBtn.innerText = '🚀 BẮT ĐẦU TRÒ CHƠI';
+      }
       if (waitingNote) waitingNote.classList.add('hidden');
       if (backBtn) backBtn.classList.remove('hidden');
     }
@@ -261,16 +327,54 @@ function updateHostUI() {
     const setJackpot = $('set-jackpot');
     const setRentJailed = $('set-rent-jailed');
     const setAuction = $('set-auction');
-    if (setInitial) setInitial.value = settings.initialMoney;
-    if (setPassGo) setPassGo.value = settings.passGoMoney;
-    if (setDouble) setDouble.checked = !!settings.doubleRentOnFullGroup;
-    if (setMortgage) setMortgage.checked = !!settings.mortgageInsteadOfSell;
-    if (setJackpot) setJackpot.checked = !!settings.jackpotOnFreeParking;
-    if (setRentJailed) setRentJailed.checked = !!settings.receiveRentWhileJailed;
-    if (setAuction) setAuction.checked = !!settings.auctionMode;
+    if (setInitial && settings.initialMoney !== undefined) setInitial.value = settings.initialMoney;
+    if (setPassGo && settings.passGoMoney !== undefined) setPassGo.value = settings.passGoMoney;
+    if (setDouble && settings.doubleRentOnFullGroup !== undefined) setDouble.checked = !!settings.doubleRentOnFullGroup;
+    if (setMortgage && settings.mortgageInsteadOfSell !== undefined) setMortgage.checked = !!settings.mortgageInsteadOfSell;
+    if (setJackpot && settings.jackpotOnFreeParking !== undefined) setJackpot.checked = !!settings.jackpotOnFreeParking;
+    if (setRentJailed && settings.receiveRentWhileJailed !== undefined) setRentJailed.checked = !!settings.receiveRentWhileJailed;
+    if (setAuction && settings.auctionMode !== undefined) setAuction.checked = !!settings.auctionMode;
   }
 
-function enterRoomWaiting(roomCode) {
+  function getFormSettings() {
+    const setInitial = $('set-initial-money');
+    const setPassGo = $('set-pass-go');
+    const setDouble = $('set-double-rent');
+    const setMortgage = $('set-mortgage');
+    const setJackpot = $('set-jackpot');
+    const setRentJailed = $('set-rent-jailed');
+    const setAuction = $('set-auction');
+    return {
+      initialMoney: setInitial ? Math.max(500, Number(setInitial.value) || 1500) : 1500,
+      passGoMoney: setPassGo ? Math.max(50, Number(setPassGo.value) || 200) : 200,
+      doubleRentOnFullGroup: setDouble ? !!setDouble.checked : true,
+      mortgageInsteadOfSell: setMortgage ? !!setMortgage.checked : true,
+      jackpotOnFreeParking: setJackpot ? !!setJackpot.checked : true,
+      receiveRentWhileJailed: setRentJailed ? !!setRentJailed.checked : false,
+      auctionMode: setAuction ? !!setAuction.checked : false
+    };
+  }
+
+  function broadcastSettingsIfHost() {
+    if (!isHost || !myRoomCode) return;
+    const currentSettings = getFormSettings();
+    renderWaitingRules(currentSettings);
+    const s = connectSocket();
+    s.emit('room:updateSettings', { code: myRoomCode, settings: currentSettings });
+  }
+
+  function hookSettingsInputs() {
+    const inputIds = ['set-initial-money', 'set-pass-go', 'set-double-rent', 'set-mortgage', 'set-jackpot', 'set-rent-jailed', 'set-auction'];
+    inputIds.forEach(id => {
+      const el = $(id);
+      if (el) {
+        el.addEventListener('change', broadcastSettingsIfHost);
+        el.addEventListener('input', broadcastSettingsIfHost);
+      }
+    });
+  }
+
+  function enterRoomWaiting(roomCode) {
     clearError();
     hide(lobbyOverlay);
     show(roomWaitingOverlay);
@@ -281,6 +385,10 @@ function enterRoomWaiting(roomCode) {
   function startGame(settings) {
     clearError();
     if (!isHost) return;
+    if (currentPlayersCount < 2) {
+      showError('Cần ít nhất 2 người chơi để bắt đầu!');
+      return;
+    }
     const s = connectSocket();
     s.emit('game:start', { code: myRoomCode, settings: settings || {} }, (res) => {
       if (!res || !res.ok) {
@@ -289,9 +397,104 @@ function enterRoomWaiting(roomCode) {
     });
   }
 
+  // Quản lý phiên kết nối online
+  function saveOnlineSession(roomCode, sessionToken, name, isHost) {
+    try {
+      localStorage.setItem('monopoly_online_session', JSON.stringify({
+        roomCode,
+        sessionToken,
+        name,
+        isHost,
+        timestamp: Date.now()
+      }));
+    } catch (e) { }
+  }
+
+  function getSavedOnlineSession() {
+    try {
+      const data = localStorage.getItem('monopoly_online_session');
+      if (!data) return null;
+      const session = JSON.parse(data);
+      if (session && session.roomCode && session.sessionToken) {
+        // Chỉ giữ phiên trong 3 giờ
+        if (Date.now() - (session.timestamp || 0) < 3 * 3600 * 1000) {
+          return session;
+        }
+      }
+    } catch (e) { }
+    return null;
+  }
+
+  function clearOnlineSession() {
+    try { localStorage.removeItem('monopoly_online_session'); } catch (e) { }
+  }
+
+  function checkAndShowReconnectBanner() {
+    const session = getSavedOnlineSession();
+    const banner = $('reconnect-banner');
+    const codeDisplay = $('reconnect-room-code');
+    if (session && banner && codeDisplay) {
+      codeDisplay.innerText = session.roomCode;
+      banner.classList.remove('hidden');
+    } else if (banner) {
+      banner.classList.add('hidden');
+    }
+  }
+
   // ---- Event handlers ----
   function init() {
     if (!lobbyOverlay) return;
+
+    checkAndShowReconnectBanner();
+    hookSettingsInputs();
+
+    // Nút Vào lại từ banner
+    const reconnectJoinBtn = $('reconnect-join-btn');
+    if (reconnectJoinBtn) {
+      reconnectJoinBtn.addEventListener('click', () => {
+        const session = getSavedOnlineSession();
+        if (!session) return;
+        clearError();
+        const s = connectSocket();
+        s.emit('room:reconnect', {
+          code: session.roomCode,
+          sessionToken: session.sessionToken,
+          name: session.name || getPlayerName()
+        }, (res) => {
+          if (res && res.ok) {
+            myRoomCode = res.roomCode;
+            isHost = !!res.isHost;
+            $('reconnect-banner')?.classList.add('hidden');
+            if (window.GameOnline && window.GameOnline.setMode) {
+              window.GameOnline.setMode('online');
+            }
+            if (window.GameOnline && window.GameOnline.setRoomCode) {
+              window.GameOnline.setRoomCode(res.roomCode);
+            }
+            if (res.started) {
+              hide(lobbyOverlay);
+              hide(roomWaitingOverlay);
+              hide(settingsOverlay);
+            } else if (!res.isSpectator) {
+              enterRoomWaiting(res.roomCode);
+            }
+          } else {
+            showError((res && res.error) || 'Ván đấu không còn tồn tại.');
+            clearOnlineSession();
+            $('reconnect-banner')?.classList.add('hidden');
+          }
+        });
+      });
+    }
+
+    // Nút Bỏ qua từ banner
+    const reconnectDismissBtn = $('reconnect-dismiss-btn');
+    if (reconnectDismissBtn) {
+      reconnectDismissBtn.addEventListener('click', () => {
+        clearOnlineSession();
+        $('reconnect-banner')?.classList.add('hidden');
+      });
+    }
 
     // Tạo phòng
     $('lobby-create-btn').addEventListener('click', () => {
@@ -301,6 +504,9 @@ function enterRoomWaiting(roomCode) {
         if (res && res.ok) {
           myPlayer = res.player;
           isHost = true;
+          if (res.sessionToken) {
+            saveOnlineSession(res.roomCode, res.sessionToken, getPlayerName(), true);
+          }
           enterRoomWaiting(res.roomCode);
         } else {
           showError((res && res.error) || 'Không tạo được phòng.');
@@ -313,23 +519,39 @@ function enterRoomWaiting(roomCode) {
       clearError();
       const code = ($('lobby-room-code').value || '').trim().toUpperCase();
       if (!code) { showError('Vui lòng nhập mã phòng!'); return; }
+      const session = getSavedOnlineSession();
+      const sessionToken = (session && session.roomCode === code) ? session.sessionToken : null;
       const s = connectSocket();
-      s.emit('room:join', { code, name: getPlayerName() }, (res) => {
+      s.emit('room:join', { code, name: getPlayerName(), sessionToken }, (res) => {
         if (res && res.ok) {
           myPlayer = res.player;
-          isHost = false;
-          enterRoomWaiting(res.roomCode);
+          isHost = !!res.isHost;
+          if (res.sessionToken) {
+            saveOnlineSession(res.roomCode, res.sessionToken, getPlayerName(), isHost);
+          }
+          if (window.GameOnline && window.GameOnline.setMode) {
+            window.GameOnline.setMode('online');
+          }
+          if (window.GameOnline && window.GameOnline.setRoomCode) {
+            window.GameOnline.setRoomCode(res.roomCode);
+          }
+          if (res.started) {
+            hide(lobbyOverlay);
+            hide(roomWaitingOverlay);
+            hide(settingsOverlay);
+          } else if (!res.isSpectator) {
+            enterRoomWaiting(res.roomCode);
+          }
         } else {
           showError((res && res.error) || 'Không tham gia được phòng.');
         }
       });
     });
 
-// Bắt đầu game (host) -> mở màn hình cài đặt luật chơi trước (cho tất cả người chơi)
+    // Bắt đầu game (host) -> mở màn hình cài đặt luật chơi trước (cho tất cả người chơi)
     $('room-start-btn').addEventListener('click', () => {
       clearError();
       if (!isHost) return;
-      // Yêu cầu server mở màn hình cài đặt cho mọi người trong phòng
       const s = connectSocket();
       s.emit('room:openSettings', { code: myRoomCode }, (res) => {
         if (res && res.ok) {
@@ -340,7 +562,7 @@ function enterRoomWaiting(roomCode) {
       });
     });
 
-    // Nút quay lại phòng chờ từ màn hình cài đặt (nếu có)
+    // Nút quay lại phòng chờ từ màn hình cài đặt
     const backBtn = $('settings-back-btn');
     if (backBtn) {
       backBtn.addEventListener('click', () => {
@@ -349,7 +571,7 @@ function enterRoomWaiting(roomCode) {
       });
     }
 
-// Sao chép mã phòng
+    // Sao chép mã phòng
     const copyBtn = $('room-copy-code-btn');
     if (copyBtn) {
       copyBtn.addEventListener('click', () => {
@@ -369,12 +591,13 @@ function enterRoomWaiting(roomCode) {
     // Rời phòng
     $('room-leave-btn').addEventListener('click', () => {
       clearError();
+      clearOnlineSession();
       if (socket) socket.emit('room:leave');
       hide(roomWaitingOverlay);
       show(lobbyOverlay);
     });
 
-// Chơi offline
+    // Chơi offline
     $('lobby-offline-btn').addEventListener('click', () => {
       openSettingsScreen('offline');
     });
@@ -392,9 +615,11 @@ function enterRoomWaiting(roomCode) {
     get socket() { return socket; },
     get roomCode() { return myRoomCode; },
     get isHost() { return isHost; },
-get playerName() { return getPlayerName(); },
+    get playerName() { return getPlayerName(); },
     connectSocket,
     enterRoomWaiting,
-    startGame
+    startGame,
+    saveOnlineSession,
+    clearOnlineSession
   };
 })();

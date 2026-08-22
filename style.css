@@ -1,20 +1,29 @@
 /* =========================================================
-   BIẾN MÀU THEME (TÍM ĐÊM NEON / TÍM OẢI HƯƠNG SÁNG)
+   BIáº¾N MĂ€U THEME (TĂM ÄĂM NEON / TĂM Oáº¢I HÆ¯Æ NG SĂNG)
    ========================================================= */
 body.dark-theme {
-  --bg-main: #0f0c1b;          /* Tím đêm rất đậm làm nền */
-  --panel-bg: #1a152e;        /* Tím panel nổi khối */
-  --board-bg: #141024;        /* Tím lòng bàn cờ */
-  --tile-bg: #251d42;         /* Tím ô cờ tương phản rõ */
-  --text-main: #f0edfd;       /* Chữ trắng tím nhạt */
-  --text-sub: #a89bc9;        /* Chữ phụ tím nhạt */
-  --border-color: #4a3b78;    /* Đường viền tím tím nổi bật */
-  --tile-hover: #362a5e;      /* Màu ô khi di chuột vào */
+  --bg-main: #0f0c1b;
+  /* TĂ­m Ä‘Ăªm ráº¥t Ä‘áº­m lĂ m ná»n */
+  --panel-bg: #1a152e;
+  /* TĂ­m panel ná»•i khá»‘i */
+  --board-bg: #141024;
+  /* TĂ­m lĂ²ng bĂ n cá» */
+  --tile-bg: #251d42;
+  /* TĂ­m Ă´ cá» tÆ°Æ¡ng pháº£n rĂµ */
+  --text-main: #f0edfd;
+  /* Chá»¯ tráº¯ng tĂ­m nháº¡t */
+  --text-sub: #a89bc9;
+  /* Chá»¯ phá»¥ tĂ­m nháº¡t */
+  --border-color: #4a3b78;
+  /* ÄÆ°á»ng viá»n tĂ­m tĂ­m ná»•i báº­t */
+  --tile-hover: #362a5e;
+  /* MĂ u Ă´ khi di chuá»™t vĂ o */
   --tile-shadow: rgba(0, 0, 0, 0.4);
 }
 
 body.light-theme {
-  --bg-main: #f3f0f9;          /* Tím oải hương rất nhạt */
+  --bg-main: #f3f0f9;
+  /* TĂ­m oáº£i hÆ°Æ¡ng ráº¥t nháº¡t */
   --panel-bg: #ffffff;
   --board-bg: #e5def3;
   --tile-bg: #ffffff;
@@ -32,7 +41,8 @@ body.light-theme {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-html, body {
+html,
+body {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
@@ -50,7 +60,7 @@ html, body {
 }
 
 /* =========================================================
-   SIDEBARS (KHU VỰC ĐIỀU KHIỂN & CHAT)
+   SIDEBARS (KHU Vá»°C ÄIá»€U KHIá»‚N & CHAT)
    ========================================================= */
 .panel {
   background-color: var(--panel-bg);
@@ -82,29 +92,314 @@ html, body {
   overflow-y: auto;
 }
 
-.trade-section { min-height: 0; }
-#trade-form, #trade-requests { display: flex; flex-direction: column; gap: 6px; }
-#trade-requests { max-height: 230px; overflow-y: auto; margin-top: 8px; }
-.trade-field { display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: var(--text-sub); }
-.trade-field input, .trade-field select {
-  width: 100%; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px;
-  background: var(--bg-main); color: var(--text-main);
+.trade-section {
+  min-height: 0;
 }
-.trade-properties { max-height: 72px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 4px; padding: 4px; }
-.trade-property-option { display: block; font-size: 11px; margin: 3px 0; color: var(--text-main); }
-.trade-empty { color: var(--text-sub); font-size: 11px; font-style: italic; }
-.trade-submit, .trade-action { border: 0; border-radius: 4px; padding: 7px; color: #fff; background: #6c5ce7; cursor: pointer; font-weight: 600; }
-.trade-action.decline { background: #8e3b46; }
-.trade-actions { display: flex; gap: 5px; margin-top: 6px; }
-.trade-request { border: 1px solid var(--border-color); border-radius: 5px; padding: 7px; font-size: 11px; background: var(--bg-main); }
-.trade-request-title { font-weight: 700; }
-.trade-request-detail { color: var(--text-sub); margin-top: 3px; }
-.trade-modal-content { width: min(620px, 92vw); }
-.trade-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 14px 0; text-align: left; }
-.trade-column { border: 1px solid var(--border-color); border-radius: 6px; padding: 9px; }
-.trade-column h4 { margin-bottom: 8px; color: var(--text-main); }
-.trade-column .trade-properties { margin-top: 8px; max-height: 180px; }
-@media (max-width: 520px) { .trade-columns { grid-template-columns: 1fr; } }
+
+#trade-form,
+#trade-requests {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#trade-requests {
+  max-height: 230px;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+
+.trade-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-sub);
+}
+
+.trade-field input,
+.trade-field select {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-size: 12px;
+  font-weight: 500;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.trade-field input:focus,
+.trade-field select:focus {
+  border-color: #6c5ce7;
+  box-shadow: 0 0 10px rgba(108, 92, 231, 0.4);
+  outline: none;
+}
+
+.trade-properties {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.trade-property-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-main);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.trade-property-card:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* HIỆU ỨNG GLOW UP KHI ĐƯỢC CHỌN TRONG TRADE */
+.trade-property-card.selected {
+  border-color: #2ed573 !important;
+  background: linear-gradient(135deg, rgba(46, 213, 115, 0.15), var(--bg-main)) !important;
+  box-shadow: 0 0 16px rgba(46, 213, 115, 0.7), inset 0 0 8px rgba(46, 213, 115, 0.25) !important;
+  transform: translateY(-2px) scale(1.01);
+}
+
+.trade-prop-checkbox {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.trade-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.trade-card-name-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--text-main);
+}
+
+.trade-card-icon {
+  font-size: 14px;
+}
+
+.trade-card-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 170px;
+}
+
+.trade-check-indicator {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: transparent;
+  transition: all 0.2s ease;
+}
+
+.trade-property-card.selected .trade-check-indicator {
+  background: #2ed573;
+  border-color: #2ed573;
+  color: #1e272e;
+  font-weight: 900;
+  box-shadow: 0 0 10px #2ed573;
+}
+
+.trade-card-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+}
+
+.trade-chip {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--text-sub);
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.trade-chip.price-chip {
+  color: #ffeaa7;
+  font-weight: 600;
+}
+
+.trade-chip.rent-chip {
+  color: #2ed573;
+  font-weight: 600;
+}
+
+.trade-chip.hotel-chip {
+  color: #ff7675;
+  background: rgba(235, 77, 75, 0.15);
+  border-color: rgba(235, 77, 75, 0.35);
+  font-weight: 600;
+}
+
+.trade-chip.house-chip {
+  color: #55efc4;
+  background: rgba(46, 213, 115, 0.15);
+  border-color: rgba(46, 213, 115, 0.35);
+  font-weight: 600;
+}
+
+.trade-chip.empty-chip {
+  color: var(--text-sub);
+}
+
+.trade-chip.mortgage-chip {
+  color: #e67e22;
+  background: rgba(230, 126, 34, 0.15);
+  border-color: rgba(230, 126, 34, 0.35);
+  font-weight: 600;
+}
+
+.trade-empty {
+  color: var(--text-sub);
+  font-size: 11px;
+  font-style: italic;
+  padding: 12px;
+  text-align: center;
+}
+
+.trade-submit,
+.trade-action {
+  border: 0;
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: #fff;
+  background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(108, 92, 231, 0.4);
+  transition: all 0.2s ease;
+}
+
+.trade-submit:hover,
+.trade-action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.6);
+}
+
+.trade-action.decline {
+  background: linear-gradient(135deg, #e17055, #d63031);
+  box-shadow: 0 2px 8px rgba(214, 48, 49, 0.4);
+}
+
+.trade-action.decline:hover {
+  box-shadow: 0 4px 12px rgba(214, 48, 49, 0.6);
+}
+
+.trade-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.trade-request {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 9px;
+  font-size: 11.5px;
+  background: var(--bg-main);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.trade-request-title {
+  font-weight: 700;
+  color: #a29bfe;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.trade-request-detail {
+  color: var(--text-sub);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.trade-modal-content {
+  width: min(720px, 94vw);
+  max-width: 720px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(108, 92, 231, 0.3);
+  padding: 20px 24px;
+}
+
+.trade-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 14px 0;
+  text-align: left;
+  width: 100%;
+}
+
+.trade-column {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.trade-column h4 {
+  margin-bottom: 8px;
+  color: #a29bfe;
+  font-size: 13px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 4px;
+}
+
+.trade-column .trade-properties {
+  margin-top: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+@media (max-width: 600px) {
+  .trade-columns {
+    grid-template-columns: 1fr;
+  }
+}
 
 .panel-header {
   font-weight: bold;
@@ -126,8 +421,14 @@ html, body {
   font-size: 12px;
 }
 
-.chat-msg { margin-bottom: 6px; }
-.chat-msg.system { color: #81c784; font-style: italic; }
+.chat-msg {
+  margin-bottom: 6px;
+}
+
+.chat-msg.system {
+  color: #81c784;
+  font-style: italic;
+}
 
 .chat-input-wrapper {
   display: flex;
@@ -165,42 +466,168 @@ html, body {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 2px;
+  gap: 8px;
+  padding: 4px 2px;
 }
 
-.inventory-item,
-.inventory-empty {
+.inventory-item {
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--bg-main);
-  padding: 8px;
+  padding: 8px 10px;
   font-size: 12px;
-}
-
-.inventory-item-name { font-weight: 700; }
-.inventory-item-meta { color: var(--text-sub); margin-top: 3px; }
-.inventory-empty { color: var(--text-sub); font-style: italic; }
-
-#theme-btn {
-  width: 100%;
-  padding: 10px;
-  background-color: #6c5ce7;
-  color: #ffffff;
-  border: none;
-  border-radius: 6px;
+  position: relative;
   cursor: pointer;
-  font-weight: bold;
-  transition: all 0.2s;
-  box-shadow: 0 2px 8px rgba(108, 92, 231, 0.4);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
-#theme-btn:hover {
-  background-color: #5b4bc4;
+.inventory-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* HIỆU ỨNG GLOW UP KHI ĐƯỢC CHỌN TRONG INVENTORY */
+.inventory-item.selected {
+  border-color: #6c5ce7 !important;
+  background: linear-gradient(135deg, rgba(108, 92, 231, 0.22), var(--bg-main)) !important;
+  box-shadow: 0 0 18px rgba(108, 92, 231, 0.8), inset 0 0 8px rgba(108, 92, 231, 0.3) !important;
+  transform: translateY(-2px) scale(1.02);
+}
+
+.inventory-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.inventory-item-name {
+  font-weight: 700;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-main);
+}
+
+.inventory-icon {
+  font-size: 14px;
+}
+
+.inventory-title-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.inventory-group-tag {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.inventory-item-details {
+  display: flex;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-sub);
+}
+
+.inv-detail-chip {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--text-sub);
+}
+
+.inv-detail-chip.price {
+  color: #ffeaa7;
+  font-weight: 600;
+}
+
+.inv-detail-chip.rent {
+  color: #dfe6e9;
+}
+
+.inv-detail-chip.rent b {
+  color: #2ed573;
+  font-weight: 700;
+}
+
+.inventory-item-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.inv-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.inv-badge.hotel-badge {
+  background: rgba(235, 77, 75, 0.2);
+  color: #ff7675;
+  border: 1px solid rgba(235, 77, 75, 0.4);
+  font-weight: 700;
+}
+
+.inv-badge.house-badge {
+  background: rgba(46, 213, 115, 0.15);
+  color: #2ed573;
+  border: 1px solid rgba(46, 213, 115, 0.3);
+  font-weight: 700;
+}
+
+.inv-badge.empty-badge {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-sub);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.inv-badge.full-badge {
+  background: rgba(253, 203, 110, 0.2);
+  color: #ffeaa7;
+  border: 1px solid rgba(253, 203, 110, 0.4);
+  text-shadow: 0 0 6px rgba(253, 203, 110, 0.6);
+  font-weight: 700;
+}
+
+.inv-badge.mortgage-badge {
+  background: rgba(230, 126, 34, 0.2);
+  color: #e67e22;
+  border: 1px solid rgba(230, 126, 34, 0.4);
+  font-weight: 700;
+}
+
+.inventory-empty {
+  border: 1px dashed var(--border-color);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.1);
+  padding: 16px 8px;
+  font-size: 12px;
+  color: var(--text-sub);
+  text-align: center;
+  font-style: italic;
 }
 
 /* =========================================================
-   BÀN CỜ FULL SCREEN 100%
+   BĂ€N Cá»œ FULL SCREEN 100%
    ========================================================= */
 #board-wrapper {
   flex: 1;
@@ -214,6 +641,7 @@ html, body {
 }
 
 #board {
+  container-type: inline-size;
   display: grid;
   grid-template-columns: 1.4fr repeat(9, 1fr) 1.4fr;
   grid-template-rows: 1.4fr repeat(9, 1fr) 1.4fr;
@@ -233,38 +661,336 @@ html, body {
 #center-panel {
   grid-column: 2 / 11;
   grid-row: 2 / 11;
+  position: relative;
   background-color: var(--panel-bg);
   border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
+  gap: clamp(4px, 1.4cqw, 12px);
+  padding: clamp(6px, 2cqw, 16px);
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
 }
 
 .logo {
   font-weight: 900;
-  font-size: 24px;
-  letter-spacing: 2px;
+  font-size: clamp(12px, 3.4cqw, 24px);
+  letter-spacing: clamp(0.5px, 0.25cqw, 2px);
   color: #a29bfe;
   text-shadow: 0 0 10px rgba(162, 155, 254, 0.5);
+  text-align: center;
+}
+
+.center-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(4px, 1.2cqw, 8px);
+  margin-top: clamp(2px, 0.5cqw, 4px);
+  width: 95%;
 }
 
 #roll-btn {
-  padding: 12px 30px;
-  font-size: 15px;
+  padding: clamp(6px, 1.6cqw, 11px) clamp(10px, 3cqw, 22px);
+  font-size: clamp(10px, 2cqw, 14px);
   font-weight: bold;
   background: linear-gradient(135deg, #fdcb6e, #e17055);
   color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: clamp(5px, 1.2cqw, 8px);
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(225, 112, 85, 0.4);
-  transition: transform 0.1s;
+  transition: all 0.15s ease;
 }
 
-#roll-btn:active { transform: translateY(2px); }
+#roll-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(225, 112, 85, 0.6);
+}
+
+#roll-btn:active:not(:disabled) {
+  transform: translateY(2px);
+}
+
+#end-turn-btn {
+  padding: clamp(6px, 1.6cqw, 11px) clamp(9px, 2.8cqw, 20px);
+  font-size: clamp(10px, 2cqw, 14px);
+  font-weight: bold;
+  background: linear-gradient(135deg, #0984e3, #6c5ce7);
+  color: #fff;
+  border: none;
+  border-radius: clamp(5px, 1.2cqw, 8px);
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.4);
+  transition: all 0.15s ease;
+}
+
+#end-turn-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(108, 92, 231, 0.6);
+}
+
+#end-turn-btn:active:not(:disabled) {
+  transform: translateY(2px);
+}
+
+#end-turn-btn:disabled,
+#roll-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.6);
+  box-shadow: none;
+}
+
+.btn-surrender,
+#surrender-btn {
+  padding: clamp(6px, 1.6cqw, 11px) clamp(8px, 2.2cqw, 16px);
+  font-size: clamp(9.5px, 1.8cqw, 13px);
+  font-weight: bold;
+  background: linear-gradient(135deg, #d63031, #b71540);
+  color: #fff;
+  border: 1px solid rgba(255, 118, 117, 0.4);
+  border-radius: clamp(5px, 1.2cqw, 8px);
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(214, 48, 49, 0.35);
+  transition: all 0.15s ease;
+}
+
+.btn-surrender:hover:not(:disabled),
+#surrender-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #e17055, #d63031);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(214, 48, 49, 0.6);
+}
+
+.btn-surrender:disabled,
+#surrender-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  filter: grayscale(0.7);
+  box-shadow: none;
+}
+
+/* Banner Cảnh báo Nợ nần khi âm tiền */
+.debt-alert-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: rgba(231, 76, 60, 0.2);
+  border: 1.5px solid #e74c3c;
+  box-shadow: 0 0 15px rgba(231, 76, 60, 0.35);
+  border-radius: 8px;
+  padding: 8px 14px;
+  margin: 4px 8px 0;
+  max-width: 90%;
+  animation: debt-pulse 1.5s ease infinite alternate;
+}
+
+@keyframes debt-pulse {
+  from {
+    box-shadow: 0 0 8px rgba(231, 76, 60, 0.3);
+    border-color: #e74c3c;
+  }
+
+  to {
+    box-shadow: 0 0 20px rgba(231, 76, 60, 0.7);
+    border-color: #ff7675;
+  }
+}
+
+.debt-alert-banner.hidden {
+  display: none !important;
+}
+
+.debt-alert-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ff7675;
+  line-height: 1.35;
+}
+
+.debt-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.btn-debt-surrender {
+  background: #c0392b;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+
+.btn-debt-surrender:hover {
+  background: #e74c3c;
+}
+
+.modal-content.surrender-theme {
+  background: linear-gradient(135deg, #1e1e2f, #2c1a2e);
+  border: 2px solid #e74c3c;
+  box-shadow: 0 0 30px rgba(231, 76, 60, 0.4);
+  text-align: center;
+  max-width: 380px;
+}
+
+.surrender-badge {
+  background: linear-gradient(135deg, #d63031, #b71540);
+  color: #fff;
+  font-weight: 900;
+  font-size: 13px;
+  padding: 4px 14px;
+  border-radius: 12px;
+  display: inline-block;
+}
+
+.btn-surrender-confirm {
+  background: linear-gradient(135deg, #d63031, #e84118);
+  color: #fff;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(214, 48, 49, 0.4);
+  transition: all 0.15s ease;
+}
+
+.btn-surrender-confirm:hover {
+  background: linear-gradient(135deg, #c23616, #b71540);
+  transform: translateY(-1px);
+}
+
+/* =========================================================
+   SPECTATOR BANNER (KHÁN GIẢ)
+   ========================================================= */
+.spectator-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(9, 132, 227, 0.25), rgba(108, 92, 231, 0.35));
+  border: 1px solid #74b9ff;
+  border-radius: 8px;
+  padding: 6px 12px;
+  margin: 6px auto;
+  max-width: 90%;
+  color: #74b9ff;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 0 12px rgba(116, 185, 255, 0.3);
+  animation: spectator-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes spectator-glow {
+  0% {
+    box-shadow: 0 0 6px rgba(116, 185, 255, 0.2);
+  }
+
+  100% {
+    box-shadow: 0 0 14px rgba(116, 185, 255, 0.6);
+  }
+}
+
+.spectator-banner.hidden {
+  display: none !important;
+}
+
+/* =========================================================
+   RECONNECT BANNER TRONG LOBBY
+   ========================================================= */
+.reconnect-banner {
+  background: linear-gradient(135deg, rgba(243, 156, 18, 0.2), rgba(230, 126, 34, 0.3));
+  border: 1.5px solid #f39c12;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 15px;
+  text-align: center;
+  box-shadow: 0 0 16px rgba(243, 156, 18, 0.35);
+  animation: reconnect-pulse 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes reconnect-pulse {
+  from {
+    border-color: #f39c12;
+  }
+
+  to {
+    border-color: #f1c40f;
+    box-shadow: 0 0 20px rgba(241, 196, 15, 0.55);
+  }
+}
+
+.reconnect-banner.hidden {
+  display: none !important;
+}
+
+.reconnect-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f1c40f;
+  margin-bottom: 8px;
+}
+
+.reconnect-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+/* =========================================================
+   TRẠNG THÁI NGƯỜI CHƠI MẤT KẾT NỐI (DISCONNECTED)
+   ========================================================= */
+.player-card.player-disconnected {
+  border-color: #e17055 !important;
+  background: rgba(225, 112, 85, 0.15) !important;
+  animation: disconnect-flash 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes disconnect-flash {
+  0% {
+    opacity: 0.65;
+    filter: grayscale(0.5);
+  }
+
+  100% {
+    opacity: 1;
+    filter: grayscale(0);
+    box-shadow: 0 0 8px rgba(225, 112, 85, 0.5);
+  }
+}
+
+.victory-actions-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 15px;
+}
+
+.victory-btn-secondary {
+  background: linear-gradient(135deg, #636e72, #2d3436) !important;
+  color: #dfe6e9 !important;
+  border: 1px solid #b2bec3 !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
+}
+
+.victory-btn-secondary:hover {
+  background: linear-gradient(135deg, #b2bec3, #636e72) !important;
+  color: #111 !important;
+}
 
 /* =========================================================
    CÁC Ô CỜ - TĂNG ĐỘ NỔI BẬT & HIỆU ỨNG
@@ -279,13 +1005,158 @@ html, body {
   position: relative;
   overflow: hidden;
   user-select: none;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
 }
 
 .tile:hover {
   background-color: var(--tile-hover);
   border-color: #a29bfe;
-  z-index: 5;
+  z-index: 10;
+}
+
+/* =========================================================
+   HIỆU ỨNG SỞ HỮU TRỌN NHÓM MÀU (FULL GROUP MONOPOLY GLOW)
+   ========================================================= */
+.tile.tile-full-group {
+  border-width: 2.5px !important;
+  border-style: solid !important;
+  transition: all 0.3s ease;
+  z-index: 4;
+}
+
+.tile.group-glow {
+  animation: full-group-pulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes full-group-pulse {
+  0% {
+    box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.25), 0 0 8px rgba(255, 215, 0, 0.4);
+  }
+
+  100% {
+    box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.4), 0 0 16px rgba(255, 215, 0, 0.75);
+  }
+}
+
+.tile.group-glow-p1 {
+  border-color: #ff4757 !important;
+  box-shadow: 0 0 12px rgba(255, 71, 87, 0.6), inset 0 0 8px rgba(255, 71, 87, 0.25) !important;
+}
+
+.tile.group-glow-p2 {
+  border-color: #1e90ff !important;
+  box-shadow: 0 0 12px rgba(30, 144, 255, 0.6), inset 0 0 8px rgba(30, 144, 255, 0.25) !important;
+}
+
+.tile.group-glow-p3 {
+  border-color: #2ed573 !important;
+  box-shadow: 0 0 12px rgba(46, 213, 115, 0.6), inset 0 0 8px rgba(46, 213, 115, 0.25) !important;
+}
+
+.tile.group-glow-p4 {
+  border-color: #fdcb6e !important;
+  box-shadow: 0 0 12px rgba(253, 203, 110, 0.6), inset 0 0 8px rgba(253, 203, 110, 0.25) !important;
+}
+
+.tile.group-glow-p5 {
+  border-color: #e84393 !important;
+  box-shadow: 0 0 12px rgba(232, 67, 147, 0.6), inset 0 0 8px rgba(232, 67, 147, 0.25) !important;
+}
+
+.tile.group-glow-p6 {
+  border-color: #00b894 !important;
+  box-shadow: 0 0 12px rgba(0, 184, 148, 0.6), inset 0 0 8px rgba(0, 184, 148, 0.25) !important;
+}
+
+.tile.group-glow-p7 {
+  border-color: #a29bfe !important;
+  box-shadow: 0 0 12px rgba(162, 155, 254, 0.6), inset 0 0 8px rgba(162, 155, 254, 0.25) !important;
+}
+
+.tile.group-glow-p8 {
+  border-color: #ff9f43 !important;
+  box-shadow: 0 0 12px rgba(255, 159, 67, 0.6), inset 0 0 8px rgba(255, 159, 67, 0.25) !important;
+}
+
+/* =========================================================
+   HIỆU ỨNG THẺ MỚI (x1.5 THUÊ, KHIÊN, GIẢM GIÁ)
+   ========================================================= */
+/* 1. Ô đất được nhân 1.5x tiền thuê */
+.tile.tile-boosted-rent {
+  position: relative;
+}
+
+.tile.tile-boosted-rent::after {
+  content: 'x1.5';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: linear-gradient(135deg, #f1c40f, #e67e22);
+  color: #111;
+  font-size: 9px;
+  font-weight: 900;
+  padding: 1px 4px;
+  border-radius: 4px;
+  box-shadow: 0 0 8px rgba(241, 196, 15, 0.9);
+  z-index: 8;
+  animation: boost-glow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes boost-glow {
+  0% {
+    transform: scale(0.95);
+    filter: drop-shadow(0 0 2px #f39c12);
+  }
+
+  100% {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 6px #f1c40f);
+  }
+}
+
+/* 2. Buff Badges người chơi (Khiên, Giảm giá) */
+.player-buff-badges {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  margin-left: 6px;
+  flex-wrap: wrap;
+}
+
+.buff-badge {
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: 800;
+  display: inline-block;
+  animation: buff-pulse 1.2s ease infinite alternate;
+  user-select: none;
+}
+
+.buff-shield {
+  background: rgba(9, 132, 227, 0.35);
+  border: 1px solid #0984e3;
+  color: #74b9ff;
+  box-shadow: 0 0 6px rgba(9, 132, 227, 0.5);
+}
+
+.buff-discount {
+  background: rgba(243, 156, 18, 0.35);
+  border: 1px solid #f39c12;
+  color: #f1c40f;
+  box-shadow: 0 0 6px rgba(243, 156, 18, 0.5);
+}
+
+@keyframes buff-pulse {
+  from {
+    opacity: 0.85;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1.05);
+  }
 }
 
 .tile.side-tile {
@@ -296,84 +1167,118 @@ html, body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: space-evenly;
   align-items: center;
-  padding: 3px;
+  padding: 2px;
   width: 100%;
   height: 100%;
   overflow: hidden;
+  box-sizing: border-box;
+  z-index: 2;
 }
 
 .tile-name {
-  font-size: clamp(8px, 0.72vw, 11px);
+  font-size: clamp(5.5px, 1.8cqw, 10.5px);
   font-weight: 700;
   text-align: center;
   line-height: 1.15;
   color: var(--text-main);
   word-break: break-word;
-  margin: auto 0;
+  max-width: 96%;
 }
 
 .tile-price {
-  font-size: clamp(8px, 0.68vw, 10px);
-  color: #ffeaa7; /* Màu vàng kim giúp giá tiền cực kỳ nổi bật */
-  font-weight: bold;
+  font-size: clamp(5.5px, 1.7cqw, 10px);
+  color: #ffeaa7;
+  /* Màu vàng kim giúp giá tiền cực kỳ nổi bật */
+  font-weight: 800;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
 }
 
 /* THANH MÀU NHÓM ĐẤT SẮC NÉT */
 .group-bar {
   width: 100%;
-  height: 18px; /* Nới rộng để nhà/khách sạn hiển thị rõ hơn */
+  height: clamp(8px, 2.2cqw, 18px);
+  /* Nới rộng để nhà/khách sạn hiển thị rõ hơn */
   flex-shrink: 0;
-  box-shadow: 0 0 4px rgba(0,0,0,0.3);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+  z-index: 3;
 }
 
 .side-tile .group-bar {
-  width: 18px; /* Nới rộng thanh dọc của ô cạnh */
+  width: clamp(8px, 2.2cqw, 18px);
+  /* Nới rộng thanh dọc của ô cạnh */
   height: 100%;
   flex-shrink: 0;
 }
 
 /* MÀU CÁC NHÓM ĐẤT (TĂNG ĐỘ TƯƠI SÁNG ĐỂ NỔI BẬT TRÊN NỀN TÍM) */
-.group-BROWN { background-color: #a0522d; }
-.group-LIGHT_BLUE { background-color: #00cec9; }
-.group-PINK { background-color: #e84393; }
-.group-ORANGE { background-color: #ff7675; }
-.group-RED { background-color: #d63031; }
-.group-YELLOW { background-color: #fdcb6e; }
-.group-GREEN { background-color: #00b894; }
-.group-DARK_BLUE { background-color: #0984e3; }
+.group-BROWN {
+  background-color: #a0522d;
+}
 
-/* QUÂN CỜ PHÁT SÁNG CỰC KỲ DỄ NHÌN */
+.group-LIGHT_BLUE {
+  background-color: #00cec9;
+}
+
+.group-PINK {
+  background-color: #e84393;
+}
+
+.group-ORANGE {
+  background-color: #ff7675;
+}
+
+.group-RED {
+  background-color: #d63031;
+}
+
+.group-YELLOW {
+  background-color: #fdcb6e;
+}
+
+.group-GREEN {
+  background-color: #00b894;
+}
+
+.group-DARK_BLUE {
+  background-color: #0984e3;
+}
+
+/* =========================================================
+   QUÂN CỜ CON VẬT (ANIMAL TOKENS) - CHIẾM TOÀN BỘ Ô TOKEN
+   ========================================================= */
 .player-token {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
+  width: clamp(16px, 4.5cqw, 32px);
+  height: clamp(16px, 4.5cqw, 32px);
   position: absolute;
-  border: 2px solid #fff;
-  z-index: 20;
-  box-shadow: 0 0 8px rgba(255,255,255,0.8);
-  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 25;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: clamp(12px, 3.5cqw, 26px);
   line-height: 1;
-  overflow: hidden;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), left 0.2s ease, top 0.2s ease;
+  pointer-events: none;
+  user-select: none;
 }
-/* Token nhỏ hơn khi nhiều người chơi (đặt trong buildPlayersUI) */
+
+/* Khi có nhiều hơn 4 người chơi */
 .player-token.small-token {
-  width: 16px;
-  height: 16px;
-  font-size: 10px;
+  width: clamp(12px, 3.2cqw, 24px);
+  height: clamp(12px, 3.2cqw, 24px);
+  font-size: clamp(10px, 2.5cqw, 20px);
 }
+
 /* Xếp chồng quân cờ khi nhiều người cùng đứng trên 1 ô */
 .player-token.token-stacked {
-  border-color: rgba(255,255,255,0.9);
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 6px rgba(255, 215, 0, 0.6));
 }
-.token-p1 { background-color: #ff4757; bottom: 3px; left: 3px; }
-.token-p2 { background-color: #1e90ff; bottom: 3px; right: 3px; }
 
 /* PLAYER CARDS */
 .player-card {
@@ -387,50 +1292,222 @@ html, body {
   margin-bottom: 6px;
   transition: border-color 0.2s;
 }
+
 .player-card.active {
   border-color: #fdcb6e;
   background: var(--tile-hover);
   box-shadow: 0 0 10px rgba(253, 203, 110, 0.2);
 }
-.player-badge { width: 12px; height: 12px; border-radius: 50%; }
-.p1-bg { background: #ff4757; }
-.p2-bg { background: #1e90ff; }
-.player-name { flex: 1; font-size: 13px; font-weight: bold; }
-.player-money { font-weight: bold; color: #55efc4; }
 
-#rules-list ul { list-style: none; font-size: 12px; color: var(--text-sub); }
-#rules-list li { margin-bottom: 6px; }
-
-/* =========================================================
-   POP-UP MUA ĐẤT PHONG CÁCH RICHUP.IO
-   ========================================================= */
-/* =========================================================
-   1. POP-UP HỎI MUA ĐẤT (ĐƠN GIẢN)
-   ========================================================= */
-.modal {
-  position: absolute;
-  z-index: 50;
-  background: var(--panel-bg);
-  border: 2px solid #a29bfe;
-  border-radius: 10px;
-  padding: 14px;
-  text-align: center;
-  box-shadow: 0 0 20px rgba(162, 155, 254, 0.4);
-  display: flex;
-  flex-direction: column;
+.player-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  width: 220px;
-  animation: popIn 0.2s ease-out;
+  justify-content: center;
+  font-size: 18px;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid var(--border-color);
+  flex-shrink: 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
-.modal.hidden, .property-card-modal.hidden {
+.p1-bg {
+  border-color: #ff4757;
+}
+
+.p2-bg {
+  border-color: #1e90ff;
+}
+
+.player-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.player-money {
+  font-weight: bold;
+  color: #55efc4;
+}
+
+/* =========================================================
+   POP-UP MUA ĐẤT: GỌN GÀNG, BÁM SÁT Ô ĐẤT TRONG LÒNG BÀN CỜ
+   ========================================================= */
+.buy-popover {
+  position: absolute;
+  z-index: 60;
+  pointer-events: auto;
+  background: linear-gradient(145deg, #1f1837 0%, #15102a 100%);
+  border: clamp(1.5px, 0.35cqw, 2px) solid #a29bfe;
+  border-radius: clamp(8px, 1.6cqw, 12px);
+  padding: clamp(8px, 1.8cqw, 14px);
+  width: clamp(140px, 34cqw, 220px);
+  max-width: 90%;
+  max-height: 85%;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.85), 0 0 16px rgba(108, 92, 231, 0.5);
+  text-align: center;
+  animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.buy-popover.hidden {
   display: none !important;
 }
 
+.buy-popover-content h3 {
+  font-size: clamp(9px, 1.6cqw, 12px);
+  margin-bottom: clamp(2px, 0.5cqw, 4px);
+  color: #a29bfe;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+#modal-tile-name {
+  font-weight: 800;
+  font-size: clamp(11px, 2.2cqw, 15px);
+  color: #fff;
+  margin-bottom: clamp(2px, 0.4cqw, 4px);
+  word-break: break-word;
+}
+
+#modal-tile-price {
+  font-size: clamp(10px, 1.9cqw, 13px);
+  color: #ffeaa7;
+  font-weight: 800;
+  margin-bottom: clamp(5px, 1.2cqw, 9px);
+}
+
+.buy-popover-content .modal-actions {
+  display: flex;
+  gap: clamp(4px, 1cqw, 8px);
+  width: 100%;
+}
+
+.buy-popover-content .modal-actions button {
+  flex: 1;
+  padding: clamp(5px, 1.2cqw, 9px) 0;
+  border: none;
+  border-radius: clamp(4px, 1cqw, 6px);
+  font-weight: bold;
+  cursor: pointer;
+  font-size: clamp(9.5px, 1.8cqw, 12px);
+  transition: transform 0.15s, opacity 0.2s, box-shadow 0.2s;
+}
+
+.buy-popover-content .modal-actions button:hover {
+  transform: translateY(-1px);
+}
+
+/* Nút Đấu giá trong buy-popover */
+.btn-auction {
+  background: linear-gradient(135deg, #e17055, #d63031) !important;
+  color: #fff !important;
+  border: 1px solid #fab1a0 !important;
+  letter-spacing: 0.3px;
+}
+.btn-auction:hover {
+  background: linear-gradient(135deg, #d63031, #c0392b) !important;
+  box-shadow: 0 0 10px rgba(214, 48, 49, 0.5) !important;
+}
+
+/* Jackpot display góc trên center-panel */
+.jackpot-display {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 55;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: linear-gradient(135deg, #2d1a00, #4a2800);
+  border: 1.5px solid #f39c12;
+  border-radius: 10px;
+  padding: clamp(3px, 0.8cqw, 6px) clamp(8px, 2cqw, 14px);
+  font-size: clamp(10px, 1.9cqw, 13px);
+  font-weight: 700;
+  color: #fdcb6e;
+  box-shadow: 0 0 14px rgba(243, 156, 18, 0.45), 0 2px 8px rgba(0,0,0,0.6);
+  pointer-events: none;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.jackpot-display.hidden { display: none !important; }
+.jackpot-icon { font-size: clamp(11px, 2.2cqw, 15px); }
+.jackpot-label {
+  font-size: clamp(8px, 1.5cqw, 11px);
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.jackpot-amount {
+  font-size: clamp(11px, 2.2cqw, 15px);
+  color: #ffeaa7;
+  text-shadow: 0 0 6px rgba(253,203,110,0.7);
+}
+
+/* =========================================================
+   POP-UP OVERLAYS & MODALS (RESPONSIVE FULL-SCREEN OVERLAYS)
+   ========================================================= */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(10, 8, 20, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  animation: modalFadeIn 0.2s ease-out;
+  overflow-y: auto;
+}
+
+.modal.hidden,
+.property-card-modal.hidden {
+  display: none !important;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @keyframes popIn {
-  from { transform: scale(0.85); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  position: relative;
+  background: linear-gradient(145deg, #1f1837 0%, #15102a 100%);
+  border: 2px solid var(--border-color);
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85), 0 0 30px rgba(108, 92, 231, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: min(440px, 94vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .modal-title {
@@ -456,39 +1533,62 @@ html, body {
   display: flex;
   gap: 10px;
   width: 100%;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .modal-actions button {
   flex: 1;
-  padding: 8px 0;
+  padding: 10px 0;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
-  font-size: 12px;
-  transition: transform 0.1s, opacity 0.2s;
+  font-size: 13px;
+  transition: transform 0.15s, opacity 0.2s, box-shadow 0.2s;
 }
 
-.btn-confirm { background: #00b894; color: #fff; box-shadow: 0 3px 0 #008b6f; }
-.btn-cancel { background: #d63031; color: #fff; box-shadow: 0 3px 0 #a32223; }
+.modal-actions button:hover {
+  transform: translateY(-2px);
+}
+
+.modal-actions button:active {
+  transform: translateY(1px);
+}
+
+.btn-confirm {
+  background: #00b894;
+  color: #fff;
+  box-shadow: 0 3px 0 #008b6f;
+}
+
+.btn-cancel {
+  background: #d63031;
+  color: #fff;
+  box-shadow: 0 3px 0 #a32223;
+}
 
 /* =========================================================
-   2. THẺ THÔNG TIN RICHUP.IO KHI HOVER Ô ĐẤT
+   2. THẺ THÔNG TIN KHI CLICK VÀO Ô ĐẤT (PROPERTY INFO CARD)
    ========================================================= */
 .property-card-modal {
-  position: absolute;
-  z-index: 60;
-  background: #1b2234;
-  border: 1px solid #36415e;
-  border-radius: 12px;
-  padding: 14px;
-  width: 230px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  background: linear-gradient(145deg, #1b2234 0%, #121826 100%);
+  border: 2px solid #6c5ce7;
+  border-radius: 16px;
+  padding: 18px;
+  width: 100%;
+  max-width: min(340px, 92vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85), 0 0 35px rgba(108, 92, 231, 0.4);
   display: flex;
   flex-direction: column;
-  animation: popIn 0.15s ease-out;
-  pointer-events: none; /* Không cản trở hover chuột */
+  animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: auto;
 }
 
 .card-title {
@@ -557,7 +1657,8 @@ html, body {
   font-weight: 800;
   color: #ffffff;
 }
-/* NÚT BẤM DƯỚI CARD */
+
+/* NĂT Báº¤M DÆ¯á»I CARD */
 .modal-actions {
   display: flex;
   gap: 10px;
@@ -618,7 +1719,7 @@ html, body {
   box-shadow: none;
 }
 
-/* NÚT BẤM TRUNG TÂM */
+/* NĂT Báº¤M TRUNG TĂ‚M */
 .center-actions {
   display: flex;
   gap: 10px;
@@ -658,7 +1759,7 @@ html, body {
   opacity: 0.6;
 }
 
-/* OVERLAY NÂNG CẤP NHÀ KHỦNG HOVER TRÊN Ô ĐẤT */
+/* OVERLAY NĂ‚NG Cáº¤P NHĂ€ KHá»¦NG HOVER TRĂN Ă” Äáº¤T */
 .upgrade-overlay {
   position: absolute;
   inset: 0;
@@ -674,8 +1775,13 @@ html, body {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .btn-upgrade-house {
@@ -689,7 +1795,7 @@ html, body {
   cursor: pointer;
   width: 92%;
   text-align: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
   transition: transform 0.1s;
 }
 
@@ -699,7 +1805,7 @@ html, body {
 }
 
 /* =========================================================
-   THẺ THÔNG TIN RICHUP.IO & QUẢN LÝ ĐẤT (SỬA LỖI CLICK)
+   THáºº THĂ”NG TIN RICHUP.IO & QUáº¢N LĂ Äáº¤T (Sá»¬A Lá»–I CLICK)
    ========================================================= */
 #center-panel {
   position: relative;
@@ -707,8 +1813,10 @@ html, body {
 
 .property-card-modal {
   position: absolute;
-  z-index: 100; /* Đảm bảo nổi lên trên cùng */
-  pointer-events: auto !important; /* Mở lại khả năng tương tác chuột */
+  z-index: 100;
+  /* Äáº£m báº£o ná»•i lĂªn trĂªn cĂ¹ng */
+  pointer-events: auto !important;
+  /* Má»Ÿ láº¡i kháº£ nÄƒng tÆ°Æ¡ng tĂ¡c chuá»™t */
   background: #1b2234;
   border: 1px solid #36415e;
   border-radius: 12px;
@@ -726,7 +1834,8 @@ html, body {
   z-index: 90;
 }
 
-.modal.hidden, .property-card-modal.hidden {
+.modal.hidden,
+.property-card-modal.hidden {
   display: none !important;
 }
 
@@ -764,7 +1873,7 @@ html, body {
   background: #d63031;
 }
 
-/* NÚT THAO TÁC QUẢN LÝ ĐẤT */
+/* NĂT THAO TĂC QUáº¢N LĂ Äáº¤T */
 .card-controls {
   margin-top: 10px;
   display: flex;
@@ -798,20 +1907,29 @@ html, body {
   background: #fdcb6e;
   color: #1a152e;
 }
-.btn-build:hover:not(:disabled) { background: #ffeaa7; }
+
+.btn-build:hover:not(:disabled) {
+  background: #ffeaa7;
+}
 
 .btn-downgrade {
   background: #e17055;
   color: #ffffff;
 }
-.btn-downgrade:hover:not(:disabled) { background: #ff7675; }
+
+.btn-downgrade:hover:not(:disabled) {
+  background: #ff7675;
+}
 
 .btn-mortgage {
   background: #6c5ce7;
   color: #ffffff;
   width: 100%;
 }
-.btn-mortgage:hover:not(:disabled) { background: #a29bfe; }
+
+.btn-mortgage:hover:not(:disabled) {
+  background: #a29bfe;
+}
 
 .btn-action:disabled {
   opacity: 0.35;
@@ -819,24 +1937,98 @@ html, body {
 }
 
 /* =========================================================
-   NHẬN DIỆN SỞ HỮU ĐẤT (OWNERSHIP IDENTIFICATION)
+   NHáº¬N DIá»†N Sá» Há»®U Äáº¤T (OWNERSHIP IDENTIFICATION)
    ========================================================= */
 
-/* Trạng thái ô thuộc sở hữu P1 (Sài Gòn Pro - Màu Đỏ) */
+/* Tráº¡ng thĂ¡i Ă´ thuá»™c sá»Ÿ há»¯u P1 (SĂ i GĂ²n Pro - MĂ u Äá») */
 .tile.owned-p1 {
   border: 2px solid #ff4757 !important;
   background-color: rgba(255, 71, 87, 0.15) !important;
   box-shadow: inset 0 0 10px rgba(255, 71, 87, 0.3);
 }
 
-/* Trạng thái ô thuộc sở hữu P2 (Chợ Lớn VIP - Màu Xanh) */
+/* Tráº¡ng thĂ¡i Ă´ thuá»™c sá»Ÿ há»¯u P2 (Chá»£ Lá»›n VIP - MĂ u Xanh) */
 .tile.owned-p2 {
   border: 2px solid #1e90ff !important;
   background-color: rgba(30, 144, 255, 0.15) !important;
   box-shadow: inset 0 0 10px rgba(30, 144, 255, 0.3);
 }
 
-/* Huy hiệu hiển thị tên chủ sở hữu ở góc ô */
+/* =========================================================
+   STYLING ICON CHO TẤT CẢ CÁC Ô (PHÓNG TO & HIỆU ỨNG SỐNG ĐỘNG)
+   ========================================================= */
+.tile-icon {
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+  transition: transform 0.2s ease;
+}
+
+/* 1. Icon các ô đất quận/huyện TP.HCM */
+.tile-icon.tile-property-icon {
+  font-size: clamp(8px, 2.5cqw, 18px);
+  margin-bottom: 2px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.65));
+}
+
+/* 2. Icon các ô chức năng (Bến xe, Sân bay, Metro, EVN, Sawaco, Thuế, Cơ hội, Khí vận) - Phóng to! */
+.tile-icon.tile-special-icon {
+  font-size: clamp(12px, 4cqw, 27px);
+  margin-bottom: 3px;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 6px rgba(255, 215, 0, 0.45));
+}
+
+/* 3. Icon các ô góc lớn (Bắt đầu GO, Nhà tù, Bãi xe tự do, Vào tù) - Phóng to cực đại! */
+.tile-icon.tile-corner-icon {
+  font-size: clamp(16px, 5.5cqw, 36px);
+  margin-bottom: 4px;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 10px rgba(162, 155, 254, 0.7));
+  animation: cornerGlowPulse 2.8s ease-in-out infinite alternate;
+}
+
+@keyframes cornerGlowPulse {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 6px rgba(162, 155, 254, 0.5));
+  }
+
+  100% {
+    transform: scale(1.1);
+    filter: drop-shadow(0 5px 12px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 14px rgba(255, 215, 0, 0.85));
+  }
+}
+
+.tile:hover .tile-icon {
+  transform: scale(1.15);
+}
+
+/* Hiệu ứng nảy mượt và phóng to khi quân cờ con vật di chuyển */
+.player-token.moving {
+  top: 50% !important;
+  left: 50% !important;
+  bottom: auto !important;
+  right: auto !important;
+  transform: translate(-50%, -50%) scale(1.55) !important;
+  z-index: 100 !important;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 14px rgba(255, 215, 0, 0.9)) !important;
+  animation: tokenMovingBounce 0.25s ease-in-out infinite alternate;
+}
+
+@keyframes tokenMovingBounce {
+  0% {
+    transform: translate(-50%, -50%) scale(1.45) translateY(0);
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(1.6) translateY(-6px);
+  }
+}
+
+/* Huy hiá»‡u hiá»ƒn thá»‹ tĂªn chá»§ sá»Ÿ há»¯u á»Ÿ gĂ³c Ă´ */
 .owner-badge {
   position: absolute;
   font-size: 9px;
@@ -862,85 +2054,91 @@ html, body {
   left: 2px;
 }
 
-/* Styling Icon cho các ô đặc biệt */
-.tile-icon {
-  font-size: 18px;
-  line-height: 1;
-  margin-bottom: 3px;
-  display: block;
-  text-align: center;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
-}
-
-
-/* Hiệu ứng nảy mượt khi quân cờ di chuyển qua từng ô */
-.player-token {
-  transition: transform 0.1s ease-in-out;
-}
-
-.player-token.moving {
-  top: 50% !important;
-  left: 50% !important;
-  bottom: auto !important;
-  right: auto !important;
-  transform: translate(-50%, -50%) scale(1.4);
-  z-index: 100 !important;
-  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.6));
-}
-
 /* Style cho Thẻ Cơ Hội & Khí Vận Pop-up */
 .modal-content.card-theme {
   background: linear-gradient(145deg, #1f2430, #2a324b);
   border: 2px solid #f39c12;
-  box-shadow: 0 0 25px rgba(243, 156, 18, 0.4);
+  box-shadow: 0 0 35px rgba(243, 156, 18, 0.45);
   text-align: center;
-  padding: 25px;
-  border-radius: 12px;
-  max-width: 380px;
+  padding: 28px 24px;
+  border-radius: 14px;
+  max-width: 390px;
+  animation: card-pop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes card-pop {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .card-badge {
   display: inline-block;
-  background: #e67e22;
+  background: linear-gradient(135deg, #e67e22, #d35400);
   color: #fff;
-  font-weight: bold;
-  font-size: 12px;
-  padding: 4px 12px;
+  font-weight: 900;
+  font-size: 13px;
+  padding: 5px 16px;
   border-radius: 20px;
   letter-spacing: 1px;
+  box-shadow: 0 2px 8px rgba(230, 126, 34, 0.5);
 }
 
-/* NÚT MUA - MÀU XANH LÁ / NGỌC */
-.btn-buy, #btn-buy, #buy-yes-btn {
+.card-badge.badge-chance {
+  background: linear-gradient(135deg, #e67e22, #f39c12);
+  box-shadow: 0 0 10px rgba(243, 156, 18, 0.6);
+}
+
+.card-badge.badge-fortune {
+  background: linear-gradient(135deg, #0984e3, #00cec9);
+  box-shadow: 0 0 10px rgba(0, 206, 201, 0.6);
+}
+
+/* NĂT MUA - MĂ€U XANH LĂ / NGá»ŒC */
+.btn-buy,
+#btn-buy,
+#buy-yes-btn {
   background: linear-gradient(135deg, #10ac84, #1dd1a1) !important;
   color: #ffffff !important;
   border: 1px solid #10ac84 !important;
   box-shadow: 0 4px 12px rgba(29, 209, 161, 0.35) !important;
 }
 
-.btn-buy:hover, #btn-buy:hover, #buy-yes-btn:hover {
+.btn-buy:hover,
+#btn-buy:hover,
+#buy-yes-btn:hover {
   background: linear-gradient(135deg, #1dd1a1, #10ac84) !important;
   transform: translateY(-2px);
 }
 
-/* NÚT BỎ QUA - MÀU ĐỎ */
-.btn-skip, #btn-skip, #buy-no-btn {
+/* NĂT Bá» QUA - MĂ€U Äá» */
+.btn-skip,
+#btn-skip,
+#buy-no-btn {
   background: linear-gradient(135deg, #ee5253, #ff6b6b) !important;
   color: #ffffff !important;
   border: 1px solid #ee5253 !important;
   box-shadow: 0 4px 12px rgba(255, 107, 107, 0.35) !important;
 }
 
-.btn-skip:hover, #btn-skip:hover, #buy-no-btn:hover {
+.btn-skip:hover,
+#btn-skip:hover,
+#buy-no-btn:hover {
   background: linear-gradient(135deg, #ff6b6b, #ee5253) !important;
   transform: translateY(-2px);
 }
 
 /* =========================================================
-   FIX TRIỆT ĐỂ LỖI Z-INDEX (ĐẦU LỚP POP-UP LÊN TRÊN CÙNG)
+   FIX TRIá»†T Äá»‚ Lá»–I Z-INDEX (Äáº¦U Lá»P POP-UP LĂN TRĂN CĂ™NG)
    ========================================================= */
 
-/* 1. Hạ z-index của Bảng trung tâm (Nút Kết thúc lượt / Gieo xúc xắc) */
+/* 1. Háº¡ z-index cá»§a Báº£ng trung tĂ¢m (NĂºt Káº¿t thĂºc lÆ°á»£t / Gieo xĂºc xáº¯c) */
 .center-box,
 .center-area,
 #center-area,
@@ -949,14 +2147,14 @@ html, body {
   z-index: 10 !important;
 }
 
-/* 2. Thẻ thông tin chi tiết ô đất (Property Info Card) nổi lên trên bàn cờ */
+/* 2. Tháº» thĂ´ng tin chi tiáº¿t Ă´ Ä‘áº¥t (Property Info Card) ná»•i lĂªn trĂªn bĂ n cá» */
 #property-info-card {
   z-index: 10000 !important;
   position: absolute !important;
   pointer-events: auto !important;
 }
 
-/* Fix Modal Mua đất & Lá bài nằm trên cùng */
+/* Fix Modal Mua Ä‘áº¥t & LĂ¡ bĂ i náº±m trĂªn cĂ¹ng */
 .modal {
   position: fixed !important;
   top: 0;
@@ -970,25 +2168,26 @@ html, body {
   align-items: center;
 }
 
-/* Fix Bảng chi tiết đất (Huyện Bình Chánh, Gò Vấp...) không che khu vực nút bấm trung tâm */
+/* Fix Báº£ng chi tiáº¿t Ä‘áº¥t (Huyá»‡n BĂ¬nh ChĂ¡nh, GĂ² Váº¥p...) khĂ´ng che khu vá»±c nĂºt báº¥m trung tĂ¢m */
 #property-info-card {
   z-index: 1000 !important;
   position: absolute !important;
   pointer-events: auto !important;
 }
 
-/* Đảm bảo khi ẩn thì không cản trở click chuột */
-.modal.hidden, 
+/* Äáº£m báº£o khi áº©n thĂ¬ khĂ´ng cáº£n trá»Ÿ click chuá»™t */
+.modal.hidden,
 #property-info-card.hidden {
   display: none !important;
   pointer-events: none !important;
 }
 
 /* =========================================================
-   1. FIX KHUNG MUA ĐẤT BỊ XUYÊN THẤU (ẢNH 2)
+   1. FIX KHUNG MUA Äáº¤T Bá» XUYĂN THáº¤U (áº¢NH 2)
    ========================================================= */
 .modal-content {
-  background-color: #1e1b2e !important; /* Phông nền tối đặc, che hoàn toàn chữ bàn cờ bên dưới */
+  background-color: #1e1b2e !important;
+  /* PhĂ´ng ná»n tá»‘i Ä‘áº·c, che hoĂ n toĂ n chá»¯ bĂ n cá» bĂªn dÆ°á»›i */
   border: 2px solid #3b4261 !important;
   border-radius: 16px !important;
   padding: 24px 32px !important;
@@ -1001,25 +2200,28 @@ html, body {
 }
 
 /* =========================================================
-   2. FIX BẢNG THÔNG TIN ĐẤT BỊ TRÀN NÚT BẤM (ẢNH 1)
+   2. FIX Báº¢NG THĂ”NG TIN Äáº¤T Bá» TRĂ€N NĂT Báº¤M (áº¢NH 1)
    ========================================================= */
 #property-info-card {
   background-color: #1e1b2e !important;
   border: 2px solid #3b4261 !important;
   border-radius: 16px !important;
   padding: 16px !important;
-  box-sizing: border-box !important; /* Đảm bảo padding không đẩy phần tử ra ngoài */
+  box-sizing: border-box !important;
+  /* Äáº£m báº£o padding khĂ´ng Ä‘áº©y pháº§n tá»­ ra ngoĂ i */
   width: 320px !important;
-  height: auto !important; /* Tự động co giãn theo số lượng nút bấm */
+  height: auto !important;
+  /* Tá»± Ä‘á»™ng co giĂ£n theo sá»‘ lÆ°á»£ng nĂºt báº¥m */
   max-height: 90vh !important;
-  overflow: hidden !important; /* Cắt gọn phần thừa, không cho tràn viền */
+  overflow: hidden !important;
+  /* Cáº¯t gá»n pháº§n thá»«a, khĂ´ng cho trĂ n viá»n */
   display: flex !important;
   flex-direction: column !important;
   gap: 10px !important;
   z-index: 9999 !important;
 }
 
-/* Đảm bảo các nút bên trong thẻ đất nằm gọn 100% chiều rộng */
+/* Äáº£m báº£o cĂ¡c nĂºt bĂªn trong tháº» Ä‘áº¥t náº±m gá»n 100% chiá»u rá»™ng */
 #property-info-card button,
 #property-info-card .btn,
 #property-info-card .action-btn {
@@ -1029,12 +2231,12 @@ html, body {
 }
 
 /* =========================================================
-   3. KHẮC PHỤC LỖI NÚT BẤM KHÔNG PHẢN HỒI (POINTER EVENTS)
+   3. KHáº®C PHá»¤C Lá»–I NĂT Báº¤M KHĂ”NG PHáº¢N Há»’I (POINTER EVENTS)
    ========================================================= */
-button, 
-.btn, 
-.close-btn, 
-#buy-yes-btn, 
+button,
+.btn,
+.close-btn,
+#buy-yes-btn,
 #buy-no-btn {
   cursor: pointer !important;
   pointer-events: auto !important;
@@ -1043,19 +2245,19 @@ button,
 }
 
 /* =========================================================
-   FIX BẢNG CHI TIẾT ĐẤT: THU GỌN NÚT X & MỞ KHÓA NÚT BẤM
+   FIX Báº¢NG CHI TIáº¾T Äáº¤T: THU Gá»ŒN NĂT X & Má» KHĂ“A NĂT Báº¤M
    ========================================================= */
 
-/* 1. Sắp xếp lại thanh tiêu đề của Pop-up */
+/* 1. Sáº¯p xáº¿p láº¡i thanh tiĂªu Ä‘á» cá»§a Pop-up */
 #property-info-card .card-header,
-#property-info-card > div:first-child {
+#property-info-card>div:first-child {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
   width: 100% !important;
 }
 
-/* 2. Thu gọn nút X về hình tròn nhỏ cố định (không bị co dãn) */
+/* 2. Thu gá»n nĂºt X vá» hĂ¬nh trĂ²n nhá» cá»‘ Ä‘á»‹nh (khĂ´ng bá»‹ co dĂ£n) */
 #close-info-card-btn,
 #property-info-card .close-btn,
 #property-info-card .card-close {
@@ -1063,7 +2265,8 @@ button,
   height: 28px !important;
   min-width: 28px !important;
   max-width: 28px !important;
-  flex: 0 0 28px !important; /* Khóa không cho flexbox kéo dãn */
+  flex: 0 0 28px !important;
+  /* KhĂ³a khĂ´ng cho flexbox kĂ©o dĂ£n */
   border-radius: 50% !important;
   padding: 0 !important;
   margin: 0 !important;
@@ -1081,7 +2284,7 @@ button,
   background: rgba(255, 255, 255, 0.3) !important;
 }
 
-/* 3. Đảm bảo toàn bộ bảng và các nút bấm nhận sự kiện click */
+/* 3. Äáº£m báº£o toĂ n bá»™ báº£ng vĂ  cĂ¡c nĂºt báº¥m nháº­n sá»± kiá»‡n click */
 #property-info-card {
   z-index: 9999 !important;
   pointer-events: auto !important;
@@ -1096,35 +2299,39 @@ button,
   cursor: pointer !important;
 }
 
-CSS
-#property-info-card button * {
+CSS #property-info-card button * {
   pointer-events: none !important;
 }
-.modal, #property-info-card, #buy-modal {
-  z-index: 9999 !important; /* Luôn nổi lên trên cùng */
-  pointer-events: auto !important; /* Nhận toàn bộ click chuột */
+
+.modal,
+#property-info-card,
+#buy-modal {
+  z-index: 9999 !important;
+  /* LuĂ´n ná»•i lĂªn trĂªn cĂ¹ng */
+  pointer-events: auto !important;
+  /* Nháº­n toĂ n bá»™ click chuá»™t */
 }
 
 /* =========================================================
-   FIX DỨT ĐIỂM: NÚT BẤM TRONG POP-UP ĐẤT KHÔNG BẤM ĐƯỢC
-   (ĐẶT Ở CUỐI FILE ĐỂ CHIẾN THẮNG MỌI QUY TẮC XUNG ĐỘT)
+   FIX Dá»¨T ÄIá»‚M: NĂT Báº¤M TRONG POP-UP Äáº¤T KHĂ”NG Báº¤M ÄÆ¯á»¢C
+   (Äáº¶T á» CUá»I FILE Äá»‚ CHIáº¾N THáº®NG Má»ŒI QUY Táº®C XUNG Äá»˜T)
    ========================================================= */
 
-/* 1. Nâng hẳn thẻ đất lên trên cùng, cao hơn cả lớp phủ .modal toàn màn hình */
+/* 1. NĂ¢ng háº³n tháº» Ä‘áº¥t lĂªn trĂªn cĂ¹ng, cao hÆ¡n cáº£ lá»›p phá»§ .modal toĂ n mĂ n hĂ¬nh */
 #property-info-card {
   z-index: 999999 !important;
   pointer-events: auto !important;
   position: absolute !important;
 }
 
-/* 2. Mở khóa pointer-events cho MỌI thành phần bên trong thẻ đất,
-      ghi đè hẳn quy tắc `#property-info-card button * { pointer-events: none }` */
+/* 2. Má»Ÿ khĂ³a pointer-events cho Má»ŒI thĂ nh pháº§n bĂªn trong tháº» Ä‘áº¥t,
+      ghi Ä‘Ă¨ háº³n quy táº¯c `#property-info-card button * { pointer-events: none }` */
 #property-info-card,
 #property-info-card * {
   pointer-events: auto !important;
 }
 
-/* 3. Đảm bảo các nút bên trong thẻ đất luôn nhận được click */
+/* 3. Äáº£m báº£o cĂ¡c nĂºt bĂªn trong tháº» Ä‘áº¥t luĂ´n nháº­n Ä‘Æ°á»£c click */
 #property-info-card button,
 #property-info-card .btn,
 #property-info-card .btn-action,
@@ -1135,13 +2342,13 @@ CSS
   z-index: 999999 !important;
 }
 
-/* 4. Vô hiệu hóa quy tắc cũ gây chặn click (nếu còn sót lại) */
+/* 4. VĂ´ hiá»‡u hĂ³a quy táº¯c cÅ© gĂ¢y cháº·n click (náº¿u cĂ²n sĂ³t láº¡i) */
 #property-info-card button * {
   pointer-events: auto !important;
 }
 
 /* =========================================================
-   MÀN HÌNH LOBBY (CHỌN CHẾ ĐỘ CHƠI) & PHÒNG CHỜ
+   MĂ€N HĂŒNH LOBBY (CHá»ŒN CHáº¾ Äá»˜ CHÆ I) & PHĂ’NG CHá»œ
    ========================================================= */
 #lobby-overlay,
 #room-waiting-overlay {
@@ -1157,7 +2364,7 @@ CSS
   align-items: center;
 }
 
-/* Quy tắc ẩn dùng chung cho các overlay */
+/* Quy táº¯c áº©n dĂ¹ng chung cho cĂ¡c overlay */
 #lobby-overlay.hidden,
 #room-waiting-overlay.hidden,
 #settings-overlay.hidden {
@@ -1266,6 +2473,7 @@ CSS
   font-size: 12px;
   margin: 16px 0;
 }
+
 .lobby-divider::before,
 .lobby-divider::after {
   content: '';
@@ -1287,10 +2495,16 @@ CSS
   box-shadow: 0 6px 18px rgba(108, 92, 231, 0.4);
   transition: transform 0.1s, opacity 0.2s;
 }
-.offline-btn:hover { opacity: 0.9; }
-.offline-btn:active { transform: translateY(2px); }
 
-/* PHÒNG CHỜ */
+.offline-btn:hover {
+  opacity: 0.9;
+}
+
+.offline-btn:active {
+  transform: translateY(2px);
+}
+
+/* PHĂ’NG CHá»œ */
 .room-code {
   font-size: 34px;
   font-weight: 900;
@@ -1326,7 +2540,7 @@ CSS
   font-weight: 400;
 }
 
-/* HÀNG MÃ PHÒNG + NÚT SAO CHÉP */
+/* HĂ€NG MĂƒ PHĂ’NG + NĂT SAO CHĂ‰P */
 .room-code-row {
   display: flex;
   align-items: center;
@@ -1350,7 +2564,7 @@ CSS
   font-size: 13px;
 }
 
-/* BỘ CHỌN NHÂN VẬT TRONG PHÒNG CHỜ */
+/* Bá»˜ CHá»ŒN NHĂ‚N Váº¬T TRONG PHĂ’NG CHá»œ */
 .room-token-section {
   margin: 14px 0;
   text-align: left;
@@ -1407,7 +2621,7 @@ CSS
 }
 
 /* =========================================================
-   MÀN HÌNH CÀI ĐẶT LUẬT CHƠI (PRE-GAME)
+   MĂ€N HĂŒNH CĂ€I Äáº¶T LUáº¬T CHÆ I (PRE-GAME)
    ========================================================= */
 #settings-overlay {
   position: fixed;
@@ -1479,7 +2693,10 @@ CSS
   cursor: pointer;
   transition: background 0.2s;
 }
-.player-count-control .count-btn:hover { background: #a29bfe; }
+
+.player-count-control .count-btn:hover {
+  background: #a29bfe;
+}
 
 #player-count-val {
   font-size: 28px;
@@ -1514,6 +2731,7 @@ CSS
   color: #f0edfd;
   cursor: pointer;
 }
+
 .toggle-row input {
   width: 18px;
   height: 18px;
@@ -1535,70 +2753,89 @@ CSS
   transition: transform 0.1s, opacity 0.2s;
   margin-top: 8px;
 }
-.start-btn:hover { opacity: 0.9; }
-.start-btn:active { transform: translateY(2px); }
 
-/* GLOW nhóm màu theo từng người chơi (động) */
+.start-btn:hover {
+  opacity: 0.9;
+}
+
+.start-btn:active {
+  transform: translateY(2px);
+}
+
+/* GLOW nhĂ³m mĂ u theo tá»«ng ngÆ°á»i chÆ¡i (Ä‘á»™ng) */
 .group-glow-p1 {
   box-shadow: inset 0 0 12px rgba(255, 71, 87, 0.6) !important;
 }
+
 .group-glow-p2 {
   box-shadow: inset 0 0 12px rgba(30, 144, 255, 0.6) !important;
 }
+
 .group-glow-p3 {
   box-shadow: inset 0 0 12px rgba(46, 213, 115, 0.6) !important;
 }
+
 .group-glow-p4 {
   box-shadow: inset 0 0 12px rgba(253, 203, 110, 0.6) !important;
 }
+
 .group-glow-p5 {
   box-shadow: inset 0 0 12px rgba(232, 67, 147, 0.6) !important;
 }
+
 .group-glow-p6 {
   box-shadow: inset 0 0 12px rgba(0, 184, 148, 0.6) !important;
 }
+
 .group-glow-p7 {
   box-shadow: inset 0 0 12px rgba(162, 155, 254, 0.6) !important;
 }
+
 .group-glow-p8 {
   box-shadow: inset 0 0 12px rgba(255, 159, 67, 0.6) !important;
 }
 
 /* =========================================================
-   HIỆU ỨNG GLOW KHI SỞ HỮU TRỌN 1 NHÓM MÀU (MONOPOLY)
+   HIá»†U á»¨NG GLOW KHI Sá» Há»®U TRá»ŒN 1 NHĂ“M MĂ€U (MONOPOLY)
    ========================================================= */
-/* P1 (Sài Gòn Pro - Đỏ) -> ánh tím phát sáng xung quanh ô */
+/* P1 (SĂ i GĂ²n Pro - Äá») -> Ă¡nh tĂ­m phĂ¡t sĂ¡ng xung quanh Ă´ */
 .tile.group-glow-purple {
   animation: glowPurple 1.6s ease-in-out infinite;
   z-index: 6 !important;
 }
 
-/* P2 (Chợ Lớn VIP - Xanh) -> ánh vàng phát sáng xung quanh ô */
+/* P2 (Chá»£ Lá»›n VIP - Xanh) -> Ă¡nh vĂ ng phĂ¡t sĂ¡ng xung quanh Ă´ */
 .tile.group-glow-gold {
   animation: glowGold 1.6s ease-in-out infinite;
   z-index: 6 !important;
 }
 
 @keyframes glowPurple {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 6px 2px rgba(162, 155, 254, 0.5), inset 0 0 8px rgba(162, 155, 254, 0.35);
   }
+
   50% {
     box-shadow: 0 0 16px 6px rgba(162, 155, 254, 0.95), inset 0 0 14px rgba(162, 155, 254, 0.6);
   }
 }
 
 @keyframes glowGold {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 6px 2px rgba(253, 203, 110, 0.5), inset 0 0 8px rgba(253, 203, 110, 0.35);
   }
+
   50% {
     box-shadow: 0 0 16px 6px rgba(253, 203, 110, 0.95), inset 0 0 14px rgba(253, 203, 110, 0.6);
   }
 }
 
 /* =========================================================
-   THU GỌN & ĐẶT POP-UP THẺ ĐẤT SÁT BÊN Ô (NHỎ GỌN HƠN)
+   THU Gá»ŒN & Äáº¶T POP-UP THáºº Äáº¤T SĂT BĂN Ă” (NHá» Gá»ŒN HÆ N)
    ========================================================= */
 #property-info-card {
   width: 190px !important;
@@ -1634,7 +2871,7 @@ CSS
   gap: 6px !important;
 }
 
-#property-info-card .table-row > span:first-child {
+#property-info-card .table-row>span:first-child {
   flex: 1 1 auto !important;
   text-align: left !important;
   white-space: nowrap !important;
@@ -1642,7 +2879,7 @@ CSS
   text-overflow: ellipsis !important;
 }
 
-#property-info-card .table-row > span:last-child {
+#property-info-card .table-row>span:last-child {
   flex: 0 0 auto !important;
   text-align: right !important;
   white-space: nowrap !important;
@@ -1671,7 +2908,7 @@ CSS
   font-size: 11px !important;
 }
 
-/* Nút đóng (X) nhỏ gọn hơn */
+/* NĂºt Ä‘Ă³ng (X) nhá» gá»n hÆ¡n */
 #close-info-card-btn,
 #property-info-card .close-btn {
   width: 18px !important;
@@ -1682,7 +2919,7 @@ CSS
   font-size: 10px !important;
 }
 
-/* Nút thao tác (Xây / Dỡ / Cầm cố) nhỏ gọn hơn */
+/* NĂºt thao tĂ¡c (XĂ¢y / Dá»¡ / Cáº§m cá»‘) nhá» gá»n hÆ¡n */
 #property-info-card .card-controls {
   margin-top: 6px !important;
   gap: 4px !important;
@@ -1697,10 +2934,11 @@ CSS
 }
 
 /* =========================================================
-   ICON NHÀ NẰM TRONG THANH MÀU (GROUP-BAR) CỦA Ô ĐẤT
+   ICON NHĂ€ Náº°M TRONG THANH MĂ€U (GROUP-BAR) Cá»¦A Ă” Äáº¤T
    ========================================================= */
 .group-bar {
-  position: relative; /* Để định vị badge con bên trong */
+  position: relative;
+  /* Äá»ƒ Ä‘á»‹nh vá»‹ badge con bĂªn trong */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1712,7 +2950,8 @@ CSS
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 12px; /* Tăng kích thước icon nhà/khách sạn cho rõ hơn */
+  font-size: 12px;
+  /* TÄƒng kĂ­ch thÆ°á»›c icon nhĂ /khĂ¡ch sáº¡n cho rĂµ hÆ¡n */
   line-height: 1;
   font-weight: bold;
   color: #ffeaa7;
@@ -1722,14 +2961,14 @@ CSS
   white-space: nowrap;
 }
 
-/* Với ô cạnh (side-tile), thanh màu nằm dọc -> icon nhà xoay dọc theo */
+/* Vá»›i Ă´ cáº¡nh (side-tile), thanh mĂ u náº±m dá»c -> icon nhĂ  xoay dá»c theo */
 .side-tile .house-tile-badge {
   writing-mode: vertical-rl;
   transform: translate(-50%, -50%) rotate(180deg);
 }
 
 /* =========================================================
-   ĐÁNH DẤU Ô ĐẤT ĐANG BỊ CẦM CỐ (🔒)
+   ÄĂNH Dáº¤U Ă” Äáº¤T ÄANG Bá» Cáº¦M Cá» (đŸ”’)
    ========================================================= */
 .mortgage-badge {
   position: absolute;
@@ -1746,7 +2985,7 @@ CSS
 }
 
 /* =========================================================
-   POP-UP ĐẤU GIÁ (AUCTION)
+   POP-UP Äáº¤U GIĂ (AUCTION)
    ========================================================= */
 #auction-modal .modal-content {
   background: linear-gradient(145deg, #1f2430, #3b2d52) !important;
@@ -1788,6 +3027,199 @@ CSS
   width: 100%;
 }
 
+/* =========================================================
+   THU GỌN & ĐẶT POP-UP THẺ ĐẤT SÁT BÊN Ô (NHỎ GỌN HƠN)
+   ========================================================= */
+#property-info-card {
+  width: 190px !important;
+  padding: 8px 10px !important;
+  border-radius: 10px !important;
+  gap: 6px !important;
+  font-size: 11px !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.7) !important;
+}
+
+#property-info-card .card-header {
+  margin-bottom: 4px !important;
+}
+
+#property-info-card .card-title,
+#property-info-card #info-card-name {
+  font-size: 13px !important;
+  margin-bottom: 0 !important;
+}
+
+#property-info-card .card-table {
+  gap: 2px !important;
+  font-size: 10px !important;
+  width: 100% !important;
+}
+
+#property-info-card .table-header,
+#property-info-card .table-row {
+  width: 100% !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+#property-info-card .table-row>span:first-child {
+  flex: 1 1 auto !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+#property-info-card .table-row>span:last-child {
+  flex: 0 0 auto !important;
+  text-align: right !important;
+  white-space: nowrap !important;
+}
+
+#property-info-card .table-header {
+  font-size: 9px !important;
+  padding-bottom: 2px !important;
+  margin-bottom: 1px !important;
+  border-bottom: 1px dashed #2f3a52 !important;
+}
+
+#property-info-card .card-divider {
+  margin: 5px 0 !important;
+}
+
+#property-info-card .card-footer {
+  gap: 4px !important;
+}
+
+#property-info-card .footer-label {
+  font-size: 9px !important;
+}
+
+#property-info-card .footer-val {
+  font-size: 11px !important;
+}
+
+/* NĂºt Ä‘Ă³ng (X) nhá» gá»n hÆ¡n */
+#close-info-card-btn,
+#property-info-card .close-btn {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  max-width: 18px !important;
+  flex: 0 0 18px !important;
+  font-size: 10px !important;
+}
+
+/* NĂºt thao tĂ¡c (XĂ¢y / Dá»¡ / Cáº§m cá»‘) nhá» gá»n hÆ¡n */
+#property-info-card .card-controls {
+  margin-top: 6px !important;
+  gap: 4px !important;
+  padding-top: 6px !important;
+}
+
+#property-info-card .btn-action,
+#property-info-card button,
+#property-info-card .action-btn {
+  font-size: 9px !important;
+  padding: 5px 0 !important;
+}
+
+/* =========================================================
+   ICON NHĂ€ Náº°M TRONG THANH MĂ€U (GROUP-BAR) Cá»¦A Ă” Äáº¤T
+   ========================================================= */
+.group-bar {
+  position: relative;
+  /* Äá»ƒ Ä‘á»‹nh vá»‹ badge con bĂªn trong */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.house-tile-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  /* TÄƒng kĂ­ch thÆ°á»›c icon nhĂ /khĂ¡ch sáº¡n cho rĂµ hÆ¡n */
+  line-height: 1;
+  font-weight: bold;
+  color: #ffeaa7;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+  z-index: 16;
+  white-space: nowrap;
+}
+
+/* Vá»›i Ă´ cáº¡nh (side-tile), thanh mĂ u náº±m dá»c -> icon nhĂ  xoay dá»c theo */
+.side-tile .house-tile-badge {
+  writing-mode: vertical-rl;
+  transform: translate(-50%, -50%) rotate(180deg);
+}
+
+/* =========================================================
+   ÄĂNH Dáº¤U Ă” Äáº¤T ÄANG Bá» Cáº¦M Cá» (đŸ”’)
+   ========================================================= */
+.mortgage-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  z-index: 17;
+  font-size: 11px;
+  line-height: 1;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 50%;
+  padding: 1px;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
+}
+
+/* =========================================================
+   POP-UP Äáº¤U GIĂ (AUCTION)
+   ========================================================= */
+#auction-modal .modal-content {
+  background: linear-gradient(145deg, #1f2430, #3b2d52) !important;
+  border: 2px solid #fdcb6e !important;
+  box-shadow: 0 0 25px rgba(253, 203, 110, 0.4) !important;
+  text-align: center;
+  padding: 24px 30px !important;
+  border-radius: 12px !important;
+  max-width: 400px !important;
+  min-width: 320px !important;
+}
+
+#auction-modal h3 {
+  color: #fdcb6e;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+#auction-modal p {
+  color: #f0edfd;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+/* BADGE TIĂU Äá»€ Äáº¤U GIĂ */
+.auction-badge {
+  background: #d35400;
+  font-size: 15px;
+  padding: 6px 18px;
+  margin-bottom: 14px;
+}
+
+/* KHU Vá»°C THĂ”NG TIN Äáº¤U GIĂ */
+.auction-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0 14px 0;
+  width: 100%;
+}
+
 .auction-row {
   color: #f0edfd;
   font-size: 14px;
@@ -1797,7 +3229,7 @@ CSS
   color: #ffeaa7;
 }
 
-/* HÀNG BỘ ĐẾM THỜI GIAN NHUỘM THEME VÀNG */
+/* HĂ€NG Bá»˜ Äáº¾M THá»œI GIAN NHUá»˜M THEME VĂ€NG */
 .auction-timer-row {
   display: flex;
   align-items: center;
@@ -1813,30 +3245,40 @@ CSS
 }
 
 #auction-timer-track {
+  position: relative;
   width: min(260px, 72%);
-  height: 12px;
+  height: 16px;
   background: #1a152e;
   border: 1px solid #4a3b78;
   border-radius: 999px;
-  overflow: hidden;
+  overflow: visible;
 }
 
-#dice-result { display: flex; gap: 10px; min-height: 44px; align-items: center; justify-content: center; }
-.dice-face { display: inline-grid; place-items: center; width: 38px; height: 38px; border-radius: 8px; background: #fff; color: #2d234b; font-size: 25px; font-weight: 900; box-shadow: 0 3px 0 #b8b0c9; }
-.dice-face.rolling { animation: dice-roll 0.12s linear infinite; }
-@keyframes dice-roll { 50% { transform: rotate(18deg) scale(0.88); } }
-.inventory-item { border-left: 5px solid var(--border-color); }
-.inventory-item-name .inventory-icon { margin-right: 5px; }
+/* Hiển thị số giây còn lại bên cạnh thanh */
+#auction-timer-track::after {
+  content: attr(data-secs);
+  position: absolute;
+  right: -32px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  font-weight: 700;
+  color: #fdcb6e;
+  min-width: 28px;
+  text-align: left;
+}
 
 .auction-timer-bar {
   width: 100%;
   height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #fdcb6e, #f39c12);
-  transition: width 0.1s linear, background 0.2s ease;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #00b894, #00cec9);
+  transition: width 0.15s linear, background 0.3s ease;
+  /* Clip bar bên trong track */
+  clip-path: inset(0 round 999px);
 }
 
-/* QUÂN CỜ NGƯỜI TRẢ GIÁ CAO NHẤT */
+/* QUĂ‚N Cá»œ NGÆ¯á»œI TRáº¢ GIĂ CAO NHáº¤T */
 .auction-highest {
   display: flex;
   align-items: center;
@@ -1853,7 +3295,7 @@ CSS
   box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
 }
 
-/* HÀNG NÚT ĐẶT GIÁ NHANH (+2 / +10 / +100) */
+/* HĂ€NG NĂT Äáº¶T GIĂ NHANH (+2 / +10 / +100) VĂ€ Bá» QUA */
 .auction-bid-buttons {
   display: flex;
   gap: 8px;
@@ -1874,17 +3316,51 @@ CSS
   transition: transform 0.1s, background 0.2s;
 }
 
-.auction-add-btn:hover {
+.auction-add-btn:hover:not(:disabled) {
   background: #a29bfe;
 }
 
-.auction-add-btn:active {
+.auction-add-btn:active:not(:disabled) {
   transform: translateY(2px);
 }
 
+.auction-pass-btn {
+  flex: 1;
+  padding: 10px 0;
+  border: none;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  background: #d63031;
+  color: #fff;
+  transition: transform 0.1s, background 0.2s;
+}
+
+.auction-pass-btn:hover:not(:disabled) {
+  background: #e17055;
+}
+
+.auction-pass-btn:active:not(:disabled) {
+  transform: translateY(2px);
+}
+
+.auction-add-btn:disabled,
+.auction-pass-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  filter: grayscale(0.6);
+}
+
+.auction-status-msg {
+  font-size: 12px;
+  color: #fab1a0;
+  font-style: italic;
+  min-height: 16px;
+}
 
 /* =========================================================
-   CHỌN NHÂN VẬT (QUÂN CỜ) TRONG MÀN HÌNH CÀI ĐẶT
+   CHá»ŒN NHĂ‚N Váº¬T (QUĂ‚N Cá»œ) TRONG MĂ€N HĂŒNH CĂ€I Äáº¶T
    ========================================================= */
 #character-picker {
   display: flex;
@@ -1908,6 +3384,7 @@ CSS
   color: #ffeaa7;
   margin-bottom: 6px;
 }
+
 .char-picker-label small {
   color: #a89bc9;
   font-weight: 400;
@@ -1961,3 +3438,1017 @@ CSS
   line-height: 1.1;
   word-break: break-word;
 }
+
+/* =========================================================
+   CỤC XÚC XẮC 2D TRUYỀN THỐNG (2D DICE)
+   ========================================================= */
+#dice-result {
+  display: flex;
+  gap: clamp(8px, 2.2cqw, 16px);
+  align-items: center;
+  justify-content: center;
+  min-height: clamp(30px, 7.5cqw, 56px);
+  margin: clamp(4px, 1cqw, 8px) 0;
+}
+
+.dice-face {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: clamp(26px, 6.8cqw, 48px);
+  height: clamp(26px, 6.8cqw, 48px);
+  padding: clamp(3px, 0.8cqw, 6px);
+  background: #ffffff;
+  border-radius: clamp(6px, 1.5cqw, 12px);
+  box-shadow: 0 clamp(2px, 0.7cqw, 5px) 0 #b2bec3, 0 clamp(4px, 1.2cqw, 8px) 16px rgba(0, 0, 0, 0.4);
+  border: 1.5px solid #dfe6e9;
+  position: relative;
+  box-sizing: border-box;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+}
+
+.dice-face.rolling {
+  animation: dice-roll-2d 0.12s linear infinite alternate;
+  box-shadow: 0 2px 0 #b2bec3, 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes dice-roll-2d {
+  0% {
+    transform: rotate(-14deg) scale(0.92);
+  }
+
+  100% {
+    transform: rotate(14deg) scale(1.08);
+  }
+}
+
+.dice-pip {
+  width: clamp(4px, 1.2cqw, 9px);
+  height: clamp(4px, 1.2cqw, 9px);
+  border-radius: 50%;
+  background: #2d3436;
+  margin: auto;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Dấu chấm đỏ đặc trưng cho mặt số 1 */
+.dice-face[data-val="1"] .dice-pip {
+  background: #e74c3c;
+  width: clamp(7px, 1.8cqw, 14px);
+  height: clamp(7px, 1.8cqw, 14px);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* Dấu chấm đỏ cho mặt số 4 (kiểu xúc xắc Á Đông) */
+.dice-face[data-val="4"] .dice-pip {
+  background: #e74c3c;
+}
+
+/* =========================================================
+   MODAL OVERLAY BASE (dùng cho bankruptcy, victory...)
+   ========================================================= */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 8, 20, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 16px;
+}
+
+.modal-overlay.hidden {
+  display: none !important;
+}
+
+.modal-box {
+  background: linear-gradient(145deg, #1f1837 0%, #15102a 100%);
+  border-radius: 20px;
+  padding: 40px 32px;
+  width: 100%;
+  max-width: min(380px, 92vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* =========================================================
+   MÀN HÌNH PHÁ SẢN (BANKRUPTCY MODAL)
+   ========================================================= */
+.bankruptcy-box {
+  text-align: center;
+  padding: 36px 28px;
+  border: 2px solid #e74c3c;
+  box-shadow: 0 0 40px rgba(231, 76, 60, 0.4), 0 20px 60px rgba(0, 0, 0, 0.6);
+  animation: bankruptcy-shake 0.6s ease;
+}
+
+@keyframes bankruptcy-shake {
+
+  0%,
+  100% {
+    transform: translateX(0) scale(1);
+  }
+
+  15% {
+    transform: translateX(-12px) scale(1.02);
+  }
+
+  30% {
+    transform: translateX(12px);
+  }
+
+  45% {
+    transform: translateX(-8px);
+  }
+
+  60% {
+    transform: translateX(8px);
+  }
+
+  75% {
+    transform: translateX(-4px);
+  }
+}
+
+.bankruptcy-icon {
+  font-size: 64px;
+  animation: bankruptcy-pulse 1s ease infinite alternate;
+}
+
+@keyframes bankruptcy-pulse {
+  from {
+    transform: scale(1);
+    filter: grayscale(0);
+  }
+
+  to {
+    transform: scale(1.1);
+    filter: grayscale(0.3);
+  }
+}
+
+.bankruptcy-title {
+  font-size: 28px;
+  font-weight: 900;
+  color: #e74c3c;
+  margin: 10px 0 6px;
+  text-shadow: 0 0 20px rgba(231, 76, 60, 0.6);
+}
+
+.bankruptcy-player {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fdcb6e;
+  margin: 0 0 10px;
+}
+
+.bankruptcy-text {
+  font-size: 13px;
+  color: #b2a8d0;
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   MÀN HÌNH CHIẾN THẮNG (VICTORY SCREEN)
+   ========================================================= */
+#victory-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+}
+
+#victory-overlay.hidden {
+  display: none;
+}
+
+.victory-box {
+  position: relative;
+  width: min(520px, 96vw);
+  border-radius: 24px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #1a0a3c 0%, #0d2137 60%, #1a3025 100%);
+  border: 2px solid rgba(253, 203, 110, 0.5);
+  box-shadow: 0 0 80px rgba(253, 203, 110, 0.35), 0 30px 80px rgba(0, 0, 0, 0.7);
+  animation: victory-appear 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes victory-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.5) rotate(-6deg);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+.victory-fireworks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.firework-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: firework-fly var(--dur, 1.4s) ease-out var(--delay, 0s) forwards;
+}
+
+@keyframes firework-fly {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(var(--tx, 60px), var(--ty, -120px)) scale(0);
+    opacity: 0;
+  }
+}
+
+.victory-content {
+  position: relative;
+  z-index: 2;
+  padding: 48px 32px 40px;
+  text-align: center;
+}
+
+.victory-trophy {
+  font-size: 72px;
+  animation: trophy-bounce 0.8s ease infinite alternate;
+  display: inline-block;
+}
+
+@keyframes trophy-bounce {
+  from {
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    transform: translateY(-10px) scale(1.06);
+  }
+}
+
+.victory-title {
+  font-size: 36px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #fdcb6e, #f39c12, #ffeaa7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 8px 0 16px;
+  text-shadow: none;
+  letter-spacing: 3px;
+}
+
+.victory-token {
+  font-size: 52px;
+  margin: 0 0 10px;
+  animation: victory-spin 4s linear infinite;
+  display: inline-block;
+}
+
+@keyframes victory-spin {
+  0% {
+    transform: rotateY(0);
+  }
+
+  50% {
+    transform: rotateY(180deg);
+  }
+
+  100% {
+    transform: rotateY(360deg);
+  }
+}
+
+.victory-name {
+  font-size: 26px;
+  font-weight: 800;
+  color: #ffeaa7;
+  margin: 0 0 6px;
+}
+
+.victory-worth {
+  font-size: 15px;
+  color: #55efc4;
+  font-weight: 600;
+  margin: 0 0 24px;
+}
+
+.victory-rankings {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 14px;
+  margin: 0 0 28px;
+  text-align: left;
+}
+
+.victory-rank-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 13px;
+  color: #d0c8f0;
+}
+
+.victory-rank-item:last-child {
+  border-bottom: none;
+}
+
+.victory-rank-pos {
+  font-weight: 900;
+  width: 24px;
+  color: #fdcb6e;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.victory-rank-emoji {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.victory-rank-name {
+  flex: 1;
+  font-weight: 600;
+}
+
+.victory-rank-worth {
+  color: #55efc4;
+  font-weight: 700;
+  margin-left: auto;
+}
+
+.victory-rank-bankrupt .victory-rank-name,
+.victory-rank-bankrupt .victory-rank-worth {
+  color: #b2a8d0;
+  text-decoration: line-through;
+}
+
+.victory-btn {
+  display: inline-block;
+  padding: 14px 40px;
+  background: linear-gradient(135deg, #fdcb6e, #f39c12);
+  color: #1a0a3c;
+  font-size: 16px;
+  font-weight: 900;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  box-shadow: 0 6px 24px rgba(253, 203, 110, 0.4);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.victory-btn:hover {
+  transform: translateY(-3px) scale(1.04);
+  box-shadow: 0 10px 30px rgba(253, 203, 110, 0.6);
+}
+
+.player-card.bankrupt {
+  opacity: 0.4;
+  filter: grayscale(0.85);
+  pointer-events: none;
+  border-color: #636e72 !important;
+  background: rgba(0, 0, 0, 0.25) !important;
+}
+
+.player-card.bankrupt .player-name {
+  text-decoration: line-through;
+  color: #b2bec3;
+}
+
+.player-card.bankrupt .player-money {
+  color: #ff7675;
+  font-weight: bold;
+}
+
+/* =========================================================
+   MOBILE & RESPONSIVE LAYOUT (<= 992px & <= 480px)
+   Bàn cờ luôn hiển thị rõ nét phía trên, 2 thanh bên nằm dưới
+   và có thể cuộn trang để xem/tương tác mượt mà
+   ========================================================= */
+
+@media (max-width: 1080px) {
+
+  html,
+  body {
+    width: 100%;
+    height: auto;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #app-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: auto;
+    min-height: 100vh;
+    padding: 6px;
+    gap: 8px;
+    overflow: visible;
+  }
+
+  /* 1. BÀN CỜ NẰM TRÊN CÙNG (ORDER: 1) */
+  #board-wrapper {
+    order: 1;
+    width: 100%;
+    height: auto;
+    min-height: unset;
+    max-height: unset;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    overflow: visible;
+  }
+
+  #board {
+    /* Bàn cờ lấy 100% chiều rộng màn hình trên mobile */
+    width: calc(100vw - 12px);
+    height: calc(100vw - 12px);
+    max-width: 600px;
+    max-height: 600px;
+    min-width: 280px;
+    min-height: 280px;
+    aspect-ratio: 1 / 1;
+    margin: 0 auto;
+    box-shadow: 0 0 20px rgba(108, 92, 231, 0.4);
+    border-radius: 8px;
+  }
+
+  /* 2. CỘT PHẢI (NGƯỜI CHƠI & LUẬT) NGAY SAU BÀN CỜ (ORDER: 2) */
+  #right-sidebar {
+    order: 2;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    height: auto;
+    overflow: visible;
+    padding: 10px 12px;
+  }
+
+  #players-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 8px;
+  }
+
+  .player-card {
+    margin-bottom: 0;
+    padding: 8px 10px;
+  }
+
+  .trade-section {
+    height: auto;
+  }
+
+  #trade-requests {
+    max-height: 220px;
+  }
+
+  /* 3. CỘT TRÁI (CHAT & KHO ĐỒ) NẰM CUỐI CÙNG (ORDER: 3) */
+  #left-sidebar {
+    order: 3;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    height: auto;
+    overflow: visible;
+    padding: 10px 12px;
+  }
+
+  .left-sidebar-section {
+    flex: unset;
+    min-height: unset;
+  }
+
+  .chat-section {
+    height: auto;
+  }
+
+  #chat-box {
+    height: 150px;
+    max-height: 160px;
+  }
+
+  .inventory-section {
+    height: auto;
+  }
+
+  #inventory-box {
+    max-height: 280px;
+  }
+
+  /* Scroll hint nằm sau bàn cờ */
+  .mobile-scroll-hint {
+    order: 2;
+  }
+
+  /* Modal và Pop-up đều dùng fixed overlay - không cần override vì đã set ở trên */
+  .modal-content {
+    max-width: min(92vw, 420px);
+  }
+
+  .trade-modal-content {
+    width: min(96vw, 580px) !important;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 14px 12px !important;
+  }
+
+  .trade-columns {
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+  }
+
+  .trade-column .trade-properties {
+    max-height: 160px;
+  }
+
+  .modal-box {
+    max-width: min(92vw, 360px);
+    padding: 28px 20px;
+  }
+
+  .bankruptcy-box,
+  .victory-box {
+    width: min(96vw, 480px) !important;
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+
+  #lobby-container,
+  .setup-modal,
+  .lobby-card {
+    width: min(96vw, 520px) !important;
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  #app-container {
+    padding: 4px;
+    gap: 8px;
+  }
+
+  #board {
+    width: calc(100vw - 8px);
+    height: calc(100vw - 8px);
+  }
+
+  #roll-btn,
+  #end-turn-btn {
+    padding: 8px 12px;
+    font-size: 11px;
+  }
+}
+
+.mobile-scroll-hint {
+  display: none;
+  width: 100%;
+  text-align: center;
+  padding: 4px 0 2px 0;
+  order: 1;
+}
+
+.mobile-scroll-hint span {
+  display: inline-block;
+  background: rgba(108, 92, 231, 0.2);
+  border: 1px solid rgba(108, 92, 231, 0.45);
+  color: #a29bfe;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 14px;
+  border-radius: 20px;
+  animation: bounceHint 2s infinite ease-in-out;
+}
+
+@keyframes bounceHint {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+@media (max-width: 1080px) {
+  .mobile-scroll-hint {
+    display: block;
+  }
+}
+
+/* =========================================================
+   RECONNECT BANNER & DISCONNECTED PLAYER UI
+   ========================================================= */
+.reconnect-banner {
+  background: linear-gradient(135deg, rgba(230, 126, 34, 0.22), rgba(211, 84, 0, 0.35));
+  border: 1px solid rgba(243, 156, 18, 0.6);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 4px 16px rgba(230, 126, 34, 0.25);
+  animation: reconnect-pulse 2s infinite ease-in-out;
+}
+
+@keyframes reconnect-pulse {
+  0%, 100% {
+    box-shadow: 0 4px 16px rgba(230, 126, 34, 0.25);
+    border-color: rgba(243, 156, 18, 0.6);
+  }
+  50% {
+    box-shadow: 0 6px 24px rgba(243, 156, 18, 0.5);
+    border-color: rgba(243, 156, 18, 0.95);
+  }
+}
+
+.reconnect-text {
+  font-size: 13px;
+  color: #fde8cd;
+  font-weight: 500;
+}
+
+.reconnect-text b {
+  color: #f39c12;
+  letter-spacing: 1px;
+}
+
+.reconnect-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.reconnect-actions .btn {
+  flex: 1;
+  padding: 7px 10px;
+  font-size: 12px;
+}
+
+.player-card.player-disconnected {
+  opacity: 0.75;
+  filter: grayscale(40%);
+  border: 1px dashed #e67e22 !important;
+  background: rgba(230, 126, 34, 0.12) !important;
+  position: relative;
+}
+
+.disconnect-warn-text {
+  color: #e67e22;
+  font-size: 11px;
+  font-weight: bold;
+  animation: blink-warn 1.5s infinite ease-in-out;
+}
+
+@keyframes blink-warn {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* =========================================================
+   MÀN HÌNH CÀI ĐẶT LUẬT CHƠI (SETTINGS OVERLAY UPGRADE)
+   ========================================================= */
+#settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 8, 20, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 16px;
+  overflow-y: auto;
+}
+
+#settings-overlay.hidden {
+  display: none !important;
+}
+
+.settings-box {
+  background: linear-gradient(155deg, #1c1635 0%, #120e24 100%);
+  border: 2px solid rgba(162, 155, 254, 0.4);
+  border-radius: 24px;
+  padding: 28px 32px;
+  width: min(720px, 96vw);
+  max-height: 92vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85), 0 0 40px rgba(108, 92, 231, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  animation: settings-enter 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes settings-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.settings-header {
+  text-align: center;
+}
+
+.settings-badge {
+  display: inline-block;
+  background: rgba(108, 92, 231, 0.25);
+  border: 1px solid rgba(162, 155, 254, 0.4);
+  color: #a29bfe;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: 20px;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.settings-title {
+  font-size: 26px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #fdcb6e 0%, #f39c12 50%, #ffeaa7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 1px;
+}
+
+.settings-subtitle {
+  font-size: 13px;
+  color: var(--text-sub);
+  margin-top: 2px;
+}
+
+.settings-card-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.settings-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.settings-card:hover {
+  border-color: rgba(162, 155, 254, 0.35);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.settings-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-card-icon {
+  font-size: 22px;
+}
+
+.settings-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffeaa7;
+}
+
+.settings-card-desc {
+  font-size: 11px;
+  color: var(--text-sub);
+}
+
+.settings-input-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.stepper-wrap {
+  display: inline-flex;
+  align-items: center;
+  background: #0f0c1b;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.stepper-wrap input {
+  width: 75px;
+  text-align: center;
+  background: transparent;
+  border: none;
+  color: #55efc4;
+  font-size: 14px;
+  font-weight: 800;
+  padding: 6px 0;
+  outline: none;
+}
+
+.step-btn {
+  background: rgba(108, 92, 231, 0.2);
+  color: #a29bfe;
+  border: none;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.step-btn:hover {
+  background: #6c5ce7;
+  color: #fff;
+}
+
+.presets-row {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.preset-pill {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-sub);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.preset-pill:hover {
+  background: rgba(253, 203, 110, 0.2);
+  border-color: #fdcb6e;
+  color: #ffeaa7;
+}
+
+.settings-rules-header {
+  font-size: 13px;
+  font-weight: 800;
+  color: #a29bfe;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+.settings-rules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 10px;
+}
+
+.rule-switch-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.rule-switch-card:hover {
+  background: rgba(108, 92, 231, 0.08);
+  border-color: rgba(162, 155, 254, 0.35);
+  transform: translateY(-1px);
+}
+
+.rule-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.rule-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.rule-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.3;
+}
+
+.rule-desc {
+  font-size: 10.5px;
+  color: var(--text-sub);
+  line-height: 1.3;
+  margin-top: 2px;
+}
+
+/* CUSTOM TOGGLE SWITCH */
+.switch-wrap {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.switch-wrap input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: #2d254a;
+  border: 1px solid #4a3b78;
+  border-radius: 24px;
+  transition: all 0.25s ease;
+}
+
+.switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #8c7aa8;
+  border-radius: 50%;
+  transition: all 0.25s ease;
+}
+
+.switch-wrap input:checked + .switch-slider {
+  background: linear-gradient(135deg, #2ed573, #10ac84);
+  border-color: #2ed573;
+  box-shadow: 0 0 10px rgba(46, 213, 115, 0.4);
+}
+
+.switch-wrap input:checked + .switch-slider:before {
+  transform: translateX(20px);
+  background-color: #ffffff;
+}
+
+.settings-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.settings-actions .start-btn {
+  width: 100%;
+  padding: 13px 0;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
