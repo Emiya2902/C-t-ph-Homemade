@@ -151,7 +151,7 @@
       myTurnRolled = false;
     }
 
-    // Đang đấu giá: khoá các nút lượt
+    // Đang đấu giá: khoá các nút lượt và mở/cập nhật modal đấu giá
     if (auctionActive) {
       rollBtn.disabled = true;
       endTurnBtn.disabled = true;
@@ -159,6 +159,13 @@
         GameUI.openAuctionModal();
       }
       return;
+    } else {
+      const auctionModal = $('auction-modal');
+      if (auctionModal && !auctionModal.classList.contains('hidden')) {
+        if (window.GameUI && GameUI.closeAuctionModal) {
+          GameUI.closeAuctionModal();
+        }
+      }
     }
 
     // Cảnh báo nợ nần khi âm tiền
@@ -235,6 +242,7 @@
       <li>• Jackpot Bãi xe: <b>${settings.jackpotOnFreeParking ? 'Bật' : 'Tắt'}</b></li>
       <li>• Nhận thuê khi ở tù: <b>${settings.receiveRentWhileJailed ? 'Bật' : 'Tắt'}</b></li>
       <li>• Chế độ đấu giá: <b>${settings.auctionMode ? 'Bật' : 'Tắt'}</b></li>
+      <li>• Trọn bộ màu nâng nhà tự do: <b>${settings.freeBuildOnFullGroup ? 'Bật' : 'Tắt'}</b></li>
     </ul>`;
   }
 
@@ -358,7 +366,23 @@
     if (state.pendingTile && state.currentPlayerIndex === myIndex) {
       if (buyModal) {
         $('modal-tile-name').innerText = state.pendingTile.name;
-        $('modal-tile-price').innerText = `Giá: $${state.pendingTile.price}`;
+        const me = state.players[myIndex];
+        const effectivePrice = (me && me.hasDiscount) ? Math.round(state.pendingTile.price * 0.5) : state.pendingTile.price;
+        $('modal-tile-price').innerText = (me && me.hasDiscount) ? `Giá ưu đãi (50%): $${effectivePrice} (Gốc: $${state.pendingTile.price})` : `Giá: $${state.pendingTile.price}`;
+
+        const buyAuctionBtn = $('buy-auction-btn');
+        if (buyAuctionBtn) {
+          if (GameCore.settings && GameCore.settings.auctionMode) {
+            buyAuctionBtn.classList.remove('hidden');
+          } else {
+            buyAuctionBtn.classList.add('hidden');
+          }
+        }
+        const buyYesBtn = $('buy-yes-btn');
+        if (buyYesBtn) {
+          buyYesBtn.disabled = !me || me.money < effectivePrice;
+        }
+
         if (window.positionBuyPrompt) {
           // Find the tile index from the board
           const tileIndex = state.players[myIndex].position;
@@ -534,26 +558,6 @@
         if (!isOnline() || isSpectator) return;
         $('card-modal').classList.add('hidden');
         sendAction('APPLY_CARD');
-      }, true);
-    }
-
-    // Trả giá trong đấu giá: các nút +2/+10/+100
-    document.querySelectorAll('.auction-add-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (!isOnline() || isSpectator) return;
-        const add = parseInt(btn.dataset.add, 10) || 10;
-        const a = GameCore.state.auctionState;
-        if (!a || !a.active) return;
-        sendAction('PLACE_BID', { amount: a.currentBid + add });
-      }, true);
-    });
-
-    // Bỏ lượt trong đấu giá
-    const auctionPassBtn = $('auction-pass-btn');
-    if (auctionPassBtn) {
-      auctionPassBtn.addEventListener('click', () => {
-        if (!isOnline() || isSpectator) return;
-        sendAction('PASS_BID');
       }, true);
     }
 

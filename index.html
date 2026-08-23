@@ -236,6 +236,20 @@
             <span class="switch-slider"></span>
           </div>
         </label>
+
+        <label class="rule-switch-card">
+          <div class="rule-info">
+            <span class="rule-icon">👑</span>
+            <div>
+              <div class="rule-name">Trọn bộ màu nâng nhà tự do</div>
+              <div class="rule-desc">Chỉ cho phép xây nhà khi đủ trọn bộ màu và được nâng nhà tự do</div>
+            </div>
+          </div>
+          <div class="switch-wrap">
+            <input type="checkbox" id="set-free-build-full-group">
+            <span class="switch-slider"></span>
+          </div>
+        </label>
       </div>
 
       <div class="settings-actions">
@@ -413,6 +427,15 @@
         <div id="auction-current-bid" class="auction-row">💰 Giá hiện tại: <b>$0</b></div>
         <div id="auction-turn" class="auction-row">🎯 Đến lượt: <b>...</b></div>
         <div id="auction-status-msg" class="auction-row auction-status-msg"></div>
+      </div>
+      <!-- KHU VỰC CHỌN NGƯỜI ĐẶT GIÁ CHO OFFLINE (PASS-AND-PLAY) -->
+      <div id="auction-offline-section" class="auction-offline-section">
+        <div class="auction-section-label">👤 Chọn người đặt giá:</div>
+        <div id="auction-offline-bidders" class="auction-offline-bidders"></div>
+      </div>
+      <!-- THÔNG TIN NGƯỜI CHƠI CHO ONLINE -->
+      <div id="auction-online-info" class="auction-online-info hidden">
+        <span id="auction-online-player-badge"></span>
       </div>
       <!-- NÚT TRẢ GIÁ NHANH +2 / +10 / +100 VÀ BỎ QUA -->
       <div class="auction-bid-buttons">

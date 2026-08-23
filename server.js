@@ -62,6 +62,32 @@ function broadcastRoomState(roomCode) {
   });
 }
 
+function manageRoomAuctionTimer(room, code) {
+  if (!room || !room.game) return;
+  const a = room.game.state.auctionState;
+  if (!a || !a.active) {
+    if (room.auctionTimer) {
+      clearTimeout(room.auctionTimer);
+      room.auctionTimer = null;
+    }
+    return;
+  }
+
+  if (room.auctionTimer) {
+    clearTimeout(room.auctionTimer);
+    room.auctionTimer = null;
+  }
+
+  const remainingMs = Math.max(100, (a.timerEnd || (Date.now() + 5000)) - Date.now());
+  room.auctionTimer = setTimeout(() => {
+    if (room.game && room.game.state.auctionState && room.game.state.auctionState.active) {
+      room.game.endAuction();
+      broadcastRoomState(code);
+    }
+    room.auctionTimer = null;
+  }, remainingMs);
+}
+
 const DEFAULT_ANIMAL_TOKENS = [
   { name: "Sài Gòn Cá Sấu", emoji: "🐊" },
   { name: "Chợ Lớn Mèo", emoji: "🐱" },
@@ -113,6 +139,7 @@ io.on('connection', (socket) => {
         jackpotOnFreeParking: true,
         receiveRentWhileJailed: false,
         auctionMode: false,
+        freeBuildOnFullGroup: false,
         initialMoney: 1500,
         passGoMoney: 200
       }
@@ -340,7 +367,7 @@ io.on('connection', (socket) => {
     if (room.started) { if (typeof cb === 'function') cb({ ok: false, error: 'Trò chơi đã bắt đầu!' }); return; }
 
     const s = (payload && payload.settings) || {};
-    ['doubleRentOnFullGroup','mortgageInsteadOfSell','jackpotOnFreeParking','receiveRentWhileJailed','auctionMode'].forEach(k => {
+    ['doubleRentOnFullGroup','mortgageInsteadOfSell','jackpotOnFreeParking','receiveRentWhileJailed','auctionMode','freeBuildOnFullGroup'].forEach(k => {
       if (typeof s[k] === 'boolean') room.settings[k] = s[k];
     });
     if (typeof s.initialMoney === 'number' && s.initialMoney > 0) room.settings.initialMoney = s.initialMoney;
@@ -558,7 +585,11 @@ io.on('connection', (socket) => {
 
     if (!room) { if (typeof cb === 'function') cb({ ok: false, error: 'Phòng không tồn tại!' }); return; }
 
-    // Xóa mọi timer disconnect của các người chơi
+    // Xóa mọi timer disconnect và timer đấu giá của phòng
+    if (room.auctionTimer) {
+      clearTimeout(room.auctionTimer);
+      room.auctionTimer = null;
+    }
     for (const p of room.players.values()) {
       if (p.disconnectTimer) {
         clearTimeout(p.disconnectTimer);
@@ -666,6 +697,7 @@ io.on('connection', (socket) => {
     const action = payload && payload.action;
     const result = applyAction(room.game, playerIdx, action);
 
+    manageRoomAuctionTimer(room, code);
     broadcastRoomState(code);
 
     // Nếu game vừa kết thúc sau action này -> broadcast game:over

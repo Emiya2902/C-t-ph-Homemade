@@ -30,4 +30,5 @@
 - [x] Cho phép người chơi kết nối lại phòng trong vòng 2 phút nếu bị disconnect/rớt mạng (`server.js`, `lobby.js`, `online.js`, `ui.js`).
 - [x] Bổ sung chế độ Khán Giả (Spectator Mode) cho người tham gia phòng sau khi trận đấu đã bắt đầu (`server.js`, `online.js`, `index.html`, `style.css`).
 - [x] Tích hợp cơ chế Chơi lại / Khởi động ván mới (Instant Restart & Reset to Lobby) cho cả chế độ Online & Offline (`server.js`, `online.js`, `ui.js`, `index.html`, `style.css`).
+- [x] Sửa lỗi đấu giá: Ẩn nút đấu giá ở chế độ không đấu giá; thêm nút đấu giá đúng chức năng và nút bỏ qua giữ đúng chức năng ở chế độ có đấu giá; sửa lỗi tăng tiền đấu giá mượt mà cho cả Online và Offline (`shared/gameServer.js`, `server.js`, `gameCore.js`, `ui.js`, `online.js`, `index.html`, `style.css`).
 

@@ -82,6 +82,7 @@ class GameInstance {
       jackpotOnFreeParking: true,
       receiveRentWhileJailed: false,
       auctionMode: false,
+      freeBuildOnFullGroup: false,
       initialMoney: 1500,
       passGoMoney: 200
     }, options.settings || {});
@@ -254,57 +255,54 @@ class GameInstance {
 
   startAuction(tile, excludedPlayerId = null) {
     this.state.auctionTile = tile;
-    const bidders = this.state.players.filter(p => !p.isBankrupt && p.money > 0 && p.id !== excludedPlayerId);
-    if (!bidders.length) {
+    const eligible = this.state.players.filter(p => !p.isBankrupt && p.money > 0 && p.id !== excludedPlayerId);
+    if (!eligible.length) {
       this.state.auctionTile = null;
       this.state.auctionState = null;
       this.addLog(`⚪ Không có người chơi đủ điều kiện đấu giá [${tile.name}].`);
-      return;
+      return false;
     }
     this.state.auctionState = {
       currentBid: 0,
       highestBidder: null,
       highestBidderIndex: -1,
       active: true,
-      round: 0,
-      bidders: bidders.map(p => p.id),
-      currentBidderIndex: 0,
-      passedCount: 0,
+      eligibleIds: eligible.map(p => p.id),
+      bidders: eligible.map(p => p.id),
       timerDuration: 5,
       timerEnd: Date.now() + 5000,
       excludedPlayerId: excludedPlayerId
     };
 
-    const currentIdx = bidders.findIndex(b => b.id === this.state.players[this.state.currentPlayerIndex].id);
-    if (currentIdx !== -1) {
-      this.state.auctionState.currentBidderIndex = (currentIdx + 1) % bidders.length;
-    }
-
-    this.addLog(`🔨 Đấu giá ô [${tile.name}]! Giá khởi điểm $0.`);
+    this.addLog(`🔨 Đấu giá ô [${tile.name}]! Giá khởi điểm $0. Ai trả giá cao nhất sau 5s sẽ thắng!`);
+    return true;
   }
 
   getCurrentAuctionBidder() {
-    const a = this.state.auctionState;
-    if (!a || !a.active || !a.bidders || a.bidders.length === 0) return null;
-    const id = a.bidders[a.currentBidderIndex];
-    return this.state.players.find(p => p.id === id) || null;
+    // Free-for-all: Tất cả người chơi đủ điều kiện đều có thể đặt giá
+    return null;
   }
 
   placeBid(playerIndex, amount) {
     const p = this.state.players[playerIndex];
     const a = this.state.auctionState;
     if (!p || !a || !a.active) return false;
-    const currentBidder = this.getCurrentAuctionBidder();
-    if (!currentBidder || currentBidder.id !== p.id) return false;
+    if (p.isBankrupt) return false;
+    if (a.eligibleIds && !a.eligibleIds.includes(p.id)) return false;
     if (amount <= a.currentBid) return false;
     if (amount > p.money) return false;
 
     a.currentBid = amount;
-    a.highestBidder = { id: p.id, name: p.name, color: p.color };
+    a.highestBidder = {
+      id: p.id,
+      name: p.name,
+      color: p.color,
+      tokenEmoji: p.tokenEmoji,
+      tokenName: p.tokenName
+    };
     a.highestBidderIndex = playerIndex;
     a.timerEnd = Date.now() + (a.timerDuration * 1000);
-    this.addLog(`🔨 ${p.name} đặt giá $${amount}`);
-    this.advanceAuction();
+    this.addLog(`🔨 ${p.tokenEmoji || ''} ${p.name} đặt giá $${amount}!`);
     return true;
   }
 
@@ -313,31 +311,21 @@ class GameInstance {
     if (!a || !a.active) return false;
     const p = this.state.players[playerIndex];
     if (!p) return false;
-    const currentBidder = this.getCurrentAuctionBidder();
-    if (!currentBidder || currentBidder.id !== p.id) return false;
 
-    a.bidders.splice(a.currentBidderIndex, 1);
-    a.passedCount++;
-    this.addLog(`⏭️ ${p.name} bỏ lượt trong cuộc đấu giá.`);
+    if (a.eligibleIds) {
+      a.eligibleIds = a.eligibleIds.filter(id => id !== p.id);
+    }
+    this.addLog(`⏭️ ${p.tokenEmoji || ''} ${p.name} bỏ lượt trong cuộc đấu giá.`);
 
-    if (a.bidders.length <= 0 || (a.bidders.length === 1 && a.highestBidder)) {
+    if (a.eligibleIds && (a.eligibleIds.length === 0 || (a.eligibleIds.length === 1 && a.highestBidder && a.eligibleIds[0] === a.highestBidder.id))) {
       this.endAuction();
       return true;
     }
-
-    if (a.currentBidderIndex >= a.bidders.length) a.currentBidderIndex = 0;
-    a.timerEnd = Date.now() + (a.timerDuration * 1000);
     return true;
   }
 
   advanceAuction() {
-    const a = this.state.auctionState;
-    if (!a || !a.active) return;
-    if (a.bidders.length === 1 && a.highestBidder) {
-      this.endAuction();
-      return;
-    }
-    a.currentBidderIndex = (a.currentBidderIndex + 1) % a.bidders.length;
+    // Free-for-all: không dùng bước chuyển lượt cứng
   }
 
   endAuction() {
@@ -352,7 +340,7 @@ class GameInstance {
         tile.owner = winner.id;
         tile.mortgaged = false;
         tile.lastBuiltPlayerTurn = null;
-        this.addLog(`🏆 ${winner.name} thắng đấu giá [${tile.name}] với $${a.currentBid}!`);
+        this.addLog(`🏆 ${winner.tokenEmoji || ''} ${winner.name} thắng đấu giá [${tile.name}] với $${a.currentBid}!`);
       }
     } else {
       this.addLog(`⭕ Không ai trả giá, ô [${tile.name}] vẫn chưa có chủ.`);
@@ -361,6 +349,7 @@ class GameInstance {
     const result = a.highestBidder ? { winner: a.highestBidder, amount: a.currentBid } : null;
     this.state.auctionTile = null;
     this.state.auctionState = null;
+    this.state.pendingTile = null;
     return result;
   }
 
@@ -421,16 +410,19 @@ class GameInstance {
     if (tile.price && tile.type !== "TAX") {
       if (tile.owner === null || tile.owner === undefined) {
         const effectivePrice = p.hasDiscount ? Math.round(tile.price * 0.5) : tile.price;
-        if (p.money >= effectivePrice) {
-          this.state.pendingTile = tile;
-          return { action: "PROMPT_BUY", tile, discount: p.hasDiscount, effectivePrice, ...info };
-        } else {
-          this.addLog(`💡 ${p.name} đỗ vào [${tile.name}] nhưng không đủ $${effectivePrice} để mua.`);
-          if (this.settings.auctionMode) {
-            this.startAuction(tile, p.id);
-            return { action: "AUCTION", tile, ...info };
-          }
+        this.state.pendingTile = tile;
+        const canAfford = p.money >= effectivePrice;
+        if (!canAfford) {
+          this.addLog(`💡 ${p.name} đỗ vào [${tile.name}] (Giá: $${effectivePrice} - Số dư: $${p.money}).`);
         }
+        return {
+          action: "PROMPT_BUY",
+          tile,
+          discount: p.hasDiscount,
+          effectivePrice,
+          canAfford,
+          ...info
+        };
       } else if (tile.owner !== p.id) {
         if (tile.mortgaged) {
           this.addLog(`🏦 [${tile.name}] đang bị cầm cố nên ${p.name} không phải trả tiền thuê.`);
@@ -672,11 +664,21 @@ class GameInstance {
     const tile = this.state.pendingTile;
     if (tile) {
       this.addLog(`⏭️ ${p.name} BỎ QUA không mua [${tile.name}]`);
-      if (this.settings.auctionMode) {
-        this.startAuction(tile, p.id);
-      }
     }
     this.state.pendingTile = null;
+    return true;
+  }
+
+  auctionPendingProperty() {
+    const p = this.getCurrentPlayer();
+    const tile = this.state.pendingTile;
+    if (tile) {
+      this.addLog(`🔨 ${p.name} chọn đưa [${tile.name}] ra ĐẤU GIÁ cho tất cả mọi người!`);
+      const started = this.startAuction(tile);
+      this.state.pendingTile = null;
+      return started;
+    }
+    return false;
   }
 
   buildHouse(tileId) {
@@ -684,17 +686,27 @@ class GameInstance {
     const tile = this.state.board.find(t => t.id === tileId);
     if (!tile || tile.owner !== p.id || tile.type !== "PROPERTY") return false;
 
-    // Luật 1: Mỗi lượt chỉ cho phép mua nhà 1 lần bất kể ô đất
-    if (p.hasBuiltHouseThisTurn) {
-      this.addLog(`⚠️ ${p.name} chỉ được mua nhà 1 lần trong mỗi lượt!`);
-      return false;
-    }
+    const isFullGroup = this.ownsFullGroup(tile);
 
-    // Luật 2: Đối với cùng 1 ô đất, chỉ cho cách 1 lượt mua 1 lần
-    const curTurn = p.turnCount || 1;
-    if (tile.lastBuiltPlayerTurn && (curTurn - tile.lastBuiltPlayerTurn < 2)) {
-      this.addLog(`⚠️ [${tile.name}] cần cách 1 lượt mới được xây tiếp!`);
-      return false;
+    if (this.settings.freeBuildOnFullGroup) {
+      if (!isFullGroup) {
+        this.addLog(`⚠️ ${p.name} cần sở hữu trọn bộ màu mới được phép xây nhà!`);
+        return false;
+      }
+      // Khi đã đủ trọn bộ nhóm màu: cho phép nâng nhà tự do (bỏ giới hạn 1 nhà/lượt & cách lượt)
+    } else {
+      // Luật 1: Mỗi lượt chỉ cho phép mua nhà 1 lần bất kể ô đất
+      if (p.hasBuiltHouseThisTurn) {
+        this.addLog(`⚠️ ${p.name} chỉ được mua nhà 1 lần trong mỗi lượt!`);
+        return false;
+      }
+
+      // Luật 2: Đối với cùng 1 ô đất, chỉ cho cách 1 lượt mua 1 lần
+      const curTurn = p.turnCount || 1;
+      if (tile.lastBuiltPlayerTurn && (curTurn - tile.lastBuiltPlayerTurn < 2)) {
+        this.addLog(`⚠️ [${tile.name}] cần cách 1 lượt mới được xây tiếp!`);
+        return false;
+      }
     }
 
     const houses = tile.houses || 0;
@@ -706,10 +718,10 @@ class GameInstance {
     p.money -= houseCost;
     tile.houses = houses + 1;
     p.hasBuiltHouseThisTurn = true;
-    tile.lastBuiltPlayerTurn = curTurn;
+    tile.lastBuiltPlayerTurn = p.turnCount || 1;
 
     const isHotel = tile.houses === 5;
-    this.addLog(`🏠 ${p.name} ${isHotel ? 'xây khách sạn' : 'xây nhà'} tại [${tile.name}] (-$${houseCost})`);
+    this.addLog(`🏠 ${p.tokenEmoji || ''} ${p.name} ${isHotel ? 'xây khách sạn' : 'xây nhà'} tại [${tile.name}] (-$${houseCost})${this.settings.freeBuildOnFullGroup ? ' 👑 [Trọn bộ màu: Nâng tự do]' : ''}`);
     return true;
   }
 

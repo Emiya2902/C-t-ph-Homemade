@@ -535,14 +535,24 @@ const cardModal = document.getElementById('card-modal');
       }
     }
 
-    // Hiện/ẩn nút Đấu Giá trong buy-popover dựa vào auctionMode
+    // Hiện/ẩn nút Đấu Giá trong buy-popover dựa vào auctionMode và cập nhật nút Mua
     const buyAuctionBtn = document.getElementById('buy-auction-btn');
+    const buyYesBtn = document.getElementById('buy-yes-btn');
+    const isAuctionMode = !!(GameCore.settings && GameCore.settings.auctionMode);
     if (buyAuctionBtn) {
-      if (GameCore.settings && GameCore.settings.auctionMode) {
+      if (isAuctionMode) {
         buyAuctionBtn.classList.remove('hidden');
       } else {
         buyAuctionBtn.classList.add('hidden');
       }
+    }
+
+    if (buyYesBtn && GameCore.state.pendingTile) {
+      const p = GameCore.getCurrentPlayer();
+      const tile = GameCore.state.pendingTile;
+      const effectivePrice = (p && p.hasDiscount) ? Math.round(tile.price * 0.5) : (tile.price || 0);
+      const canAfford = !!(p && p.money >= effectivePrice);
+      buyYesBtn.disabled = !canAfford;
     }
   }
 
@@ -1273,21 +1283,29 @@ function updateTileBadgeUI(index, houses) {
         btnBuild.style.display = canBuild ? '' : 'none';
         btnSell.style.display = canBuild ? '' : 'none';
 
+        const freeBuild = !!(GameCore.settings && GameCore.settings.freeBuildOnFullGroup);
+        const isFullGroup = !!(tile.group && GameCore.ownsFullGroup && GameCore.ownsFullGroup(tile));
+
         if (!canBuild) {
           btnMortgage.style.display = '';
         } else if (houses >= 5) {
           btnBuild.disabled = true;
           btnBuild.innerText = `🏨 Đã tối đa`;
           btnBuild.title = `Bất động sản đã đạt cấp Khách sạn tối đa`;
+        } else if (freeBuild && !isFullGroup) {
+          // Chế độ freeBuildOnFullGroup: chưa đủ trọn bộ màu -> khóa hoàn toàn
+          btnBuild.disabled = true;
+          btnBuild.innerText = `👑 Cần trọn bộ màu`;
+          btnBuild.title = `Cần sở hữu trọn bộ nhóm màu mới được phép xây nhà`;
         } else if (!isMyTurn) {
           btnBuild.disabled = true;
           btnBuild.innerText = houses === 4 ? `🏨 Chưa đến lượt ($${houseCost})` : `🏠 Chưa đến lượt ($${houseCost})`;
           btnBuild.title = `Chưa đến lượt của bạn`;
-        } else if (localPlayer.hasBuiltHouseThisTurn) {
+        } else if (!freeBuild && localPlayer.hasBuiltHouseThisTurn) {
           btnBuild.disabled = true;
           btnBuild.innerText = `⏳ Đã mua nhà lượt này`;
           btnBuild.title = `Mỗi lượt chỉ được mua nhà 1 lần trên toàn bộ bất động sản`;
-        } else if (tile.lastBuiltPlayerTurn && ((localPlayer.turnCount || 1) - tile.lastBuiltPlayerTurn < 2)) {
+        } else if (!freeBuild && tile.lastBuiltPlayerTurn && ((localPlayer.turnCount || 1) - tile.lastBuiltPlayerTurn < 2)) {
           btnBuild.disabled = true;
           btnBuild.innerText = `⏳ Cần cách 1 lượt`;
           btnBuild.title = `Ô đất này cần cách 1 lượt của bạn mới được nâng cấp tiếp`;
@@ -1297,8 +1315,10 @@ function updateTileBadgeUI(index, houses) {
           btnBuild.title = `Bạn không đủ tiền để nâng cấp`;
         } else {
           btnBuild.disabled = false;
-          btnBuild.innerText = houses === 4 ? `🏨 Nâng cấp Khách sạn ($${houseCost})` : `🏠 Xây nhà ($${houseCost})`;
-          btnBuild.title = `Nâng cấp bất động sản`;
+          btnBuild.innerText = houses === 4
+            ? `🏨 Nâng cấp Khách sạn ($${houseCost})${freeBuild ? ' 👑' : ''}`
+            : `🏠 Xây nhà ($${houseCost})${freeBuild ? ' 👑' : ''}`;
+          btnBuild.title = freeBuild ? `Trọn bộ màu - Nâng nhà tự do!` : `Nâng cấp bất động sản`;
         }
 
         if (canBuild && houses > 0) {
@@ -1460,11 +1480,26 @@ async function moveTokenStepByStep(tokenElem, startPos, steps) {
   // =========================================================
   // ĐẤU GIÁ (MỞ / CẬP NHẬT / ĐẶT GIÁ / BỎ LƯỢT)
   // =========================================================
-function openAuctionModal() {
+  let selectedOfflineBidderIndex = -1;
+
+  function openAuctionModal() {
     if (!auctionModal) return;
     const a = GameCore.state.auctionState;
     const tile = GameCore.state.auctionTile;
     if (!a || !tile) return;
+
+    const isOnline = !!(window.GameOnline && GameOnline.isOnline && GameOnline.isOnline());
+    if (!isOnline) {
+      // Offline: Chọn bidder mặc định là người chơi hợp lệ đầu tiên
+      const currentPIdx = GameCore.state.currentPlayerIndex;
+      const currentP = GameCore.state.players[currentPIdx];
+      if (currentP && !currentP.isBankrupt && a.eligibleIds && a.eligibleIds.includes(currentP.id)) {
+        selectedOfflineBidderIndex = currentPIdx;
+      } else {
+        const firstEligibleId = a.eligibleIds && a.eligibleIds[0];
+        selectedOfflineBidderIndex = GameCore.state.players.findIndex(p => p.id === firstEligibleId);
+      }
+    }
 
     document.getElementById('auction-tile-name').innerText = `🔨 Đấu giá: ${tile.name}`;
     renderAuctionModal();
@@ -1517,7 +1552,7 @@ function openAuctionModal() {
     const remaining = Math.max(0, a.timerEnd - Date.now());
     const percentage = Math.min(100, (remaining / durationMs) * 100);
     auctionTimerEl.style.width = `${percentage}%`;
-    // Màu thay đổi: xanh → vàng → đỏ khi sắc cạn
+    // Màu thay đổi: xanh → vàng → đỏ khi sắp hết giờ
     if (percentage > 60) {
       auctionTimerEl.style.background = 'linear-gradient(90deg, #00b894, #00cec9)';
     } else if (percentage > 30) {
@@ -1536,29 +1571,106 @@ function openAuctionModal() {
   function renderAuctionModal() {
     const a = GameCore.state.auctionState;
     if (!a) return;
-    const highest = a.highestBidder ? a.highestBidder.name : 'Chưa có';
+    const highest = a.highestBidder ? `${a.highestBidder.tokenEmoji || ''} ${a.highestBidder.name}` : 'Chưa có';
 
-    document.getElementById('auction-current-bid').innerHTML = `💰 Giá hiện tại: <b>$${a.currentBid}</b>`;
-    document.getElementById('auction-current-bidder').innerHTML = `👤 Người trả giá cao nhất: <b>${highest}</b>`;
-    // Trong free-for-all, không có "đến lượt" cụ thể
-    document.getElementById('auction-turn').innerHTML = `⏳ Thời gian: <b>ai đặt giá cao nhất sau 5s sẽ thắng!</b>`;
-
-    const online = window.GameOnline && GameOnline.isOnline && GameOnline.isOnline();
-    const localPlayerIndex = online ? GameOnline.myIndex : GameCore.state.currentPlayerIndex;
-    const localPlayer = GameCore.state.players[localPlayerIndex];
-
+    const currentBidEl = document.getElementById('auction-current-bid');
+    const currentBidderEl = document.getElementById('auction-current-bidder');
+    const turnEl = document.getElementById('auction-turn');
     const statusMsgEl = document.getElementById('auction-status-msg');
-    if (statusMsgEl) {
-      if (localPlayer && a.excludedPlayerId === localPlayer.id) {
-        statusMsgEl.innerText = '⚠️ Bạn đã bỏ qua mua ô này nên không thể tham gia đấu giá.';
-        statusMsgEl.style.display = 'block';
-      } else if (localPlayer && a.eligibleIds && !a.eligibleIds.includes(localPlayer.id)) {
-        statusMsgEl.innerText = '⏭️ Bạn không đủ điều kiện tham gia đấu giá này.';
-        statusMsgEl.style.display = 'block';
-      } else {
-        statusMsgEl.innerText = '';
-        statusMsgEl.style.display = 'none';
+
+    if (currentBidEl) currentBidEl.innerHTML = `💰 Giá hiện tại: <b>$${a.currentBid}</b>`;
+    if (currentBidderEl) currentBidderEl.innerHTML = `👤 Người trả giá cao nhất: <b>${highest}</b>`;
+    if (turnEl) turnEl.innerHTML = `⏳ Thời gian: <b>ai đặt giá cao nhất sau 5s sẽ thắng!</b>`;
+
+    const isOnline = !!(window.GameOnline && GameOnline.isOnline && GameOnline.isOnline());
+    const offlineSection = document.getElementById('auction-offline-section');
+    const offlineBiddersContainer = document.getElementById('auction-offline-bidders');
+    const onlineInfo = document.getElementById('auction-online-info');
+    const onlineBadge = document.getElementById('auction-online-player-badge');
+
+    if (isOnline) {
+      if (offlineSection) offlineSection.classList.add('hidden');
+      if (onlineInfo) onlineInfo.classList.remove('hidden');
+
+      const myIndex = GameOnline.myIndex;
+      const me = GameCore.state.players[myIndex];
+      const isEligible = !!(me && !me.isBankrupt && a.eligibleIds && a.eligibleIds.includes(me.id));
+
+      if (onlineBadge && me) {
+        onlineBadge.innerHTML = `👤 Bạn là: <b>${me.tokenEmoji || ''} ${me.name}</b> (Số dư: <b style="color: #55efc4;">$${me.money}</b>)`;
       }
+
+      if (statusMsgEl) {
+        if (!isEligible) {
+          statusMsgEl.innerText = '⏭️ Bạn không đủ điều kiện hoặc đã bị loại khỏi đấu giá.';
+          statusMsgEl.style.display = 'block';
+        } else {
+          statusMsgEl.innerText = '';
+          statusMsgEl.style.display = 'none';
+        }
+      }
+
+      // Cập nhật nút bấm cho Online
+      auctionAddBtns.forEach(button => {
+        const add = parseInt(button.dataset.add, 10) || 0;
+        const targetBid = a.currentBid + add;
+        const canAfford = isEligible && me && me.money >= targetBid;
+        button.disabled = !canAfford;
+        button.textContent = `+${add} ($${targetBid})`;
+      });
+    } else {
+      // Offline mode: hiển thị danh sách người chơi chọn nhanh
+      if (onlineInfo) onlineInfo.classList.add('hidden');
+      if (offlineSection) offlineSection.classList.remove('hidden');
+
+      if (offlineBiddersContainer) {
+        offlineBiddersContainer.innerHTML = '';
+        const eligiblePlayers = GameCore.state.players.filter(p =>
+          !p.isBankrupt && a.eligibleIds && a.eligibleIds.includes(p.id)
+        );
+
+        if (selectedOfflineBidderIndex < 0 || !GameCore.state.players[selectedOfflineBidderIndex] || !a.eligibleIds.includes(GameCore.state.players[selectedOfflineBidderIndex].id)) {
+          if (eligiblePlayers.length > 0) {
+            selectedOfflineBidderIndex = GameCore.state.players.findIndex(p => p.id === eligiblePlayers[0].id);
+          }
+        }
+
+        eligiblePlayers.forEach(p => {
+          const pIdx = GameCore.state.players.findIndex(pl => pl.id === p.id);
+          const chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className = `bidder-chip ${pIdx === selectedOfflineBidderIndex ? 'selected' : ''}`;
+          chip.innerHTML = `<span class="bidder-chip-emoji">${p.tokenEmoji || '🐊'}</span>
+            <span>${p.name}</span>
+            <span class="bidder-chip-money">($${p.money})</span>`;
+          chip.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectedOfflineBidderIndex = pIdx;
+            renderAuctionModal();
+          });
+          offlineBiddersContainer.appendChild(chip);
+        });
+      }
+
+      const selectedBidder = GameCore.state.players[selectedOfflineBidderIndex];
+      if (statusMsgEl) {
+        if (!selectedBidder) {
+          statusMsgEl.innerText = '⚠️ Hãy chọn một người chơi để đặt giá.';
+          statusMsgEl.style.display = 'block';
+        } else {
+          statusMsgEl.innerText = '';
+          statusMsgEl.style.display = 'none';
+        }
+      }
+
+      // Cập nhật nút bấm cho Offline theo selectedBidder
+      auctionAddBtns.forEach(button => {
+        const add = parseInt(button.dataset.add, 10) || 0;
+        const targetBid = a.currentBid + add;
+        const canAfford = !!(selectedBidder && selectedBidder.money >= targetBid);
+        button.disabled = !canAfford;
+        button.textContent = `+${add} ($${targetBid})`;
+      });
     }
 
     // Hiển thị quân cờ (token) của người trả giá cao nhất
@@ -1573,22 +1685,8 @@ function openAuctionModal() {
 
     updateAuctionTimerDisplay();
 
-    // Free-for-all: bật nút bid cho bất kỳ người đủ điều kiện (không theo lượt)
-    // Free-for-all: bật nút bid nếu có ít nhất một người đủ tiền để đặt giá
-    const anyEligible = a.eligibleIds && a.eligibleIds.some(id => {
-      const pl = GameCore.state.players.find(p => p.id === id);
-      return pl && pl.money > a.currentBid;
-    });
-    const canBid = !!anyEligible;
-    auctionAddBtns.forEach(button => {
-      button.disabled = !canBid;
-      // Hiển thị giá bid thực tế sử lên
-      const add = parseInt(button.dataset.add, 10) || 0;
-      button.textContent = `+${add} ($${a.currentBid + add})`;
-    });
     const passBtn = document.getElementById('auction-pass-btn');
     if (passBtn) {
-      // Nút bỏ qua được ẩn trong free-for-all (không có lượt)
       passBtn.style.display = 'none';
     }
   }
@@ -1720,6 +1818,7 @@ let chosenPlayerCount = 2;
       jackpotOnFreeParking: document.getElementById('set-jackpot').checked,
       receiveRentWhileJailed: document.getElementById('set-rent-jailed').checked,
       auctionMode: document.getElementById('set-auction').checked,
+      freeBuildOnFullGroup: document.getElementById('set-free-build-full-group').checked,
       chosenTokens: chosenTokens.slice(0, chosenPlayerCount)
     };
 
@@ -1756,6 +1855,7 @@ let chosenPlayerCount = 2;
       <li>• Jackpot Bãi xe: <b>${config.jackpotOnFreeParking ? 'Bật' : 'Tắt'}</b></li>
       <li>• Nhận thuê khi ở tù: <b>${config.receiveRentWhileJailed ? 'Bật' : 'Tắt'}</b></li>
       <li>• Chế độ đấu giá: <b>${config.auctionMode ? 'Bật' : 'Tắt'}</b></li>
+      <li>• Trọn bộ màu nâng nhà tự do: <b>${config.freeBuildOnFullGroup ? 'Bật' : 'Tắt'}</b></li>
     </ul>`;
 
     renderUI();
@@ -1847,10 +1947,24 @@ const landing = cardResult ? cardResult.landing : null;
       document.getElementById('modal-tile-name').innerText = res.tile.name;
       const effectivePrice = res.effectivePrice !== undefined ? res.effectivePrice : res.tile.price;
       document.getElementById('modal-tile-price').innerText = res.discount ? `Giá ưu đãi (50%): $${effectivePrice} (Gốc: $${res.tile.price})` : `Giá: $${res.tile.price}`;
+      
+      const buyAuctionBtn = document.getElementById('buy-auction-btn');
+      if (buyAuctionBtn) {
+        if (GameCore.settings && GameCore.settings.auctionMode) {
+          buyAuctionBtn.classList.remove('hidden');
+        } else {
+          buyAuctionBtn.classList.add('hidden');
+        }
+      }
+      const buyYesBtn = document.getElementById('buy-yes-btn');
+      if (buyYesBtn) {
+        buyYesBtn.disabled = !res.canAfford;
+      }
       positionBuyPrompt(res.startPos + res.dice > 39 ? (res.startPos + res.dice) % 40 : res.startPos + res.dice);
       buyModal.classList.remove('hidden');
+      endTurnBtn.disabled = true;
     } else if (res.action === "AUCTION") {
-      // Đã bắt đầu đấu giá trong gameCore (không đủ tiền mua) -> mở modal đấu giá
+      // Đã bắt đầu đấu giá trong gameCore -> mở modal đấu giá
       openAuctionModal();
       return;
     } else if (res.action === "DRAW_CARD") {
@@ -1887,7 +2001,7 @@ const landing = cardResult ? cardResult.landing : null;
     submitTradeRequest();
   });
 
-document.getElementById('buy-yes-btn').addEventListener('click', (e) => {
+  document.getElementById('buy-yes-btn').addEventListener('click', (e) => {
     e.stopPropagation();
     // ONLINE: server xử lý
     if (window.GameOnline && window.GameOnline.isOnline && window.GameOnline.isOnline()) return;
@@ -1897,25 +2011,17 @@ document.getElementById('buy-yes-btn').addEventListener('click', (e) => {
     renderUI();
   });
 
-document.getElementById('buy-no-btn').addEventListener('click', (e) => {
+  document.getElementById('buy-no-btn').addEventListener('click', (e) => {
     e.stopPropagation();
     // ONLINE: server xử lý
     if (window.GameOnline && window.GameOnline.isOnline && window.GameOnline.isOnline()) return;
-    // Lưu lại ô đất TRƯỚC khi skip (vì skipPendingProperty sẽ xoá pendingTile)
-    const skippedTile = GameCore.state.pendingTile;
     GameCore.skipPendingProperty();
     buyModal.classList.add('hidden');
-    // Nếu bật chế độ đấu giá và ô đất vẫn chưa có chủ -> tiến hành đấu giá
-    if (GameCore.settings.auctionMode && skippedTile && (skippedTile.owner === null || skippedTile.owner === undefined)) {
-      GameCore.startAuction(skippedTile, GameCore.getCurrentPlayer().id);
-      openAuctionModal();
-      return;
-    }
-endTurnBtn.disabled = false;
+    endTurnBtn.disabled = false;
     renderUI();
   });
 
-document.getElementById('buy-auction-btn').addEventListener('click', (e) => {
+  document.getElementById('buy-auction-btn').addEventListener('click', (e) => {
     e.stopPropagation();
     // ONLINE: server xử lý
     if (window.GameOnline && window.GameOnline.isOnline && window.GameOnline.isOnline()) {
@@ -1931,51 +2037,38 @@ document.getElementById('buy-auction-btn').addEventListener('click', (e) => {
     renderUI();
   });
 
-  // Event listeners cho các nút bid trong đấu giá (free-for-all: bất kỳ ai cũng có thể bid)
+  // Event listeners cho các nút bid trong đấu giá
   auctionAddBtns.forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       if (window.GameOnline && window.GameOnline.isOnline && window.GameOnline.isOnline()) {
-        // ONLINE: gửi đến server
         const a = GameCore.state.auctionState;
         if (!a || !a.active) return;
         const add = parseInt(btn.dataset.add, 10) || 10;
         GameOnline.sendAction('PLACE_BID', { amount: a.currentBid + add });
         return;
       }
-      // OFFLINE - free-for-all: tìm người chơi nào đang muốn bid
+
+      // OFFLINE - free-for-all: đặt giá cho người chơi đang được chọn
       const a = GameCore.state.auctionState;
       if (!a || !a.active) return;
       const add = parseInt(btn.dataset.add, 10) || 10;
       const amount = a.currentBid + add;
 
-      // Trong offline (pass-and-play), tìm người eligible đủ tiền
-      const eligiblePlayers = GameCore.state.players.filter(p =>
-        !p.isBankrupt && a.eligibleIds && a.eligibleIds.includes(p.id) && p.money >= amount
-      );
-      if (!eligiblePlayers.length) {
-        alert(`Không có người chơi nào đủ tiền để trả $${amount}!`);
+      if (selectedOfflineBidderIndex < 0 || !GameCore.state.players[selectedOfflineBidderIndex]) {
+        alert('Vui lòng chọn một người chơi để đặt giá!');
         return;
       }
 
-      let bidderIndex;
-      if (eligiblePlayers.length === 1) {
-        // Chỉ có 1 người đủ điều kiện → tự động chọn
-        bidderIndex = GameCore.state.players.findIndex(p => p.id === eligiblePlayers[0].id);
-      } else {
-        // Nhiều người → hỏi ai muốn bid
-        const names = eligiblePlayers.map((p, i) => `${i + 1}. ${p.tokenEmoji || ''} ${p.name} ($${p.money})`).join('\n');
-        const choice = prompt(`Ai muốn trả giá $${amount}?\n${names}\n\nNhập số thứ tự (1-${eligiblePlayers.length}):`);
-        const choiceNum = parseInt(choice, 10);
-        if (!choiceNum || choiceNum < 1 || choiceNum > eligiblePlayers.length) return;
-        bidderIndex = GameCore.state.players.findIndex(p => p.id === eligiblePlayers[choiceNum - 1].id);
+      const bidder = GameCore.state.players[selectedOfflineBidderIndex];
+      if (bidder.money < amount) {
+        alert(`${bidder.name} không đủ tiền ($${bidder.money}) để trả $${amount}!`);
+        return;
       }
 
-      if (GameCore.placeBid(bidderIndex, amount)) {
+      if (GameCore.placeBid(selectedOfflineBidderIndex, amount)) {
         renderAuctionModal();
         renderUI();
-      } else {
-        alert('Không thể đặt giá! Hãy kiểm tra lại.');
       }
     });
   });

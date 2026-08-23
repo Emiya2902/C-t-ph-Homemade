@@ -3359,6 +3359,95 @@ CSS #property-info-card button * {
   min-height: 16px;
 }
 
+/* KHU VỰC CHỌN NGƯỜI ĐẶT GIÁ (OFFLINE PASS-AND-PLAY) */
+.auction-offline-section {
+  width: 100%;
+  margin: 6px 0 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auction-offline-section.hidden {
+  display: none !important;
+}
+
+.auction-section-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #a89bc9;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: left;
+}
+
+.auction-offline-bidders {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+.bidder-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #1e1738;
+  border: 1.5px solid #4a3b78;
+  border-radius: 20px;
+  padding: 5px 10px;
+  cursor: pointer;
+  color: #e2dcfa;
+  font-size: 12px;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.bidder-chip:hover:not(:disabled) {
+  border-color: #a29bfe;
+  background: #2f2355;
+  transform: translateY(-1px);
+}
+
+.bidder-chip.selected {
+  border-color: #fdcb6e;
+  background: linear-gradient(135deg, #3d2f17, #5c4314);
+  color: #ffeaa7;
+  box-shadow: 0 0 12px rgba(253, 203, 110, 0.45);
+}
+
+.bidder-chip:disabled {
+  opacity: 0.4;
+  filter: grayscale(0.8);
+  cursor: not-allowed;
+}
+
+.bidder-chip-emoji {
+  font-size: 14px;
+}
+
+.bidder-chip-money {
+  color: #55efc4;
+  font-size: 11px;
+}
+
+.auction-online-info {
+  margin: 6px 0 10px 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #55efc4;
+  background: rgba(85, 239, 196, 0.1);
+  border: 1px solid rgba(85, 239, 196, 0.3);
+  border-radius: 8px;
+  padding: 6px 12px;
+  text-align: center;
+}
+
+.auction-online-info.hidden {
+  display: none !important;
+}
+
 /* =========================================================
    CHá»ŒN NHĂ‚N Váº¬T (QUĂ‚N Cá»œ) TRONG MĂ€N HĂŒNH CĂ€I Äáº¶T
    ========================================================= */
