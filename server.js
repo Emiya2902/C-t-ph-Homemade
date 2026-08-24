@@ -140,6 +140,8 @@ io.on('connection', (socket) => {
         receiveRentWhileJailed: false,
         auctionMode: false,
         freeBuildOnFullGroup: false,
+        boardMode: 'standard',
+        crossBoard: false,
         initialMoney: 1500,
         passGoMoney: 200
       }
@@ -367,9 +369,11 @@ io.on('connection', (socket) => {
     if (room.started) { if (typeof cb === 'function') cb({ ok: false, error: 'Trò chơi đã bắt đầu!' }); return; }
 
     const s = (payload && payload.settings) || {};
-    ['doubleRentOnFullGroup','mortgageInsteadOfSell','jackpotOnFreeParking','receiveRentWhileJailed','auctionMode','freeBuildOnFullGroup'].forEach(k => {
+    ['doubleRentOnFullGroup','mortgageInsteadOfSell','jackpotOnFreeParking','receiveRentWhileJailed','auctionMode','freeBuildOnFullGroup','crossBoard'].forEach(k => {
       if (typeof s[k] === 'boolean') room.settings[k] = s[k];
     });
+    if (typeof s.boardMode === 'string') room.settings.boardMode = s.boardMode;
+    if (s.crossBoard !== undefined) room.settings.boardMode = s.crossBoard ? 'cross' : 'standard';
     if (typeof s.initialMoney === 'number' && s.initialMoney > 0) room.settings.initialMoney = s.initialMoney;
     if (typeof s.passGoMoney === 'number' && s.passGoMoney >= 0) room.settings.passGoMoney = s.passGoMoney;
 
@@ -521,33 +525,10 @@ io.on('connection', (socket) => {
       }
     });
 
-    const playerNames = playerList.map(p => p.name);
     // Apply settings from host / any player (already stored on room.settings)
     const settings = (payload && payload.settings) || room.settings || {};
     room.settings = settings;
-    const game = createGame({ playerCount: playerNames.length, playerNames, settings });
-
-    // Apply tokens & gắn socketId vào từng player trước khi xáo trộn
-    playerList.forEach((p, i) => {
-      if (game.state.players[i]) {
-        game.state.players[i].tokenName = (p.token && p.token.name) || game.state.players[i].tokenName;
-        game.state.players[i].tokenEmoji = (p.token && p.token.emoji) || game.state.players[i].tokenEmoji;
-        game.state.players[i].socketId = p.id;
-      }
-    });
-
-    // 🎲 RANDOM THỨ TỰ BẮT ĐẦU CHƠI (Fisher-Yates Shuffle)
-    for (let i = game.state.players.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [game.state.players[i], game.state.players[j]] = [game.state.players[j], game.state.players[i]];
-    }
-    game.state.currentPlayerIndex = 0;
-
-    const firstPlayer = game.state.players[0];
-    game.state.logs = [
-      `🎮 Trò chơi Cờ Tỉ Phú Nhà Làm bắt đầu!`,
-      `🎲 Thứ tự lượt chơi ngẫu nhiên: ${firstPlayer.tokenEmoji || ''} ${firstPlayer.name} gieo xúc xắc đầu tiên!`
-    ];
+    const game = createGame({ players: playerList, settings });
 
     room.game = game;
     room.started = true;
@@ -625,27 +606,7 @@ io.on('connection', (socket) => {
         if (!p.token || !p.token.emoji) assignDefaultToken(room, p);
       });
 
-      const playerNames = playerList.map(p => p.name);
-      const game = createGame({ playerCount: playerNames.length, playerNames, settings: room.settings });
-
-      playerList.forEach((p, i) => {
-        if (game.state.players[i]) {
-          game.state.players[i].tokenName = (p.token && p.token.name) || game.state.players[i].tokenName;
-          game.state.players[i].tokenEmoji = (p.token && p.token.emoji) || game.state.players[i].tokenEmoji;
-          game.state.players[i].socketId = p.id;
-        }
-      });
-
-      for (let i = game.state.players.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [game.state.players[i], game.state.players[j]] = [game.state.players[j], game.state.players[i]];
-      }
-      game.state.currentPlayerIndex = 0;
-      const firstPlayer = game.state.players[0];
-      game.state.logs = [
-        `🔄 Đã khởi động lại ván cờ mới!`,
-        `🎲 Thứ tự lượt chơi ngẫu nhiên: ${firstPlayer.tokenEmoji || ''} ${firstPlayer.name} gieo xúc xắc đầu tiên!`
-      ];
+      const game = createGame({ players: playerList, settings: room.settings });
 
       room.game = game;
       room.started = true;

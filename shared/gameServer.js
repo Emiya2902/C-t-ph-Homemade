@@ -15,6 +15,17 @@ try {
   }
 }
 
+let BOARD_CROSS = [];
+try {
+  BOARD_CROSS = require('../board_cross.js');
+} catch (e) {
+  try {
+    BOARD_CROSS = require('./board_cross.js');
+  } catch (err) {
+    console.error('Không nạp được board_cross.js:', err);
+  }
+}
+
 const DEFAULT_PLAYER_NAMES = [
   "Sài Gòn Pro", "Chợ Lớn VIP", "Hà Nội Pro", "Đà Nẵng VIP",
   "Cần Thơ Pro", "Vũng Tàu VIP", "Huế Pro", "Nha Trang VIP"
@@ -45,7 +56,7 @@ const CHANCE_CARDS = [
   { title: "🎂 Sinh Nhật Vui Vẻ", text: "Đến ngày sinh nhật, nhận $50 từ mỗi người chơi khác.", action: "COLLECT_OTHER", amount: 50 },
   { title: "🛡️ Kim Bài Miễn Thuế", text: "Nhận Khiên bảo vệ, miễn trừ 1 lần trả tiền thuê hoặc phạt.", action: "SHIELD" },
   { title: "🏷️ Phiếu Giảm Giá Đất", text: "Nhận voucher giảm 50% tiền mua đất ở lượt mua kế tiếp.", action: "DISCOUNT" },
-  { title: "📈 Quy Hoạch Đô Thị", text: "Ô đất đắt nhất của bạn được nhân 1.5x tiền thuê.", action: "MULTIPLY_LAND_RENT" },
+  { title: "📈 Quy Hoạch Đô Thị", text: "Lần tiếp theo có người đáp vào ô đất đắt nhất của bạn, tiền thuê được nhân 1.5x.", action: "MULTIPLY_LAND_RENT" },
   { title: "🥷 Đạo Tặc Hành Nghề", text: "Cướp ngay $100 từ người chơi giàu nhất bàn cờ.", action: "STEAL_RICHEST", amount: 100 },
   { title: "🧲 Lực Hút Đại Gia", text: "Kéo người chơi giàu nhất tới ô đất đắt nhất của bạn.", action: "PULL_RICHEST_TO_MY_LAND" },
   { title: "🔄 Hoán Đổi Nhà Đất", text: "Tráo ngẫu nhiên 1 ô đất chưa xây nhà với đối thủ.", action: "SWAP_TILE" },
@@ -62,7 +73,7 @@ const FORTUNE_CARDS = [
   { title: "🎟️ Giải Thưởng Hội Chợ", text: "Trúng thưởng phiếu mua sắm Phố đi bộ, nhận $80.", action: "MONEY", amount: 80 },
   { title: "🛡️ Bảo Hiểm Rủi Ro", text: "Trang bị Khiên chắn, miễn 1 lần nộp phạt hoặc trả thuê.", action: "SHIELD" },
   { title: "🏷️ Suất Mua Ưu Đãi", text: "Hưởng ưu đãi giảm 50% tiền mua đất ở lượt kế tiếp.", action: "DISCOUNT" },
-  { title: "🏗️ Cơn Sốt Đất Vàng", text: "Đất đắt giá nhất của bạn tăng giá thuê lên gấp 1.5 lần.", action: "MULTIPLY_LAND_RENT" },
+  { title: "🏗️ Cơn Sốt Đất Vàng", text: "Lần tiếp theo có người đáp vào ô đất đắt nhất của bạn, tiền thuê tăng 1.5x.", action: "MULTIPLY_LAND_RENT" },
   { title: "💰 Chia Sẻ Tài Sản", text: "Thu $100 tiền hỗ trợ từ người chơi có tổng tài sản lớn nhất.", action: "STEAL_RICHEST", amount: 100 },
   { title: "🤝 Mời Khách Quý", text: "Mời người giàu nhất bước vào bất động sản cao cấp nhất của bạn.", action: "PULL_RICHEST_TO_MY_LAND" },
   { title: "🔁 Đổi Vận Đổi Đất", text: "Hoán đổi ngẫu nhiên 1 ô đất chưa xây nhà với người khác.", action: "SWAP_TILE" },
@@ -83,6 +94,7 @@ class GameInstance {
       receiveRentWhileJailed: false,
       auctionMode: false,
       freeBuildOnFullGroup: false,
+      boardMode: 'standard',
       initialMoney: 1500,
       passGoMoney: 200
     }, options.settings || {});
@@ -90,8 +102,12 @@ class GameInstance {
     this.playerColors = DEFAULT_PLAYER_COLORS.slice(0, playerCount);
     this.settings = settings;
 
-    // Build fresh board copy
-    const boardCopy = JSON.parse(JSON.stringify(BOARD || [])).map((tile, i) => {
+    // Build fresh board copy based on boardMode
+    const rawBoard = (settings.boardMode === 'cross' && Array.isArray(BOARD_CROSS) && BOARD_CROSS.length > 0)
+      ? BOARD_CROSS
+      : BOARD;
+
+    const boardCopy = JSON.parse(JSON.stringify(rawBoard || [])).map((tile, i) => {
       return {
         ...tile,
         id: tile.id !== undefined ? tile.id : i,
@@ -101,39 +117,63 @@ class GameInstance {
       };
     });
 
-    const players = [];
-    for (let i = 0; i < playerCount; i++) {
-      const defaultToken = DEFAULT_ANIMAL_TOKENS[i % DEFAULT_ANIMAL_TOKENS.length] || { name: `Người chơi ${i + 1}`, emoji: '🐊' };
-      players.push({
-        id: i + 1,
-        name: playerNames[i] || `Người chơi ${i + 1}`,
-        color: DEFAULT_PLAYER_COLORS[i] || '#ffffff',
-        tokenName: defaultToken.name,
-        tokenEmoji: defaultToken.emoji,
-        position: 0,
-        money: settings.initialMoney,
-        inJail: false,
-        jailTurns: 0,
-        isBankrupt: false,
-        turnCount: 0,
-        hasBuiltHouseThisTurn: false,
-        lastCreditorId: null,
-        hasShield: false,
-        hasDiscount: false,
-        disconnected: false,
-        disconnectExpiresAt: null
+    let rawPlayers = [];
+    if (Array.isArray(options.players) && options.players.length >= 2) {
+      rawPlayers = options.players.map((p, i) => {
+        const defaultToken = DEFAULT_ANIMAL_TOKENS[i % DEFAULT_ANIMAL_TOKENS.length] || { name: `Người chơi ${i + 1}`, emoji: '🐊' };
+        return {
+          name: p.name || `Người chơi ${i + 1}`,
+          tokenName: p.tokenName || (p.token && p.token.name) || defaultToken.name,
+          tokenEmoji: p.tokenEmoji || (p.token && p.token.emoji) || defaultToken.emoji,
+          socketId: p.socketId || p.id || null
+        };
       });
+    } else {
+      const playerCount = Math.max(2, Math.min(8, options.playerCount || (options.playerNames ? options.playerNames.length : 2)));
+      const playerNames = options.playerNames || DEFAULT_PLAYER_NAMES;
+      for (let i = 0; i < playerCount; i++) {
+        const defaultToken = DEFAULT_ANIMAL_TOKENS[i % DEFAULT_ANIMAL_TOKENS.length] || { name: `Người chơi ${i + 1}`, emoji: '🐊' };
+        rawPlayers.push({
+          name: playerNames[i] || `Người chơi ${i + 1}`,
+          tokenName: defaultToken.name,
+          tokenEmoji: defaultToken.emoji,
+          socketId: null
+        });
+      }
     }
 
-    // 🎲 Random thứ tự lượt chơi (Fisher-Yates Shuffle)
-    for (let i = players.length - 1; i > 0; i--) {
+    // 🎲 Random thứ tự lượt chơi (Fisher-Yates Shuffle) trên danh sách người chơi thực
+    for (let i = rawPlayers.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [players[i], players[j]] = [players[j], players[i]];
+      [rawPlayers[i], rawPlayers[j]] = [rawPlayers[j], rawPlayers[i]];
     }
+
+    // Gán thứ tự P1..PN (id: 1..N), màu sắc và khởi tạo state người chơi
+    const players = rawPlayers.map((rp, i) => ({
+      id: i + 1,
+      name: rp.name,
+      color: DEFAULT_PLAYER_COLORS[i] || '#ffffff',
+      tokenName: rp.tokenName,
+      tokenEmoji: rp.tokenEmoji,
+      socketId: rp.socketId,
+      position: 0,
+      money: settings.initialMoney,
+      inJail: false,
+      jailTurns: 0,
+      jailRolls: 0,
+      isBankrupt: false,
+      turnCount: i === 0 ? 1 : 0,
+      hasBuiltHouseThisTurn: false,
+      lastCreditorId: null,
+      hasShield: false,
+      hasDiscount: false,
+      shopCards: [],
+      disconnected: false,
+      disconnectExpiresAt: null
+    }));
+
+    this.playerColors = players.map(p => p.color);
     const firstPlayer = players[0];
-    if (firstPlayer) {
-      firstPlayer.turnCount = 1;
-    }
 
     this.state = {
       board: boardCopy,
@@ -143,9 +183,10 @@ class GameInstance {
       pendingCard: null,
       lastRoll: 0,
       lastDice: [1, 1],
+      extraRollPending: false,
       logs: [
         "🎮 Trò chơi Cờ Tỉ Phú Nhà Làm bắt đầu!",
-        `🎲 Thứ tự ngẫu nhiên: ${(firstPlayer && firstPlayer.tokenEmoji) || ''} ${(firstPlayer && firstPlayer.name) || ''} gieo xúc xắc đầu tiên!`
+        `🎲 Thứ tự ngẫu nhiên: ${(firstPlayer && firstPlayer.tokenEmoji) || ''} ${(firstPlayer && firstPlayer.name) || ''} (P1) gieo xúc xắc đầu tiên!`
       ],
       jackpot: 0,
       auctionTile: null,
@@ -153,6 +194,14 @@ class GameInstance {
       tradeRequests: [],
       gameOver: false,
       winner: null,
+      weather: 'CLEAR',
+      weatherTurns: 0,
+      weatherMoveBonus: 0,
+      canBuild: true,
+      crossRoute: null,
+      crossRouteChoice: null,
+      pendingCrossRouteRoll: null,
+      lastMovementPath: [],
       settings: this.settings
     };
   }
@@ -186,6 +235,7 @@ class GameInstance {
       pendingCard: this.state.pendingCard,
       lastRoll: this.state.lastRoll,
       lastDice: this.state.lastDice || [Math.max(1, Math.min(6, Math.floor(this.state.lastRoll / 2))), Math.max(1, Math.min(6, this.state.lastRoll - Math.floor(this.state.lastRoll / 2)))],
+      extraRollPending: !!this.state.extraRollPending,
       logs: this.state.logs,
       jackpot: this.state.jackpot,
       auctionTile: this.state.auctionTile ? this.state.auctionTile.id : null,
@@ -193,6 +243,13 @@ class GameInstance {
       tradeRequests: this.state.tradeRequests,
       gameOver: this.state.gameOver,
       winner: this.state.winner,
+      weather: this.state.weather,
+      weatherTurns: this.state.weatherTurns,
+      canBuild: this.state.canBuild,
+      crossRoute: this.state.crossRoute,
+      crossRouteChoice: this.state.crossRouteChoice,
+      pendingCrossRouteRoll: this.state.pendingCrossRouteRoll,
+      lastMovementPath: this.state.lastMovementPath || [],
       settings: this.settings
     };
   }
@@ -201,6 +258,72 @@ class GameInstance {
     if (!tile || !tile.group) return false;
     const groupTiles = this.state.board.filter(t => t.group === tile.group);
     return groupTiles.length > 0 && groupTiles.every(t => t.owner === tile.owner && !t.mortgaged);
+  }
+
+  isBuildableProperty(tile) {
+    return !!(tile && tile.type === 'PROPERTY' && tile.group && tile.price > 0);
+  }
+
+  getCrossRoute(station) {
+    if (this.state.board.length <= 40) return null;
+    const routes = {
+      5: [48, 47, 46, 45, 44, 52, 51, 50, 49, 15],
+      15: [49, 50, 51, 52, 44, 43, 42, 41, 40, 25],
+      25: [40, 41, 42, 43, 44, 53, 54, 55, 56, 35],
+      35: [56, 55, 54, 53, 44, 45, 46, 47, 48, 5]
+    };
+    return routes[station] || null;
+  }
+
+  getMovementPath(player, steps) {
+    const path = [];
+    let remaining = steps;
+    let position = player.position;
+
+    if (this.state.crossRoute && this.state.crossRoute.playerId === player.id) {
+      const route = this.state.crossRoute.path;
+      let cursor = this.state.crossRoute.cursor;
+      while (remaining > 0 && cursor < route.length - 1) {
+        cursor += 1;
+        position = route[cursor];
+        path.push(position);
+        remaining -= 1;
+      }
+      this.state.crossRoute.cursor = cursor;
+      if (cursor >= route.length - 1) this.state.crossRoute = null;
+    }
+
+    while (remaining > 0) {
+      const direction = player.moveDirection === -1 ? -1 : 1;
+      position = (position + direction + 40) % 40;
+      path.push(position);
+      remaining -= 1;
+    }
+
+    return { path, position };
+  }
+
+  chooseCrossRoute(player, useInnerRoute) {
+    const choice = this.state.crossRouteChoice;
+    if (!choice || choice.playerId !== player.id) return false;
+    this.state.crossRouteChoice = null;
+    this.state.crossRoute = useInnerRoute
+      ? { playerId: player.id, path: choice.path, cursor: -1 }
+      : null;
+    this.addLog(useInnerRoute
+      ? `🛤️ ${player.name} chọn đi đường trong đến ga #${choice.path[choice.path.length - 1]}.`
+      : `🛣️ ${player.name} chọn đi theo vòng ngoài.`);
+    const pendingRoll = this.state.pendingCrossRouteRoll;
+    this.state.pendingCrossRouteRoll = null;
+    if (!pendingRoll) return true;
+    const movement = this.getMovementPath(player, pendingRoll.dice);
+    player.position = movement.position;
+    this.state.lastMovementPath = movement.path;
+    return { ...this.processTileLanding(player, {
+      startPos: pendingRoll.startPos,
+      dice: pendingRoll.dice,
+      movementPath: movement.path
+    }), playerId: player.id };
   }
 
   calculateRent(tile, owner) {
@@ -219,10 +342,140 @@ class GameInstance {
         rent *= 2;
       }
     }
-    if (tile.rentMultiplier && tile.rentMultiplier > 1) {
+
+    // Nếu ô bị đóng băng, không thu tiền thuê
+    if (tile.frozenTurns && tile.frozenTurns > 0) return 0;
+
+    // Nếu ô được bảo vệ, không thu tiền thuê
+    if (tile.protectedTurns && tile.protectedTurns > 0) return 0;
+
+    // Áp dụng boost (tăng 1.5x)
+    if (tile.boostTurns && tile.boostTurns > 0) {
+      rent = Math.round(rent * 1.5);
+    }
+    if (tile.rentMultiplier && tile.rentMultiplier !== 1) {
       rent = Math.round(rent * tile.rentMultiplier);
     }
-    return rent;
+
+    // Áp dụng hiệu ứng thời tiết
+    if (this.state.weatherRentMultiplier && this.state.weatherRentMultiplier !== 1.0) {
+      rent = Math.round(rent * this.state.weatherRentMultiplier);
+    } else if (this.state.weather === 'FLOOD') {
+      rent = Math.round(rent * 0.7);
+    } else if (this.state.weather === 'HEATWAVE') {
+      rent = Math.round(rent * 1.5);
+    }
+
+    return Math.max(rent, 0);
+  }
+
+  updateTurnCounters(gameState = this.state) {
+    if (gameState.weatherTurns > 0) gameState.weatherTurns -= 1;
+    if (gameState.weatherTurns <= 0) { gameState.weather = 'CLEAR'; gameState.canBuild = true; gameState.weatherTurns = 0; gameState.weatherMoveBonus = 0; }
+    (gameState.board || []).forEach(tile => ['frozenTurns', 'protectedTurns', 'boostTurns'].forEach(key => {
+      if (tile[key] > 0) tile[key] -= 1;
+      if (tile[key] <= 0) delete tile[key];
+    }));
+    (gameState.players || []).forEach(player => {
+      if (player.reverseTurns > 0) player.reverseTurns -= 1;
+      if (!player.reverseTurns) player.moveDirection = 1;
+    });
+    return gameState;
+  }
+
+  triggerWeatherEffect(gameState = this.state) {
+    const weatherEffects = [
+      {
+        weather: 'FLOOD',
+        emoji: '🌧️',
+        name: 'Mưa Ngập',
+        turns: 3,
+        canBuild: true,
+        rentMultiplier: 0.7,
+        description: '🌊 Đường phố ngập lụt! Mưa to gây khó khăn cho giao thông.',
+        effects: [
+          '📝 Tiền thuê tất cả ô đất GIẢM 30%',
+          '🚶 Người chơi qua ô bị lùi 1 bước',
+          '💰 Kinh doanh BĐS khó khăn, doanh thu sụt giảm',
+          '🏠 Vẫn có thể xây dựng thêm nhà'
+        ]
+      },
+      {
+        weather: 'HEATWAVE',
+        emoji: '☀️',
+        name: 'Nắng Nóng',
+        turns: 3,
+        canBuild: true,
+        rentMultiplier: 1.5,
+        description: '🔥 Nắng nóng kỷ lục! Mỗi người cần đi vào nhà để tránh nắng.',
+        effects: [
+          '💰 Tiền thuê tất cả ô đất TĂNG 1.5 lần',
+          '🏠 Mỗi người ưu tiên tìm nơi nghỉ trong nhà',
+          '📈 Chủ nhà kiếm lợi nhuận khủng',
+          '🏗️ Xây dựng thêm nhà giúp tăng lợi thế'
+        ]
+      },
+      {
+        weather: 'STORM',
+        emoji: '🌪️',
+        name: 'Bão Lớn',
+        turns: 2,
+        canBuild: false,
+        rentMultiplier: 1.0,
+        description: '⛈️ Bão lớn! Tất cả hoạt động xây dựng bị đóng băng tạm thời.',
+        effects: [
+          '🚫 KHÔNG thể xây dựng hoặc nâng cấp nhà',
+          '⛈️ Tất cả công trình xây dựng bị tạm dừng',
+          '💼 Những nhà đã xây trước đó vẫn tính tiền thuê bình thường',
+          '⏱️ Sau 2 lượt, bão sẽ qua, có thể tiếp tục xây dựng'
+        ]
+      },
+      {
+        weather: 'LIGHT_WIND',
+        emoji: '🍃',
+        name: 'Gió Nhẹ',
+        turns: 3,
+        canBuild: true,
+        rentMultiplier: 1.0,
+        moveBonus: 2,
+        description: '🍃 Gió thuận đường! Người chơi di chuyển nhanh hơn.',
+        effects: [
+          '🎲 Mỗi người được cộng 2 ô mỗi lượt',
+          '🏗️ Có thể xây dựng bình thường'
+        ]
+      }
+    ];
+
+    const availableEffects = weatherEffects.filter(effect => effect.weather !== gameState.weather);
+    const effect = availableEffects[Math.floor(Math.random() * availableEffects.length)];
+
+    Object.assign(gameState, {
+      weather: effect.weather,
+      weatherTurns: effect.turns,
+      canBuild: effect.canBuild,
+      weatherRentMultiplier: effect.rentMultiplier,
+      weatherMoveBonus: effect.moveBonus || 0,
+      weatherName: effect.name,
+      weatherEmoji: effect.emoji
+    });
+
+    if (effect.weather === 'STORM') {
+      (gameState.board || []).forEach(tile => {
+        if (tile.type === 'PROPERTY' && tile.houses > 0) tile.houses -= 1;
+      });
+      this.addLog('🌪️ Bão Lớn hạ 1 cấp nhà trên mọi ô đất đang có nhà.');
+    }
+
+    const effectsSummary = effect.effects?.join('\n') || '';
+    this.addLog(
+      `${effect.emoji} **Thời tiết đổi thành: ${effect.name}**\n` +
+      `${effect.description}\n\n` +
+      `📋 **Các hiệu ứng:**\n` +
+      effectsSummary +
+      `\n⏱️ Kéo dài **${effect.turns} lượt**`
+    );
+
+    return effect;
   }
 
   collectRent(payer, tile) {
@@ -357,18 +610,42 @@ class GameInstance {
     const tile = this.state.board[p.position];
     if (!tile) return { action: "END_ROLL", tile: null, ...info };
 
+    if (p.isGhosting) {
+      p.isGhosting = false;
+      this.addLog(`👻 ${p.name} đi xuyên qua [${tile.name}] mà không kích hoạt hiệu ứng.`);
+      return { action: "END_ROLL", tile, ghosted: true, ...info };
+    }
+
+    if (tile.trap === 'SLIDE_OIL') {
+      delete tile.trap;
+      p.position = (p.position + 3) % 40;
+      this.addLog(`🛢️ ${p.name} dẫm bẫy dầu tại [${tile.name}] và trượt thêm 3 ô.`);
+    }
+
     // 1. Ô VÀO TÙ
     if (p.position === 30 || tile.type === "GO_TO_JAIL" || tile.type === "GOTO_JAIL") {
       p.position = 10;
       p.inJail = true;
       p.jailTurns = 0;
+      p.jailRolls = 0;
+      this.state.extraRollPending = false;
+      p.jailRolls = 0;
+      this.state.extraRollPending = false;
       this.addLog(`🚔 ${p.name} đỗ vào ô [Vào Tù]! Bị tống ngay vào Ô Tù (#10).`);
       return { action: "GO_TO_JAIL", tile, ...info };
+    }
+
+    if (tile.type === 'UTILITY' || tile.name === 'Trạm Dự Báo Thời Tiết') {
+      this.triggerWeatherEffect(this.state);
+      return { action: 'WEATHER_CHANGE', weather: this.state.weather, weatherTurns: this.state.weatherTurns, tile, ...info };
     }
 
     // 2. Ô CƠ HỘI & KHÍ VẬN
     const tileName = (tile.name || "").toLowerCase();
     const tileType = (tile.type || "").toUpperCase();
+    if (tileType === "SHOP") {
+      return { action: "OPEN_SHOP", tile, ...info };
+    }
     const isChance = tileType === "CHANCE" || tileType === "CO_HOI" || tileName.includes("cơ hội");
     const isFortune = tileType === "FORTUNE" || tileType === "KHI_VAN" || tileType === "COMMUNITY" || tileName.includes("khí vận");
 
@@ -430,6 +707,10 @@ class GameInstance {
         }
         this.collectRent(p, tile);
       }
+      if (tile.rentMultiplier && tile.rentMultiplier !== 1) {
+        delete tile.rentMultiplier;
+        this.addLog(`📈 Hiệu ứng tăng 1.5x trên [${tile.name}] đã được sử dụng.`);
+      }
     }
 
     return { action: "END_ROLL", tile, ...info };
@@ -441,42 +722,80 @@ class GameInstance {
     const d2 = Math.floor(Math.random() * 6) + 1;
     const dice = d1 + d2;
     const isDouble = (d1 === d2);
+    const earnsExtraRoll = isDouble || (d1 === 6 && d2 === 1) || (d1 === 1 && d2 === 6);
     this.state.lastRoll = dice;
     this.state.lastDice = [d1, d2];
 
     const startPos = p.position;
 
     if (p.inJail) {
+      p.jailRolls = (p.jailRolls || 0) + 1;
+      p.jailTurns = p.jailRolls;
       if (isDouble) {
         p.inJail = false;
         p.jailTurns = 0;
-        this.addLog(`🎲 ${p.name} gieo được đôi (${d1}-${d2}) -> 🔓 RA TÙ MIỄN PHÍ và di chuyển ${dice} bước!`);
+        p.jailRolls = 0;
+        this.state.extraRollPending = false;
+        this.addLog(`🎲 ${p.name} gieo được đôi (${d1}-${d2}) -> 🔓 RA TÙ MIỄN PHÍ, không di chuyển.`);
+        const result = { action: "RELEASE_FROM_JAIL", startPos, dice: 0, playerId: p.id, turnEnded: true };
+        this.endTurn();
+        return result;
       } else {
-        p.jailTurns += 1;
-        if (p.jailTurns >= 3) {
-          p.money -= 50;
-          p.inJail = false;
-          p.jailTurns = 0;
-          this.addLog(`🎲 ${p.name} gieo (${d1}-${d2}). Đã hết 3 lượt tù -> 🏛️ Trừ $50 bảo lãnh bắt buộc và đi ${dice} bước!`);
-        } else {
-          this.addLog(`🔒 ${p.name} gieo (${d1}-${d2}), không phải đôi. Tiếp tục ở trong tù (${p.jailTurns}/3 lượt).`);
-          return { action: "STAY_IN_JAIL", startPos, dice: 0 };
+        const rollsLeft = 3 - p.jailRolls;
+        this.state.extraRollPending = rollsLeft > 0;
+        this.addLog(`🔒 ${p.name} gieo (${d1}-${d2}), không phải đôi. Còn ${rollsLeft} lần thử ra tù.`);
+        if (rollsLeft === 0) {
+          const result = { action: "STAY_IN_JAIL", startPos, dice: 0, rollsLeft, playerId: p.id, turnEnded: true };
+          this.endTurn();
+          return result;
         }
+        return { action: "STAY_IN_JAIL", startPos, dice: 0, rollsLeft };
       }
     } else {
       this.addLog(`🎲 ${p.name} gieo được ${dice} điểm (${d1} + ${d2})`);
     }
 
-    const oldPos = p.position;
-    p.position = (p.position + dice) % 40;
+    this.state.extraRollPending = earnsExtraRoll;
 
-    if (p.position < oldPos && !p.inJail) {
+    if (this.state.crossRouteChoice && this.state.crossRouteChoice.playerId === p.id) {
+      this.state.pendingCrossRouteRoll = { playerId: p.id, startPos, dice: dice + (this.state.weatherMoveBonus || 0) };
+      return {
+        action: 'CHOOSE_CROSS_ROUTE',
+        playerId: p.id,
+        startPos,
+        dice: dice + (this.state.weatherMoveBonus || 0),
+        crossRouteChoice: {
+          from: this.state.crossRouteChoice.station,
+          to: this.state.crossRouteChoice.path[this.state.crossRouteChoice.path.length - 1]
+        }
+      };
+    }
+
+    const oldPos = p.position;
+    const movement = this.getMovementPath(p, dice + (this.state.weatherMoveBonus || 0));
+    p.position = movement.position;
+    this.state.lastMovementPath = movement.path;
+
+    if (movement.path.some((position, index) => position < 40 && position < (movement.path[index - 1] ?? oldPos)) && !p.inJail) {
       const goBonus = this.settings.passGoMoney;
       p.money += goBonus;
       this.addLog(`💵 ${p.name} qua ô Bắt đầu (+ $${goBonus})`);
     }
 
-    return this.processTileLanding(p, { startPos, dice });
+    const result = this.processTileLanding(p, { startPos, dice, movementPath: movement.path });
+    const landedDirectlyOnStation = movement.path.every(position => position < 40) && [5, 15, 25, 35].includes(p.position);
+    const crossRoute = landedDirectlyOnStation ? this.getCrossRoute(p.position) : null;
+    if (crossRoute) {
+      this.state.crossRouteChoice = { playerId: p.id, station: p.position, path: crossRoute };
+      result.crossRouteChoice = { from: p.position, to: crossRoute[crossRoute.length - 1] };
+      this.addLog(`🚉 ${p.name} đáp đúng ga #${p.position}. Hãy chọn đường trong hoặc vòng ngoài cho lượt kế tiếp.`);
+    }
+    if (result.action === "GO_TO_JAIL") {
+      result.playerId = p.id;
+      result.turnEnded = true;
+      this.endTurn();
+    }
+    return result;
   }
 
   applyCardEffect() {
@@ -521,6 +840,33 @@ class GameInstance {
         break;
       }
 
+      case "FREEZE_ENEMY_TILE": {
+        const target = this.state.board.filter(t => t.owner && t.owner !== p.id && t.price).sort((a, b) => b.price - a.price)[0];
+        if (target) { target.frozenTurns = 2; this.addLog(`❄️ [${target.name}] bị đóng băng 2 lượt.`); }
+        break;
+      }
+      case "PROTECT_MY_LAND": {
+        const target = this.state.board.filter(t => t.owner === p.id && t.price).sort((a, b) => b.price - a.price)[0];
+        if (target) { target.protectedTurns = 2; this.addLog(`🛡️ [${target.name}] được bảo vệ 2 lượt.`); }
+        break;
+      }
+      case "BOOST_RENT_TEMP": {
+        const target = this.state.board.filter(t => t.owner === p.id && t.price).sort((a, b) => b.price - a.price)[0];
+        if (target) { target.boostTurns = 2; this.addLog(`🔥 [${target.name}] tăng tiền thuê 2 lượt.`); }
+        break;
+      }
+      case "UPGRADE_MY_TILE": {
+        const target = this.state.board.filter(t => t.owner === p.id && t.type === 'PROPERTY' && (t.houses || 0) < 5).sort((a, b) => a.price - b.price)[0];
+        if (target) { target.houses = (target.houses || 0) + 1; this.addLog(`🏠 Nâng miễn phí [${target.name}] lên cấp ${target.houses}.`); }
+        break;
+      }
+      case "DEMOLISH_ENEMY_HOUSE": {
+        const richest = this.state.players.filter(x => x.id !== p.id && !x.isBankrupt).sort((a, b) => this.netWorth(b) - this.netWorth(a))[0];
+        const target = richest && this.state.board.filter(t => t.owner === richest.id && t.type === 'PROPERTY' && t.houses > 0).sort((a, b) => b.price - a.price)[0];
+        if (target && !target.protectedTurns) { target.houses -= 1; this.addLog(`📉 Hạ một cấp nhà trên [${target.name}].`); }
+        break;
+      }
+
       case "DISCOUNT": {
         p.hasDiscount = true;
         this.addLog(`  -> 🏷️ ${p.name} nhận được PHIẾU GIẢM GIÁ 50% cho lần mua đất kế tiếp!`);
@@ -532,7 +878,7 @@ class GameInstance {
         if (myTiles.length > 0) {
           myTiles.sort((a, b) => (b.price || 0) - (a.price || 0));
           const targetTile = myTiles[0];
-          targetTile.rentMultiplier = (targetTile.rentMultiplier || 1) * 1.5;
+          targetTile.rentMultiplier = 1.5;
           this.addLog(`  -> 📈 Ô đất giá trị nhất [${targetTile.name}] của ${p.name} đã được tăng 1.5x tiền thuê!`);
         } else {
           this.addLog(`  -> ⚠️ ${p.name} chưa sở hữu ô đất nào để tăng tiền thuê.`);
@@ -546,7 +892,7 @@ class GameInstance {
         if (rivals.length > 0) {
           rivals.sort((a, b) => this.netWorth(b) - this.netWorth(a));
           const richest = rivals[0];
-          const actualSteal = Math.min(richest.money > 0 ? richest.money : stealAmount, stealAmount);
+          const actualSteal = Math.min(Math.max(0, richest.money), stealAmount);
           richest.money -= actualSteal;
           p.money += actualSteal;
           if (richest.money < 0) richest.lastCreditorId = p.id;
@@ -630,7 +976,7 @@ class GameInstance {
     const resultCard = { ...card, finalPos: p.position };
 
     if (card.action === "MOVE_TO" || card.action === "MOVE_STEPS") {
-      resultCard.landing = this.processTileLanding(p, { startPos: card.finalPos });
+      resultCard.landing = this.processTileLanding(p, { startPos: resultCard.finalPos });
     }
 
     this.state.pendingCard = null;
@@ -684,7 +1030,7 @@ class GameInstance {
   buildHouse(tileId) {
     const p = this.getCurrentPlayer();
     const tile = this.state.board.find(t => t.id === tileId);
-    if (!tile || tile.owner !== p.id || tile.type !== "PROPERTY") return false;
+    if (!tile || tile.owner !== p.id || !this.isBuildableProperty(tile) || this.state.canBuild === false) return false;
 
     const isFullGroup = this.ownsFullGroup(tile);
 
@@ -728,7 +1074,7 @@ class GameInstance {
   sellHouse(tileId) {
     const p = this.getCurrentPlayer();
     const tile = this.state.board.find(t => t.id === tileId);
-    if (!tile || tile.owner !== p.id || tile.type !== "PROPERTY") return false;
+    if (!tile || tile.owner !== p.id || !this.isBuildableProperty(tile)) return false;
 
     const houses = tile.houses || 0;
     if (houses <= 0) return false;
@@ -790,11 +1136,11 @@ class GameInstance {
 
   payBail() {
     const p = this.getCurrentPlayer();
-    if (p.inJail && p.money >= 50) {
-      p.money -= 50;
+    if (p.inJail && p.money >= 100) {
+      p.money -= 100;
       p.inJail = false;
       p.jailTurns = 0;
-      this.addLog(`🔓 ${p.name} nộp $50 tiền bảo lãnh và đã RA TÙ!`);
+      this.addLog(`🔓 ${p.name} nộp $100 tiền bảo lãnh và đã RA TÙ! Không được đi tiếp lượt này.`);
       return true;
     }
     return false;
@@ -926,6 +1272,7 @@ class GameInstance {
       if (!this.state.players[next].isBankrupt) break;
     }
     this.state.currentPlayerIndex = next;
+    this.state.extraRollPending = false;
     const p = this.getCurrentPlayer();
     p.turnCount = (p.turnCount || 0) + 1;
     p.hasBuiltHouseThisTurn = false;
@@ -943,6 +1290,8 @@ class GameInstance {
     const requestCash = Math.max(0, Number(tradeData.requestCash) || 0);
     const offerPropertyIds = Array.isArray(tradeData.offerPropertyIds) ? tradeData.offerPropertyIds : [];
     const requestPropertyIds = Array.isArray(tradeData.requestPropertyIds) ? tradeData.requestPropertyIds : [];
+    const offerCardIds = Array.isArray(tradeData.offerCardIds) ? tradeData.offerCardIds : [];
+    const requestCardIds = Array.isArray(tradeData.requestCardIds) ? tradeData.requestCardIds : [];
 
     // Validate properties ownership
     const fromOwns = offerPropertyIds.every(id => {
@@ -956,6 +1305,8 @@ class GameInstance {
 
     if (!fromOwns || !toOwns) return null;
     if (fromPlayer.money < offerCash) return null;
+    const ownsCards = (player, cardIds) => cardIds.every(cardId => (player.shopCards || []).filter(id => id === cardId).length >= cardIds.filter(id => id === cardId).length);
+    if (!ownsCards(fromPlayer, offerCardIds) || !ownsCards(toPlayer, requestCardIds)) return null;
 
     const req = {
       id: Date.now() + Math.floor(Math.random() * 1000),
@@ -965,6 +1316,8 @@ class GameInstance {
       requestCash,
       offerPropertyIds,
       requestPropertyIds,
+      offerCardIds,
+      requestCardIds,
       status: 'pending',
       ts: Date.now()
     };
@@ -999,6 +1352,12 @@ class GameInstance {
       this.state.tradeRequests.splice(reqIndex, 1);
       return false;
     }
+    const ownsCards = (player, cardIds) => cardIds.every(cardId => (player.shopCards || []).filter(id => id === cardId).length >= cardIds.filter(id => id === cardId).length);
+    if (!ownsCards(fromPlayer, req.offerCardIds || []) || !ownsCards(toPlayer, req.requestCardIds || [])) {
+      this.addLog(`❌ Trao đổi thất bại do thẻ bài đã được sử dụng.`);
+      this.state.tradeRequests.splice(reqIndex, 1);
+      return false;
+    }
 
     // Execute cash transfer
     fromPlayer.money -= req.offerCash;
@@ -1024,6 +1383,19 @@ class GameInstance {
         tile.lastBuiltPlayerTurn = null;
       }
     });
+    const transferCards = (from, to, cardIds) => {
+      from.shopCards = Array.isArray(from.shopCards) ? from.shopCards : [];
+      to.shopCards = Array.isArray(to.shopCards) ? to.shopCards : [];
+      cardIds.forEach(cardId => {
+        const index = from.shopCards.indexOf(cardId);
+        if (index >= 0) {
+          from.shopCards.splice(index, 1);
+          to.shopCards.push(cardId);
+        }
+      });
+    };
+    transferCards(fromPlayer, toPlayer, req.offerCardIds || []);
+    transferCards(toPlayer, fromPlayer, req.requestCardIds || []);
 
     this.state.tradeRequests.splice(reqIndex, 1);
     this.addLog(`✅ ${toPlayer.name} đã chấp nhận trao đổi với ${fromPlayer.name}!`);
@@ -1085,6 +1457,10 @@ function applyAction(game, playerIdx, action) {
       if (game.state.currentPlayerIndex !== playerIdx) return null;
       game.endTurn();
       return true;
+
+    case 'CHOOSE_CROSS_ROUTE':
+      if (game.state.currentPlayerIndex !== playerIdx) return null;
+      return game.chooseCrossRoute(p, action.useInnerRoute === true);
 
     case 'PAY_BAIL':
       if (game.state.currentPlayerIndex !== playerIdx) return null;

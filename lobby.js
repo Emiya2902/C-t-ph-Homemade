@@ -214,6 +214,7 @@
       <li>• Nhận thuê khi ở tù: <b>${settings.receiveRentWhileJailed ? 'Bật' : 'Tắt'}</b></li>
       <li>• Chế độ đấu giá: <b>${settings.auctionMode ? 'Bật' : 'Tắt'}</b></li>
       <li>• Trọn bộ màu nâng nhà tự do: <b>${settings.freeBuildOnFullGroup ? 'Bật' : 'Tắt'}</b></li>
+      <li>• Bản đồ: <b>${(settings.boardMode === 'cross' || settings.crossBoard) ? 'Chữ Thập (57 ô)' : 'Chuẩn (40 ô)'}</b></li>
     </ul>`;
   }
 
@@ -329,6 +330,7 @@
     const setRentJailed = $('set-rent-jailed');
     const setAuction = $('set-auction');
     const setFreeBuild = $('set-free-build-full-group');
+    const setCross = $('set-cross-board');
     if (setInitial && settings.initialMoney !== undefined) setInitial.value = settings.initialMoney;
     if (setPassGo && settings.passGoMoney !== undefined) setPassGo.value = settings.passGoMoney;
     if (setDouble && settings.doubleRentOnFullGroup !== undefined) setDouble.checked = !!settings.doubleRentOnFullGroup;
@@ -337,6 +339,9 @@
     if (setRentJailed && settings.receiveRentWhileJailed !== undefined) setRentJailed.checked = !!settings.receiveRentWhileJailed;
     if (setAuction && settings.auctionMode !== undefined) setAuction.checked = !!settings.auctionMode;
     if (setFreeBuild && settings.freeBuildOnFullGroup !== undefined) setFreeBuild.checked = !!settings.freeBuildOnFullGroup;
+    if (setCross && (settings.crossBoard !== undefined || settings.boardMode !== undefined)) {
+      setCross.checked = !!(settings.crossBoard || settings.boardMode === 'cross');
+    }
   }
 
   function getFormSettings() {
@@ -348,6 +353,8 @@
     const setRentJailed = $('set-rent-jailed');
     const setAuction = $('set-auction');
     const setFreeBuild = $('set-free-build-full-group');
+    const setCross = $('set-cross-board');
+    const isCross = setCross ? !!setCross.checked : false;
     return {
       initialMoney: setInitial ? Math.max(500, Number(setInitial.value) || 1500) : 1500,
       passGoMoney: setPassGo ? Math.max(50, Number(setPassGo.value) || 200) : 200,
@@ -356,7 +363,9 @@
       jackpotOnFreeParking: setJackpot ? !!setJackpot.checked : true,
       receiveRentWhileJailed: setRentJailed ? !!setRentJailed.checked : false,
       auctionMode: setAuction ? !!setAuction.checked : false,
-      freeBuildOnFullGroup: setFreeBuild ? !!setFreeBuild.checked : false
+      freeBuildOnFullGroup: setFreeBuild ? !!setFreeBuild.checked : false,
+      boardMode: isCross ? 'cross' : 'standard',
+      crossBoard: isCross
     };
   }
 
@@ -369,7 +378,7 @@
   }
 
   function hookSettingsInputs() {
-    const inputIds = ['set-initial-money', 'set-pass-go', 'set-double-rent', 'set-mortgage', 'set-jackpot', 'set-rent-jailed', 'set-auction', 'set-free-build-full-group'];
+    const inputIds = ['set-initial-money', 'set-pass-go', 'set-double-rent', 'set-mortgage', 'set-jackpot', 'set-rent-jailed', 'set-auction', 'set-free-build-full-group', 'set-cross-board'];
     inputIds.forEach(id => {
       const el = $(id);
       if (el) {

@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cờ Tỉ Phú</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="gameEnhancements.css">
+  <link rel="stylesheet" href="shop.css">
 </head>
 
 <body class="dark-theme">
@@ -250,6 +252,20 @@
             <span class="switch-slider"></span>
           </div>
         </label>
+
+        <label class="rule-switch-card">
+          <div class="rule-info">
+            <span class="rule-icon">🗺️</span>
+            <div>
+              <div class="rule-name">Bản đồ Chữ Thập (+17 ô)</div>
+              <div class="rule-desc">Bật 17 ô trục trung tâm nối các trạm ga (tổng 57 ô)</div>
+            </div>
+          </div>
+          <div class="switch-wrap">
+            <input type="checkbox" id="set-cross-board">
+            <span class="switch-slider"></span>
+          </div>
+        </label>
       </div>
 
       <div class="settings-actions">
@@ -288,11 +304,13 @@
     <!-- CỘT 2 (Ở GIỮA): BÀN CỜ HOÀN CHỈNH (CỐ ĐỊNH TỈ LỆ 100% SCREEN) -->
     <main id="board-wrapper">
       <div id="board">
+        <section id="game-notifications" aria-live="polite">
+          <div class="notification-title">🔔 Thông báo</div>
+          <div id="game-notification-list"></div>
+        </section>
         <!-- Khu vực trung tâm bàn cờ -->
         <!-- BẢNG ĐIỀU KHIỂN TRUNG TÂM -->
         <div id="center-panel">
-          <div class="logo">CỜ TỈ PHÚ</div>
-
           <!-- Banner Spectator (Khán giả) -->
           <div id="spectator-banner" class="spectator-banner hidden">
             <span class="spec-icon">👁️</span>
@@ -306,7 +324,6 @@
           <div class="center-actions">
             <button id="roll-btn">GIEO XÚC XẮC</button>
             <button id="end-turn-btn" disabled>KẾT THÚC LƯỢT</button>
-            <button id="surrender-btn" class="btn-surrender" title="Tuyên bố phá sản / Đầu hàng">💀 PHÁ SẢN</button>
           </div>
 
           <!-- Banner Cảnh báo Nợ nần khi âm tiền -->
@@ -364,6 +381,10 @@
             <span class="player-money">$<span id="p2-money">1500</span></span>
           </div>
         </div>
+      </div>
+
+      <div class="panel-section surrender-section">
+        <button id="surrender-btn" class="btn-surrender" title="Tuyên bố phá sản / Đầu hàng">💀 PHÁ SẢN</button>
       </div>
 
       <section class="panel-section trade-section">
@@ -470,6 +491,8 @@
           <label class="trade-field">Tiền
             <input id="trade-modal-offer-cash" type="number" min="0" step="1" value="0">
           </label>
+          <div class="trade-section-label">🃏 Thẻ bài</div>
+          <div id="trade-modal-offer-cards" class="trade-cards"></div>
           <div id="trade-modal-offer-properties" class="trade-properties"></div>
         </section>
         <section class="trade-column">
@@ -477,12 +500,65 @@
           <label class="trade-field">Tiền
             <input id="trade-modal-request-cash" type="number" min="0" step="1" value="0">
           </label>
+          <div class="trade-section-label">🃏 Thẻ bài</div>
+          <div id="trade-modal-request-cards" class="trade-cards"></div>
           <div id="trade-modal-request-properties" class="trade-properties"></div>
         </section>
       </div>
       <div class="modal-actions">
         <button id="trade-proceed-btn" class="btn btn-buy">GỬI ĐỀ NGHỊ</button>
         <button id="trade-offer-cancel-btn" class="btn btn-skip">HỦY</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- POP-UP CHI TIẾT ĐỀ NGHỊ TRAO ĐỔI (TRADE DETAIL POPUP) -->
+  <div id="trade-detail-modal" class="modal hidden">
+    <div class="modal-content trade-detail-theme">
+      <button type="button" class="trade-detail-close-btn" aria-label="Đóng" title="Đóng">×</button>
+      <div class="card-badge trade-detail-badge">🤝 CHI TIẾT TRAO ĐỔI</div>
+      <div class="trade-detail-participants">
+        <div class="trade-participant-box sender-box">
+          <div class="participant-header">
+            <span class="participant-badge" id="trade-detail-from-badge">🐊</span>
+            <div class="participant-info">
+              <span class="participant-role">Người gửi đề nghị</span>
+              <strong class="participant-name" id="trade-detail-from-name">Player 1</strong>
+            </div>
+          </div>
+          <div class="trade-offer-section">
+            <div class="trade-cash-item" id="trade-detail-from-cash">💰 Tiền đưa: <b>$0</b></div>
+            <div class="trade-props-title">🃏 Thẻ bài trao đổi:</div>
+            <div class="trade-detail-cards-list" id="trade-detail-from-cards"></div>
+            <div class="trade-props-title">🏷️ Tài sản trao đổi:</div>
+            <div class="trade-detail-props-list" id="trade-detail-from-props"></div>
+          </div>
+        </div>
+
+        <div class="trade-arrow-divider">
+          <span class="trade-arrow-icon">⇄</span>
+        </div>
+
+        <div class="trade-participant-box receiver-box">
+          <div class="participant-header">
+            <span class="participant-badge" id="trade-detail-to-badge">🐱</span>
+            <div class="participant-info">
+              <span class="participant-role">Người nhận</span>
+              <strong class="participant-name" id="trade-detail-to-name">Player 2</strong>
+            </div>
+          </div>
+          <div class="trade-offer-section">
+            <div class="trade-cash-item" id="trade-detail-to-cash">💰 Tiền yêu cầu: <b>$0</b></div>
+            <div class="trade-props-title">🃏 Thẻ bài yêu cầu:</div>
+            <div class="trade-detail-cards-list" id="trade-detail-to-cards"></div>
+            <div class="trade-props-title">🏷️ Tài sản yêu cầu:</div>
+            <div class="trade-detail-props-list" id="trade-detail-to-props"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions" id="trade-detail-actions">
+        <!-- Nút thao tác động theo vai trò người xem -->
       </div>
     </div>
   </div>
@@ -588,12 +664,20 @@
 
   <!-- 1. File chứa dữ liệu ô đất (board.js) -->
   <script src="board.js"></script>
+  <!-- 1b. File bàn cờ mở rộng hình chữ thập (board_cross.js) -->
+  <script src="board_cross.js"></script>
 
   <!-- Socket.io client (cho chế độ ONLINE) -->
   <script src="/socket.io/socket.io.js"></script>
 
   <!-- 2. File chứa logic cốt lõi (gameCore.js) - BẮT BUỘC NẰM TRÊN ui.js -->
   <script src="gameCore.js"></script>
+
+  <!-- 2b. Game Enhancements - Weather System & Visual Effects -->
+  <script src="gameEnhancements.js"></script>
+
+  <!-- 2c. Cửa hàng Gacha thẻ bài -->
+  <script src="shopStore.js"></script>
 
   <!-- 3. File xử lý giao diện (ui.js) -->
   <script src="ui.js"></script>

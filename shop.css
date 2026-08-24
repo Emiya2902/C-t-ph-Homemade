@@ -1,0 +1,193 @@
+.shop-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(8, 10, 20, 0.86);
+  backdrop-filter: blur(8px);
+  animation: shopFadeIn .2s ease-out;
+}
+
+.shop-modal.hidden { display: none !important; }
+
+.shop-dialog {
+  position: relative;
+  width: min(900px, 96vw);
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: 24px;
+  color: var(--text-main, #f0edfd);
+  background: linear-gradient(145deg, #211c39, #121525);
+  border: 2px solid #6c5ce7;
+  border-radius: 16px;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, .7), 0 0 30px rgba(108, 92, 231, .35);
+  animation: shopPopIn .25s cubic-bezier(.175, .885, .32, 1.275);
+}
+
+@keyframes shopFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes shopPopIn {
+  from { opacity: 0; transform: scale(.94) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.shop-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(255, 255, 255, .1);
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.shop-heading { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 18px; text-align: left; }
+.shop-heading > span { font-size: 34px; }
+.shop-heading h2 { margin: 0; font-size: 20px; color: #ffeaa7; }
+.shop-heading p { margin-top: 4px; color: var(--text-sub, #a89bc9); font-size: 13px; }
+.shop-heading b { color: #55efc4; }
+
+.shop-card-grid { display: grid; grid-template-columns: repeat(3, minmax(170px, 1fr)); gap: 14px; justify-content: center; }
+.shop-card-grid.shop-refreshing { perspective: 900px; }
+.shop-card-grid.shop-refreshing .shop-card {
+  animation: shopCardRefresh .52s ease-in forwards;
+  box-shadow: 0 0 24px rgba(255, 234, 167, .95), 0 0 55px rgba(162, 155, 254, .75);
+}
+.shop-card-grid.shop-refreshing .shop-card:nth-child(2) { animation-delay: .05s; }
+.shop-card-grid.shop-refreshing .shop-card:nth-child(3) { animation-delay: .1s; }
+.shop-card { position: relative; min-height: 300px; padding: 24px 16px 18px; border: 2px solid; border-radius: 10px; background: rgba(0, 0, 0, .22); display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; transition: transform .2s ease, box-shadow .2s ease, filter .2s ease; animation: shopCardIn .35s ease both; }
+.shop-card:nth-child(2) { animation-delay: .06s; }
+.shop-card:nth-child(3) { animation-delay: .12s; }
+.shop-card:hover, .shop-card:focus-visible { transform: translateY(-4px); filter: brightness(1.12); outline: none; }
+.shop-card.unavailable { cursor: not-allowed; filter: saturate(.35); opacity: .65; }
+.shop-card.card-purchased { animation: cardPurchase .36s ease-in forwards; pointer-events: none; }
+.shop-card h3 { margin: 22px 0 12px; font-size: 18px; }
+.shop-card p { flex: 1; color: var(--text-sub, #a89bc9); font-size: 14px; line-height: 1.55; max-width: 220px; }
+.shop-rarity { position: absolute; top: 8px; right: 10px; font-size: 9px; font-weight: 800; letter-spacing: .7px; }
+.rarity-COMMON { border-color: #c7cedb; box-shadow: 0 0 10px rgba(199, 206, 219, .15); }
+.rarity-UNCOMMON { border-color: #2ed573; box-shadow: 0 0 14px rgba(46, 213, 115, .22); }
+.rarity-EPIC { border-color: #a29bfe; box-shadow: 0 0 16px rgba(162, 155, 254, .28); }
+.rarity-LEGENDARY { border-color: #f1c40f; box-shadow: 0 0 18px rgba(241, 196, 15, .35); }
+.rarity-COMMON .shop-rarity { color: #dfe6e9; }
+.rarity-UNCOMMON .shop-rarity { color: #55efc4; }
+.rarity-EPIC .shop-rarity { color: #a29bfe; }
+.rarity-LEGENDARY .shop-rarity { color: #ffeaa7; }
+.shop-card-price { margin-top: auto; padding: 8px 14px; border-radius: 6px; color: #fff; background: #00a896; font-size: 12px; font-weight: 700; transition: background .2s ease; }
+.shop-buy, .shop-refresh, .shop-leave, .shop-target { border: 0; border-radius: 6px; padding: 9px 12px; color: #fff; font-weight: 700; cursor: pointer; transition: filter .2s ease, opacity .2s ease, transform .2s ease; }
+.shop-buy:disabled, .shop-refresh:disabled { cursor: not-allowed; opacity: .45; }
+.shop-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 18px; }
+.shop-refresh { background: #e67e22; }
+.shop-leave { background: #636e72; }
+.shop-notice { margin-top: 10px; text-align: center; color: #ffeaa7; font-size: 12px; }
+.shop-target-list { display: grid; gap: 8px; margin: 18px 0; }
+.shop-tile-hint { text-align: center; }
+.shop-target-tile { position: relative; z-index: 2; animation: shopTileGlow 1s ease-in-out infinite alternate; cursor: crosshair !important; }
+.shop-target-tile::after { content: '🎯'; position: absolute; top: 4px; right: 4px; font-size: 14px; pointer-events: none; }
+.shop-target { text-align: left; background: #2d274b; border: 1px solid #6c5ce7; }
+.shop-target:hover, .shop-buy:hover:not(:disabled), .shop-refresh:hover:not(:disabled), .shop-leave:hover, .shop-select:hover { filter: brightness(1.15); }
+
+.tile-oil-trap {
+  border-color: #f1c40f !important;
+  box-shadow: 0 0 14px rgba(241, 196, 15, .8), inset 0 0 10px rgba(241, 196, 15, .25) !important;
+  animation: oilTrapPulse 1s ease-in-out infinite alternate;
+}
+
+.tile-oil-trap::after {
+  content: '🛢️';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 17px;
+  animation: oilDrip 1.2s ease-in-out infinite;
+}
+
+.card-effect-cast,
+.card-effect-freeze,
+.card-effect-oil,
+.card-effect-shield,
+.card-effect-boost {
+  animation-duration: .9s !important;
+  animation-iteration-count: 1 !important;
+}
+
+.card-effect-cast { animation-name: cardCastPulse !important; }
+.card-effect-freeze { animation-name: cardFreezeFlash !important; }
+.card-effect-oil { animation-name: cardOilSplash !important; }
+.card-effect-shield { animation-name: cardShieldBurst !important; }
+.card-effect-boost { animation-name: cardBoostBurst !important; }
+
+@keyframes oilTrapPulse {
+  from { filter: brightness(1); }
+  to { filter: brightness(1.35); }
+}
+
+@keyframes oilDrip {
+  0%, 100% { transform: rotate(-8deg) translateY(0); }
+  50% { transform: rotate(8deg) translateY(3px); }
+}
+
+@keyframes cardCastPulse {
+  0% { filter: brightness(1); }
+  45% { filter: brightness(2); transform: scale(1.08); }
+  100% { filter: brightness(1); transform: scale(1); }
+}
+
+@keyframes cardFreezeFlash {
+  0%, 100% { filter: brightness(1); }
+  45% { filter: brightness(2.2) hue-rotate(150deg); box-shadow: 0 0 28px #74b9ff !important; }
+}
+
+@keyframes cardOilSplash {
+  0% { filter: brightness(1); transform: scale(1); }
+  45% { filter: brightness(2) saturate(1.8); transform: scale(1.1) rotate(-3deg); }
+  100% { filter: brightness(1); transform: scale(1); }
+}
+
+@keyframes cardShieldBurst {
+  0%, 100% { filter: brightness(1); }
+  45% { filter: brightness(2); box-shadow: 0 0 30px #ffeaa7 !important; }
+}
+
+@keyframes cardBoostBurst {
+  0%, 100% { filter: brightness(1); }
+  45% { filter: brightness(2); box-shadow: 0 0 30px #ff7675 !important; }
+}
+
+@keyframes shopCardIn {
+  from { opacity: 0; transform: translateY(12px) scale(.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes cardPurchase {
+  0% { opacity: 1; transform: scale(1) rotate(0); }
+  45% { opacity: 1; transform: scale(1.14) rotate(8deg); }
+  100% { opacity: 0; transform: scale(1.35) rotate(25deg); }
+}
+
+@keyframes shopCardRefresh {
+  0% { opacity: 1; transform: rotateY(0deg) scale(1); filter: brightness(1); }
+  35% { opacity: 1; transform: rotateY(90deg) scale(1.08); filter: brightness(1.8); }
+  70% { opacity: .9; transform: rotateY(180deg) scale(1.12); filter: brightness(2.2); }
+  100% { opacity: 0; transform: rotateY(270deg) scale(.82); filter: brightness(2.8); }
+}
+
+@keyframes shopTileGlow {
+  from { filter: brightness(1); box-shadow: 0 0 8px rgba(255, 234, 167, .45); }
+  to { filter: brightness(1.45); box-shadow: 0 0 22px rgba(255, 234, 167, .95); }
+}
+
+@media (max-width: 680px) {
+  .shop-dialog { padding: 20px 12px; }
+  .shop-card-grid { grid-template-columns: 1fr; }
+  .shop-card { min-height: 230px; }
+}

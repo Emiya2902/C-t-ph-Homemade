@@ -1,0 +1,1052 @@
+/* =========================================================
+   GAME ENHANCEMENTS: WEATHER SYSTEM, TILE STATUS & EFFECTS
+   ========================================================= */
+
+/* =========================================================
+   SECTION 1: WEATHER SYSTEM - SCREEN TINTS & ANIMATIONS
+   ========================================================= */
+
+/* Base Weather Overlay */
+.weather-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  transition: background-color 0.6s ease-in-out, box-shadow 0.6s ease-in-out;
+  z-index: 100;
+}
+
+/* FLOOD - Mưa Ngập (Blue Tint - 30% rent reduction) */
+.weather-overlay.weather-flood {
+  background-color: rgba(0, 150, 200, 0.04);
+  box-shadow: inset 0 0 110px rgba(0, 150, 200, 0.42);
+  animation: floodWave 4s infinite ease-in-out;
+}
+
+@keyframes floodWave {
+  0%, 100% {
+    background-color: rgba(0, 150, 200, 0.04);
+  }
+  50% {
+    background-color: rgba(0, 150, 200, 0.07);
+  }
+}
+
+/* HEATWAVE - Nắng Nóng (Orange-Yellow Tint - 1.5x rent multiplier) */
+.weather-overlay.weather-heatwave {
+  background-color: rgba(255, 180, 0, 0.04);
+  box-shadow: inset 0 0 110px rgba(255, 180, 0, 0.38);
+  animation: heatPulse 2s infinite ease-in-out;
+}
+
+@keyframes heatPulse {
+  0%, 100% {
+    background-color: rgba(255, 180, 0, 0.04);
+    box-shadow: inset 0 0 110px rgba(255, 180, 0, 0.38);
+  }
+  50% {
+    background-color: rgba(255, 180, 0, 0.07);
+    box-shadow: inset 0 0 130px rgba(255, 180, 0, 0.48);
+  }
+}
+
+/* STORM - Bão Lớn (Dark Gray Tint - Building Frozen) */
+.weather-overlay.weather-storm {
+  background-color: rgba(80, 80, 100, 0.05);
+  box-shadow: inset 0 0 110px rgba(80, 80, 100, 0.48);
+  animation: stormFlash 1.5s infinite ease-in-out;
+}
+
+.weather-overlay.weather-light_wind {
+  background-color: rgba(90, 190, 140, 0.03);
+  box-shadow: inset 0 0 110px rgba(90, 190, 140, 0.38);
+  animation: windPulse 3s infinite ease-in-out;
+}
+
+@keyframes windPulse {
+  0%, 100% { box-shadow: inset 0 0 90px rgba(90, 190, 140, 0.3); }
+  50% { box-shadow: inset 0 0 130px rgba(90, 190, 140, 0.48); }
+}
+
+@keyframes stormFlash {
+  0%, 100% {
+    background-color: rgba(80, 80, 100, 0.04);
+    box-shadow: inset 0 0 100px rgba(80, 80, 100, 0.38);
+  }
+  50% {
+    background-color: rgba(80, 80, 100, 0.08);
+    box-shadow: inset 0 0 130px rgba(80, 80, 100, 0.58);
+  }
+}
+
+/* Weather Banner - Fixed Position UI */
+.weather-banner {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, rgba(20, 20, 40, 0.95), rgba(50, 40, 80, 0.95));
+  border: 2px solid rgba(100, 150, 255, 0.6);
+  border-radius: 12px;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 20px rgba(100, 150, 255, 0.3);
+  z-index: 101;
+  animation: bannerSlide 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  backdrop-filter: blur(8px);
+}
+
+.weather-board-status {
+  top: auto;
+  right: 12px;
+  bottom: 12px;
+  max-width: 190px;
+  padding: 9px 12px;
+  font-size: 12px;
+  z-index: 20;
+}
+
+.weather-board-status .weather-banner-icon {
+  font-size: 20px;
+}
+
+.weather-board-status .weather-banner-name {
+  font-size: 12px;
+}
+
+.weather-board-status .weather-banner-turns {
+  font-size: 10px;
+}
+
+.cross-route-choice {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  background: rgba(6, 8, 20, 0.35);
+}
+
+.cross-route-choice.hidden {
+  display: none;
+}
+
+.cross-route-dialog {
+  width: min(340px, calc(100vw - 32px));
+  padding: 18px;
+  color: #fff;
+  background: #201b38;
+  border: 1px solid #8174ff;
+  border-radius: 10px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 18px rgba(129, 116, 255, 0.35);
+  text-align: center;
+}
+
+.cross-route-title {
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.cross-route-text {
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.cross-route-destination {
+  margin-top: 5px;
+  color: #b9b1ff;
+  font-size: 11px;
+}
+
+.cross-route-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.cross-route-actions button {
+  flex: 1;
+  min-height: 36px;
+  border: 0;
+  border-radius: 6px;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cross-route-inner {
+  background: #00a896;
+}
+
+.cross-route-outer {
+  background: #6c5ce7;
+}
+
+@keyframes bannerSlide {
+  from {
+    transform: translateX(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.weather-banner-icon {
+  font-size: 28px;
+  animation: weatherIconBounce 1.2s infinite ease-in-out;
+}
+
+@keyframes weatherIconBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.weather-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.weather-banner-name {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.weather-banner-turns {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 600;
+}
+
+/* Bảng mô tả thời tiết nhỏ gọn trong popup ô */
+.property-card-modal.weather-info-card .card-table .table-row {
+  min-height: 22px;
+  gap: 6px;
+}
+
+.property-card-modal.weather-info-card .card-table .table-row > span:first-child {
+  flex: 0 0 42%;
+  font-size: 10px;
+  line-height: 1.15;
+}
+
+.property-card-modal.weather-info-card .card-table .table-row > span:last-child {
+  min-width: 0;
+  font-size: 9px;
+  line-height: 1.15;
+  text-align: right;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.property-card-modal.weather-info-card .card-table + .card-divider + .card-footer {
+  margin-top: 6px;
+}
+
+/* =========================================================
+   SECTION 1B: WEATHER SUMMARY MODAL
+   ========================================================= */
+
+/* Weather Summary Modal Container */
+.weather-summary-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s ease-in;
+}
+
+.weather-summary-modal.show {
+  animation: fadeIn 0.3s ease-in;
+}
+
+/* Summary Content */
+.weather-summary-content {
+  position: relative;
+  max-width: 500px;
+  width: 90%;
+  padding: 30px;
+  background: linear-gradient(135deg, rgba(20, 20, 40, 0.98), rgba(50, 40, 80, 0.98));
+  border: 2px solid rgba(100, 150, 255, 0.8);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(100, 150, 255, 0.4);
+  animation: summarySlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  backdrop-filter: blur(10px);
+  color: #ffffff;
+}
+
+@keyframes summarySlideIn {
+  from {
+    transform: scale(0.8) translateY(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Summary for specific weather types */
+.weather-summary-flood {
+  border-color: rgba(0, 150, 200, 0.9) !important;
+  background: linear-gradient(135deg, rgba(0, 100, 150, 0.5), rgba(20, 50, 100, 0.7)) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 200, 255, 0.5) !important;
+}
+
+.weather-summary-heatwave {
+  border-color: rgba(255, 180, 0, 0.9) !important;
+  background: linear-gradient(135deg, rgba(255, 100, 0, 0.5), rgba(200, 80, 0, 0.7)) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(255, 180, 0, 0.5) !important;
+}
+
+.weather-summary-storm {
+  border-color: rgba(80, 80, 100, 0.9) !important;
+  background: linear-gradient(135deg, rgba(60, 60, 80, 0.5), rgba(40, 40, 60, 0.7)) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(100, 100, 150, 0.5) !important;
+}
+
+.weather-summary-clear {
+  border-color: rgba(46, 213, 115, 0.9) !important;
+  background: linear-gradient(135deg, rgba(30, 150, 80, 0.5), rgba(20, 100, 60, 0.7)) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(46, 213, 115, 0.5) !important;
+}
+
+/* Close Button */
+.summary-close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.summary-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: scale(1.1);
+}
+
+/* Summary Header */
+.summary-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.summary-icon {
+  font-size: 48px;
+  animation: summaryIconBounce 1.2s infinite ease-in-out;
+}
+
+@keyframes summaryIconBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.summary-title {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Summary Description */
+.summary-description {
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.95);
+  margin-bottom: 20px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-left: 3px solid rgba(100, 200, 255, 0.6);
+  border-radius: 6px;
+}
+
+/* Summary Section */
+.summary-section {
+  margin-bottom: 20px;
+}
+
+.summary-subtitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 12px;
+  margin-top: 0;
+  letter-spacing: 0.5px;
+}
+
+/* Effects List */
+.summary-effects-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summary-effect-item {
+  padding: 10px 12px;
+  background: rgba(100, 150, 200, 0.1);
+  border-left: 3px solid rgba(100, 200, 255, 0.7);
+  border-radius: 4px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.4;
+  transition: all 0.2s ease-in-out;
+}
+
+.summary-effect-item:hover {
+  background: rgba(100, 150, 200, 0.2);
+  transform: translateX(4px);
+}
+
+/* Duration */
+.summary-duration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(100, 150, 255, 0.15), rgba(150, 100, 255, 0.15));
+  border: 1px dashed rgba(100, 150, 255, 0.5);
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.duration-icon {
+  font-size: 18px;
+  animation: durationPulse 1.5s infinite ease-in-out;
+}
+
+@keyframes durationPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.duration-text {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+}
+
+.duration-text strong {
+  color: #ffd700;
+  font-size: 16px;
+}
+
+/* Summary Footer */
+.summary-footer {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Close Button */
+.summary-close-button {
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #2ed573, #27ae60);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 4px 12px rgba(46, 213, 115, 0.3);
+  letter-spacing: 0.5px;
+}
+
+.summary-close-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(46, 213, 115, 0.5);
+}
+
+.summary-close-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(46, 213, 115, 0.3);
+}
+
+/* =========================================================
+   SECTION 2: TILE STATUS INDICATORS & BADGES
+   ========================================================= */
+
+/* FROZEN TILE - Ô đất bị đóng băng */
+.tile-frozen {
+  border: 2px solid #00d2ff !important;
+  box-shadow: 0 0 15px #00d2ff, inset 0 0 10px rgba(0, 210, 255, 0.2) !important;
+  animation: frozenGlow 1s infinite ease-in-out;
+  position: relative;
+}
+
+@keyframes frozenGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px #00d2ff, inset 0 0 10px rgba(0, 210, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 25px #00d2ff, inset 0 0 15px rgba(0, 210, 255, 0.3);
+  }
+}
+
+.tile-frozen::before {
+  content: '❄️';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 18px;
+  animation: frozenSpin 3s linear infinite;
+  text-shadow: 0 0 8px rgba(0, 210, 255, 0.6);
+}
+
+@keyframes frozenSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* PROTECTED TILE - Ô đất được bảo vệ */
+.tile-protected {
+  border: 2px solid #ffd700 !important;
+  box-shadow: 0 0 15px #ffd700, inset 0 0 10px rgba(255, 215, 0, 0.2) !important;
+  animation: protectedGlow 1.2s infinite ease-in-out;
+}
+
+@keyframes protectedGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px #ffd700, inset 0 0 10px rgba(255, 215, 0, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 25px #ffd700, inset 0 0 15px rgba(255, 215, 0, 0.3);
+  }
+}
+
+.tile-protected::after {
+  content: '🛡️';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 18px;
+  animation: shieldPulse 1.2s infinite ease-in-out;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+}
+
+@keyframes shieldPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+/* BOOSTED RENT TILE - Ô đất tăng giá thuê */
+.tile-boosted {
+  border: 2px solid #ff4500 !important;
+  box-shadow: 0 0 15px #ff4500, inset 0 0 10px rgba(255, 69, 0, 0.2) !important;
+  animation: boostGlow 0.8s infinite ease-in-out;
+}
+
+@keyframes boostGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px #ff4500, inset 0 0 10px rgba(255, 69, 0, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 30px #ff4500, inset 0 0 15px rgba(255, 69, 0, 0.4);
+  }
+}
+
+.tile-boosted::before {
+  content: '🔥';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 18px;
+  animation: fireFlicker 0.6s ease-in-out infinite;
+  text-shadow: 0 0 10px rgba(255, 69, 0, 0.8);
+}
+
+@keyframes fireFlicker {
+  0% {
+    transform: scale(1) rotate(-3deg);
+  }
+  25% {
+    transform: scale(1.1) rotate(2deg);
+  }
+  50% {
+    transform: scale(0.95) rotate(-2deg);
+  }
+  75% {
+    transform: scale(1.05) rotate(3deg);
+  }
+  100% {
+    transform: scale(1) rotate(-3deg);
+  }
+}
+
+/* Tile Badge Styling (Generic) */
+.tile-badge {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffffff;
+  bottom: 4px;
+  left: 4px;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Tile Turns Counter Badge */
+.tile-turns-badge {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #ffffff;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  animation: badgePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes badgePop {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* =========================================================
+   SECTION 3: PLAYER STATUS INDICATORS
+   ========================================================= */
+
+/* Player Avatar with Shield */
+.player-avatar.has-shield {
+  position: relative;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(255, 215, 0, 0.3);
+  border: 2px solid #ffd700;
+}
+
+.player-avatar.has-shield::after {
+  content: '🛡️';
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-size: 24px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+}
+
+/* Player Avatar when Frozen (Locked) */
+.player-avatar.is-frozen {
+  filter: brightness(0.5) grayscale(100%);
+  position: relative;
+  animation: frozenVignette 1s infinite ease-in-out;
+}
+
+@keyframes frozenVignette {
+  0%, 100% {
+    filter: brightness(0.5) grayscale(100%);
+    box-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
+  }
+  50% {
+    filter: brightness(0.4) grayscale(100%);
+    box-shadow: 0 0 20px rgba(0, 210, 255, 0.5);
+  }
+}
+
+.player-avatar.is-frozen::before {
+  content: '🔒';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 32px;
+  text-shadow: 0 0 8px rgba(0, 210, 255, 0.8);
+  z-index: 10;
+}
+
+/* Player Discount Badge */
+.player-discount-badge {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  background: linear-gradient(135deg, #2ed573, #27ae60);
+  color: white;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(46, 213, 115, 0.5);
+  animation: discountBounce 0.6s infinite ease-in-out;
+}
+
+@keyframes discountBounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+/* =========================================================
+   SECTION 4: TOAST NOTIFICATIONS & POPUPS
+   ========================================================= */
+
+/* Toast Container */
+.toast-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  pointer-events: none;
+}
+
+/* Toast Message */
+.toast {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px 40px;
+  background: linear-gradient(135deg, rgba(30, 144, 255, 0.95), rgba(65, 105, 225, 0.95));
+  border: 2px solid rgba(100, 200, 255, 0.8);
+  border-radius: 16px;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 12px 40px rgba(30, 144, 255, 0.5), 0 0 30px rgba(65, 105, 225, 0.3);
+  backdrop-filter: blur(10px);
+  animation: toastAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  margin-bottom: 12px;
+}
+
+.toast.success {
+  background: linear-gradient(135deg, rgba(46, 213, 115, 0.95), rgba(39, 174, 96, 0.95));
+  border-color: rgba(100, 255, 150, 0.8);
+  box-shadow: 0 12px 40px rgba(46, 213, 115, 0.5), 0 0 30px rgba(39, 174, 96, 0.3);
+}
+
+.toast.warning {
+  background: linear-gradient(135deg, rgba(255, 180, 0, 0.95), rgba(255, 140, 0, 0.95));
+  border-color: rgba(255, 200, 100, 0.8);
+  box-shadow: 0 12px 40px rgba(255, 180, 0, 0.5), 0 0 30px rgba(255, 140, 0, 0.3);
+}
+
+.toast.danger {
+  background: linear-gradient(135deg, rgba(255, 71, 87, 0.95), rgba(232, 67, 147, 0.95));
+  border-color: rgba(255, 150, 150, 0.8);
+  box-shadow: 0 12px 40px rgba(255, 71, 87, 0.5), 0 0 30px rgba(232, 67, 147, 0.3);
+}
+
+@keyframes toastAppear {
+  from {
+    transform: scale(0.5) translateY(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.toast-disappear {
+  animation: toastDisappear 0.5s cubic-bezier(0.64, 0, 0.34, 1) forwards;
+}
+
+@keyframes toastDisappear {
+  from {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.5) translateY(30px);
+    opacity: 0;
+  }
+}
+
+.toast-icon {
+  font-size: 28px;
+  animation: toastIconBounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes toastIconBounce {
+  0% {
+    transform: scale(0) rotate(-30deg);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.toast-message {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.toast-title {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.toast-subtitle {
+  font-size: 12px;
+  opacity: 0.9;
+  font-weight: 600;
+}
+
+/* =========================================================
+   SECTION 5: EFFECT ANIMATIONS & TRANSITIONS
+   ========================================================= */
+
+/* Card Effect Animation */
+.card-effect-burst {
+  animation: effectBurst 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes effectBurst {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* Rent Multiplier Effect */
+.rent-multiplier-effect {
+  animation: rentPulse 0.6s ease-in-out;
+}
+
+@keyframes rentPulse {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.15);
+    filter: brightness(1.3);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+/* Freeze Effect */
+.freeze-effect {
+  animation: freezeSpread 0.8s ease-out forwards;
+}
+
+@keyframes freezeSpread {
+  from {
+    filter: drop-shadow(0 0 0 rgba(0, 210, 255, 0)) brightness(1);
+  }
+  to {
+    filter: drop-shadow(0 0 15px rgba(0, 210, 255, 0.8)) brightness(0.95);
+  }
+}
+
+/* Protect Shield Animation */
+.protect-shield-effect {
+  animation: shieldFormation 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes shieldFormation {
+  0% {
+    clip-path: polygon(50% 0%, 50% 0%, 50% 100%, 50% 100%);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+    opacity: 1;
+  }
+}
+
+/* Boost/Enhance Animation */
+.boost-enhance-effect {
+  animation: energyBoost 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes energyBoost {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(255, 69, 0, 0);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 30px rgba(255, 69, 0, 0.8);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 15px rgba(255, 69, 0, 0.3);
+  }
+}
+
+/* =========================================================
+   SECTION 6: RESPONSIVE & UTILITY CLASSES
+   ========================================================= */
+
+/* Disable Building Icon during STORM */
+.build-button.disabled-storm {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(100%);
+  pointer-events: none;
+}
+
+.build-button.disabled-storm::after {
+  content: '🚫';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20px;
+}
+
+/* Pulsing Game Over / Important State */
+.pulse-important {
+  animation: pulseImportant 1s infinite ease-in-out;
+}
+
+@keyframes pulseImportant {
+  0%, 100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.05);
+    filter: brightness(1.2);
+  }
+}
+
+/* Fade Transitions */
+.fade-in {
+  animation: fadeIn 0.4s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-out {
+  animation: fadeOut 0.4s ease-out forwards;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Slide Up Animation */
+.slide-up {
+  animation: slideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

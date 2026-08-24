@@ -31,4 +31,7 @@
 - [x] Bổ sung chế độ Khán Giả (Spectator Mode) cho người tham gia phòng sau khi trận đấu đã bắt đầu (`server.js`, `online.js`, `index.html`, `style.css`).
 - [x] Tích hợp cơ chế Chơi lại / Khởi động ván mới (Instant Restart & Reset to Lobby) cho cả chế độ Online & Offline (`server.js`, `online.js`, `ui.js`, `index.html`, `style.css`).
 - [x] Sửa lỗi đấu giá: Ẩn nút đấu giá ở chế độ không đấu giá; thêm nút đấu giá đúng chức năng và nút bỏ qua giữ đúng chức năng ở chế độ có đấu giá; sửa lỗi tăng tiền đấu giá mượt mà cho cả Online và Offline (`shared/gameServer.js`, `server.js`, `gameCore.js`, `ui.js`, `online.js`, `index.html`, `style.css`).
+- [x] Chuyển đổi hiển thị đề nghị trao đổi thành Ô Trade Preview nhỏ gọn và mở Pop-up chi tiết đầy đủ khi bấm vào (`index.html`, `style.css`, `ui.js`).
+- [x] Sửa lỗi tráo đổi tên/token người chơi và chuẩn hóa thứ tự P1, P2, P3, P4 khớp 100% với thứ tự random ban đầu (`shared/gameServer.js`, `server.js`, `gameCore.js`, `ui.js`).
+
 

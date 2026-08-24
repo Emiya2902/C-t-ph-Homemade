@@ -50,6 +50,13 @@
       if (res && res.ok === false && res.error) {
         console.warn('Hành động bị từ chối:', res.error);
       }
+      if (res?.ok && res.result?.action === 'CHOOSE_CROSS_ROUTE') {
+        document.dispatchEvent(new CustomEvent('game:cross-route-choice', { detail: res.result }));
+      }
+      if (res?.ok && res.result?.action === 'OPEN_SHOP' && window.GameCore?.Shop) {
+        const player = GameCore.state.players[myIndex];
+        if (player) GameCore.Shop.openShop(player);
+      }
     });
   }
 
@@ -72,6 +79,10 @@
       Math.max(1, Math.min(6, Math.floor((serverState.lastRoll || 2) / 2))),
       Math.max(1, Math.min(6, (serverState.lastRoll || 2) - Math.floor((serverState.lastRoll || 2) / 2)))
     ];
+    GameCore.state.extraRollPending = !!serverState.extraRollPending;
+    GameCore.state.lastMovementPath = Array.isArray(serverState.lastMovementPath)
+      ? serverState.lastMovementPath.slice()
+      : [];
 
     // pendingCard (thẻ cơ hội/khí vận)
     GameCore.state.pendingCard = serverState.pendingCard || null;
@@ -139,6 +150,7 @@
     }
 
     if (!rollBtn || !endTurnBtn) return;
+    endTurnBtn.style.display = 'none';
     if (surrenderBtn) surrenderBtn.disabled = false;
 
     const state = GameCore.state;
@@ -208,17 +220,19 @@
 
     // Lượt của mình, chưa gieo -> chỉ cho Gieo xúc xắc
     if (!myTurnRolled) {
+      rollBtn.innerText = 'GIEO XÚC XẮC';
+      rollBtn.dataset.action = 'roll';
       rollBtn.disabled = false;
       endTurnBtn.disabled = true;
       return;
     }
 
     // Đã gieo xúc xắc -> kiểm tra nợ trước khi cho Kết thúc lượt
-    rollBtn.disabled = true;
-    if (me && me.money < 0) {
-      endTurnBtn.disabled = true; // Chặn kết thúc lượt khi đang nợ!
-    } else {
-      endTurnBtn.disabled = false;
+    rollBtn.innerText = state.extraRollPending ? 'GIEO XÚC XẮC' : 'KẾT THÚC LƯỢT';
+    rollBtn.dataset.action = state.extraRollPending ? 'roll' : 'end-turn';
+    rollBtn.disabled = false;
+    if (me && me.money < 0 && !state.extraRollPending) {
+      rollBtn.disabled = true; // Chặn kết thúc lượt khi đang nợ!
     }
   }
 
@@ -331,10 +345,11 @@
       if (movedIndex >= 0 && GameUI.playerTokens && GameUI.playerTokens[movedIndex]) {
         const startPos = previousPositions[movedIndex];
         const endPos = GameCore.state.players[movedIndex].position;
-        const steps = (endPos - startPos + 40) % 40;
+        const serverPath = Array.isArray(data.state.lastMovementPath) ? data.state.lastMovementPath : [];
+        const steps = serverPath.length || (endPos - startPos + 40) % 40;
         if (steps > 0 && steps <= 12) {
           await GameUI.playDiceAnimation(GameCore.state.lastRoll, data.state.lastDice || GameCore.state.lastDice);
-          await GameUI.moveTokenStepByStep(GameUI.playerTokens[movedIndex], startPos, steps);
+          await GameUI.moveTokenStepByStep(GameUI.playerTokens[movedIndex], startPos, steps, serverPath);
           if (endPos === 10 && GameCore.state.players[movedIndex].inJail) {
             await new Promise(resolve => setTimeout(resolve, 200));
             const jailTile = document.getElementById('tile-10');
@@ -362,6 +377,21 @@
     const buyModal = $('buy-modal');
     const cardModal = $('card-modal');
 
+    // Mở bảng chọn tuyến ngay sau state xúc xắc, khi token vẫn ở ga.
+    if (state.crossRouteChoice && state.pendingCrossRouteRoll && state.currentPlayerIndex === myIndex) {
+      const choice = {
+        from: state.crossRouteChoice.station,
+        to: state.crossRouteChoice.path[state.crossRouteChoice.path.length - 1]
+      };
+      document.dispatchEvent(new CustomEvent('game:cross-route-choice', {
+        detail: {
+          crossRouteChoice: choice,
+          dice: state.pendingCrossRouteRoll.dice,
+          startPos: state.pendingCrossRouteRoll.startPos
+        }
+      }));
+    }
+
     // Nếu có pendingTile và đó là lượt mình -> hiện modal mua
     if (state.pendingTile && state.currentPlayerIndex === myIndex) {
       if (buyModal) {
@@ -372,7 +402,7 @@
 
         const buyAuctionBtn = $('buy-auction-btn');
         if (buyAuctionBtn) {
-          if (GameCore.settings && GameCore.settings.auctionMode) {
+          if (GameCore.settings?.auctionMode === true) {
             buyAuctionBtn.classList.remove('hidden');
           } else {
             buyAuctionBtn.classList.add('hidden');
@@ -515,6 +545,10 @@
     if (rollBtn) {
       rollBtn.addEventListener('click', () => {
         if (!isOnline() || isSpectator) return;
+        if (rollBtn.dataset.action === 'end-turn') {
+          sendAction('END_TURN');
+          return;
+        }
         markRolled();
         rollBtn.disabled = true;
         sendAction('ROLL_DICE');

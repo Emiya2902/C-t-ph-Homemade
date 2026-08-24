@@ -29,7 +29,9 @@ const cardModal = document.getElementById('card-modal');
   const auctionStatusMsg = document.getElementById('auction-status-msg');
   const tradePlayerModal = document.getElementById('trade-player-modal');
   const tradeOfferModal = document.getElementById('trade-offer-modal');
+  const tradeDetailModal = document.getElementById('trade-detail-modal');
   let tradeTargetPlayerId = null;
+  let activeDetailRequestId = null;
   let auctionTimerInterval = null;
 
   const settingsOverlay = document.getElementById('settings-overlay');
@@ -40,6 +42,8 @@ const cardModal = document.getElementById('card-modal');
 
   let selectedTileIndex = null;
   let playerTokens = []; // Mảng quân cờ (tạo động theo số người chơi)
+  let localTurnPlayerIndex = null;
+  let localTurnHasRolled = false;
 
   // Thêm Nút Bảo Lãnh Ra Tù
   let bailBtn = document.getElementById('bail-btn');
@@ -60,7 +64,7 @@ const cardModal = document.getElementById('card-modal');
       margin: 0 auto 12px auto;
       box-shadow: 0 4px 10px rgba(230, 126, 34, 0.4);
     `;
-    bailBtn.innerText = '🔓 Nộp $50 ra tù';
+    bailBtn.innerText = '🔓 Nộp $100 ra tù';
     if (rollBtn && rollBtn.parentNode && rollBtn.parentNode.parentNode) {
       rollBtn.parentNode.parentNode.insertBefore(bailBtn, rollBtn.parentNode);
     }
@@ -71,69 +75,98 @@ const cardModal = document.getElementById('card-modal');
     if (index >= 11 && index <= 20) return { row: 11 - (index - 10), col: 1, side: 'left' };
     if (index >= 21 && index <= 30) return { row: 1, col: 1 + (index - 20), side: 'top' };
     if (index >= 31 && index <= 39) return { row: 1 + (index - 30), col: 11, side: 'right' };
+    // 17 ô hình chữ thập (ở giữa bàn cờ mở rộng)
+    // Nánh dọc (cột 6, hàng 2 -> 10, qua tâm hàng 6)
+    if (index === 40) return { row: 2, col: 6, side: 'cross-v' };   // Cầu Bình Lợi
+    if (index === 41) return { row: 3, col: 6, side: 'cross-v' };   // ĐL Phạm Văn Đồng
+    if (index === 42) return { row: 4, col: 6, side: 'cross-v' };   // Ngã tư Hàng Xanh
+    if (index === 43) return { row: 5, col: 6, side: 'cross-v' };   // Cầu Sài Gòn
+    if (index === 44) return { row: 6, col: 6, side: 'cross-center' }; // TÂM
+    if (index === 45) return { row: 7, col: 6, side: 'cross-v' };   // Cầu Kênh Tẻ
+    if (index === 46) return { row: 8, col: 6, side: 'cross-v' };   // Ngã tư Bảy Hiền
+    if (index === 47) return { row: 9, col: 6, side: 'cross-v' };   // ĐL Nguyễn Văn Linh
+    if (index === 48) return { row: 10, col: 6, side: 'cross-v' };  // Cầu Chữ Y
+    // Nánh ngang (hàng 6, cột 2 -> 10, trừ cột 6 là tâm)
+    if (index === 49) return { row: 6, col: 2, side: 'cross-h' };   // Cầu Nhị Thiên Đường
+    if (index === 50) return { row: 6, col: 3, side: 'cross-h' };   // ĐL Võ Văn Kiệt
+    if (index === 51) return { row: 6, col: 4, side: 'cross-h' };   // Ngã sáu Cộng Hòa
+    if (index === 52) return { row: 6, col: 5, side: 'cross-h' };   // Chợ Kim Biên
+    if (index === 53) return { row: 6, col: 7, side: 'cross-h' };   // Hầm Thủ Thiêm
+    if (index === 54) return { row: 6, col: 8, side: 'cross-h' };   // Ngã ba Cát Lái
+    if (index === 55) return { row: 6, col: 9, side: 'cross-h' };   // ĐL Mai Chí Thọ
+    if (index === 56) return { row: 6, col: 10, side: 'cross-h' };  // Cầu Rạch Chiếc
+    return { row: 6, col: 6, side: 'cross-center' }; // fallback
   }
 
   function positionBuyPrompt(tileIndex) {
     if (!buyModal) return;
-    if (tileIndex === undefined || tileIndex === null) {
-      buyModal.style.top = '50%';
-      buyModal.style.left = '50%';
-      buyModal.style.bottom = 'auto';
-      buyModal.style.right = 'auto';
-      buyModal.style.transform = 'translate(-50%, -50%)';
+    positionPopupNearTile(buyModal, tileIndex);
+  }
+
+  function syncTradeModalWidth(modal) {
+    if (!modal || !boardElement) return;
+    const boardWidth = boardElement.getBoundingClientRect().width;
+    const content = modal.querySelector('.modal-content');
+    if (content && boardWidth > 0) {
+      content.style.setProperty('width', `${boardWidth}px`, 'important');
+      content.style.setProperty('max-width', `${boardWidth}px`, 'important');
+    }
+  }
+
+  function positionPopupNearTile(popup, tileIndex) {
+    if (!popup || !boardElement) return;
+    popup.classList.remove('hidden');
+    popup.style.position = 'absolute';
+    popup.style.top = '0px';
+    popup.style.left = '0px';
+    popup.style.right = 'auto';
+    popup.style.bottom = 'auto';
+    popup.style.transform = 'none';
+
+    const boardRect = boardElement.getBoundingClientRect();
+    const tileElem = document.getElementById(`tile-${tileIndex}`);
+    if (!tileElem) {
+      popup.style.left = `${Math.max(6, (boardRect.width - popup.offsetWidth) / 2)}px`;
+      popup.style.top = `${Math.max(6, (boardRect.height - popup.offsetHeight) / 2)}px`;
       return;
     }
 
-    // Reset styles
-    buyModal.style.top = 'auto';
-    buyModal.style.bottom = 'auto';
-    buyModal.style.left = 'auto';
-    buyModal.style.right = 'auto';
-    buyModal.style.transform = 'none';
+    const tileRect = tileElem.getBoundingClientRect();
+    const popupWidth = popup.offsetWidth;
+    const popupHeight = popup.offsetHeight;
+    const gap = 6;
+    const pos = getGridPosition(tileIndex);
+    const tileLeft = tileRect.left - boardRect.left;
+    const tileTop = tileRect.top - boardRect.top;
+    const tileRight = tileRect.right - boardRect.left;
+    const tileBottom = tileRect.bottom - boardRect.top;
+    const centeredLeft = tileLeft + (tileRect.width - popupWidth) / 2;
+    const centeredTop = tileTop + (tileRect.height - popupHeight) / 2;
+    const candidates = pos.side === 'bottom'
+      ? [[centeredLeft, tileTop - popupHeight - gap], [tileRight + gap, centeredTop], [tileLeft - popupWidth - gap, centeredTop]]
+      : pos.side === 'top'
+        ? [[centeredLeft, tileBottom + gap], [tileRight + gap, centeredTop], [tileLeft - popupWidth - gap, centeredTop]]
+        : pos.side === 'left'
+          ? [[tileRight + gap, centeredTop], [centeredLeft, tileTop - popupHeight - gap], [centeredLeft, tileBottom + gap]]
+          : pos.side === 'right'
+            ? [[tileLeft - popupWidth - gap, centeredTop], [centeredLeft, tileTop - popupHeight - gap], [centeredLeft, tileBottom + gap]]
+            : pos.side === 'cross-v'
+              ? [[tileRight + gap, centeredTop], [tileLeft - popupWidth - gap, centeredTop], [centeredLeft, tileBottom + gap], [centeredLeft, tileTop - popupHeight - gap]]
+              : [[centeredLeft, tileTop - popupHeight - gap], [centeredLeft, tileBottom + gap], [tileRight + gap, centeredTop], [tileLeft - popupWidth - gap, centeredTop]];
 
-    // 1. Ô hàng DƯỚI (0 - 10): Đặt áp sát đáy center-panel, ngay trên ô đất
-    if (tileIndex >= 0 && tileIndex <= 10) {
-      buyModal.style.bottom = '4px';
-      if (tileIndex === 0) {
-        buyModal.style.right = '4px';
-      } else if (tileIndex === 10) {
-        buyModal.style.left = '4px';
-      } else {
-        const pct = Math.max(20, Math.min(80, ((10 - tileIndex - 0.5) / 9) * 100));
-        buyModal.style.left = `${pct}%`;
-        buyModal.style.transform = 'translateX(-50%)';
-      }
-    }
-    // 2. Ô cột TRÁI (11 - 20): Đặt áp sát cạnh trái center-panel, ngay bên phải ô đất
-    else if (tileIndex >= 11 && tileIndex <= 20) {
-      buyModal.style.left = '4px';
-      if (tileIndex === 20) {
-        buyModal.style.top = '4px';
-      } else {
-        const pct = Math.max(20, Math.min(80, ((20 - tileIndex - 0.5) / 9) * 100));
-        buyModal.style.top = `${pct}%`;
-        buyModal.style.transform = 'translateY(-50%)';
-      }
-    }
-    // 3. Ô hàng TRÊN (21 - 30): Đặt áp sát mép trên center-panel, ngay dưới ô đất
-    else if (tileIndex >= 21 && tileIndex <= 30) {
-      buyModal.style.top = '4px';
-      if (tileIndex === 30) {
-        buyModal.style.right = '4px';
-      } else {
-        const pct = Math.max(20, Math.min(80, ((tileIndex - 20 - 0.5) / 9) * 100));
-        buyModal.style.left = `${pct}%`;
-        buyModal.style.transform = 'translateX(-50%)';
-      }
-    }
-    // 4. Ô cột PHẢI (31 - 39): Đặt áp sát cạnh phải center-panel, ngay bên trái ô đất
-    else if (tileIndex >= 31 && tileIndex <= 39) {
-      buyModal.style.right = '4px';
-      const pct = Math.max(20, Math.min(80, ((tileIndex - 30 - 0.5) / 9) * 100));
-      buyModal.style.top = `${pct}%`;
-      buyModal.style.transform = 'translateY(-50%)';
-    }
+    const maxLeft = Math.max(6, boardRect.width - popupWidth - 6);
+    const maxTop = Math.max(6, boardRect.height - popupHeight - 6);
+    const [left, top] = candidates[0];
+    popup.style.left = `${Math.min(maxLeft, Math.max(6, left))}px`;
+    popup.style.top = `${Math.min(maxTop, Math.max(6, top))}px`;
   }
+
+  function syncBoardWidth() {
+    const boardWidth = boardElement.getBoundingClientRect().width;
+    document.documentElement.style.setProperty('--board-width', `${boardWidth}px`);
+  }
+
+  window.addEventListener('resize', syncBoardWidth);
   
   // Expose for online.js to use
   window.positionBuyPrompt = positionBuyPrompt;
@@ -166,17 +199,22 @@ const cardModal = document.getElementById('card-modal');
 
     // 2. Ô chức năng đặc biệt (Bến xe, Sân bay, Metro, Điện nước, Thuế, Cơ hội, Khí vận)
     if (tile.type === "RAILROAD") {
-      let rIcon = '🚆';
-      if (index === 5) rIcon = '🚌';       // Bến xe Miền Tây
-      else if (index === 15) rIcon = '🛫';  // Sân bay Tân Sơn Nhất
-      else if (index === 25) rIcon = '🚎';  // Bến xe Miền Đông
-      else if (index === 35) rIcon = '🚇';  // Metro Bến Thành
-      return { icon: rIcon, className: 'tile-icon tile-special-icon' };
+      const stationIcons = {
+        "Đại học Bách Khoa": '🏫',
+        "Đại học Kinh Tế": '🎓',
+        "Đại học CNKT": '🏛️',
+        "Đại học KHTN": '🔬'
+      };
+      return { icon: stationIcons[tile.name] || '🏫', className: 'tile-icon tile-special-icon' };
     }
 
     if (tile.type === "UTILITY") {
       const uIcon = (index === 12) ? '⚡' : '💧'; // EVN hoặc SAWACO
       return { icon: uIcon, className: 'tile-icon tile-special-icon' };
+    }
+
+    if (tile.type === "SHOP") {
+      return { icon: tile.icon || '🛒', className: 'tile-icon tile-special-icon' };
     }
 
     if (tile.type === "TAX" || index === 4 || index === 38) {
@@ -219,6 +257,17 @@ const cardModal = document.getElementById('card-modal');
     };
 
     const propIcon = propertyIcons[index] || '🏡';
+    // Icon cho các ô chữ thập (id 40-56)
+    const crossIcons = {
+      40: '🌉', 41: '🛣️', 42: '🛒', 43: '🌉', 44: '🌟',
+      45: '🌉', 46: '🛒', 47: '🛣️', 48: '🌉',
+      49: '🌉', 50: '🛣️', 51: '🎁', 52: '🏪',
+      53: '🚇', 54: '❓', 55: '🛣️', 56: '🌉'
+    };
+    if (index >= 40 && crossIcons[index]) {
+      const isCrossChance = tile.type === 'CHANCE' || tile.type === 'SHOP';
+      return { icon: crossIcons[index], className: isCrossChance ? 'tile-icon tile-special-icon' : 'tile-icon tile-property-icon' };
+    }
     return { icon: propIcon, className: 'tile-icon tile-property-icon' };
   }
 
@@ -226,6 +275,17 @@ const cardModal = document.getElementById('card-modal');
   // DỰNG BÀN CỜ (gọi 1 lần duy nhất sau khi có state)
   // =========================================================
   function buildBoard() {
+    boardElement.classList.toggle('cross-board', GameCore.state.board.length > 40);
+    syncBoardWidth();
+    boardElement.appendChild(infoCardModal);
+    boardElement.appendChild(buyModal);
+    const notificationList = document.getElementById('game-notifications');
+    const centerPanel = document.getElementById('center-panel');
+    const centerActions = centerPanel?.querySelector('.center-actions');
+    if (notificationList && centerPanel && centerActions) {
+      if (GameCore.state.board.length > 40) boardElement.appendChild(notificationList);
+      else centerPanel.insertBefore(notificationList, centerActions);
+    }
     boardElement.querySelectorAll('.tile').forEach((t) => t.remove());
     GameCore.state.board.forEach((tile, index) => {
       const tileDiv = document.createElement('div');
@@ -265,6 +325,7 @@ const cardModal = document.getElementById('card-modal');
         contentDiv.appendChild(priceSpan);
       }
 
+      // Tile's side layout
       if (pos.side === 'bottom') {
         if (groupBar) tileDiv.appendChild(groupBar);
         tileDiv.appendChild(contentDiv);
@@ -279,10 +340,22 @@ const cardModal = document.getElementById('card-modal');
         tileDiv.classList.add('side-tile');
         if (groupBar) tileDiv.appendChild(groupBar);
         tileDiv.appendChild(contentDiv);
+      } else if (pos.side === 'cross-center') {
+        tileDiv.classList.add('tile-cross', 'tile-cross-center');
+        tileDiv.appendChild(contentDiv);
+      } else if (pos.side === 'cross-v') {
+        tileDiv.classList.add('tile-cross', 'tile-cross-v');
+        tileDiv.appendChild(contentDiv);
+        if (groupBar) tileDiv.appendChild(groupBar);
+      } else if (pos.side === 'cross-h') {
+        tileDiv.classList.add('tile-cross', 'tile-cross-h');
+        tileDiv.appendChild(contentDiv);
+        if (groupBar) tileDiv.appendChild(groupBar);
       }
 
       tileDiv.addEventListener('click', (e) => {
         e.stopPropagation();
+        if (GameCore.Shop?.handleTileSelection?.(tile.id)) return;
         if (tile.price && tile.type !== "TAX") {
           openPropertyCard(index);
         }
@@ -322,7 +395,10 @@ const cardModal = document.getElementById('card-modal');
     // Dựng danh sách thẻ người chơi bên phải
     const playersList = document.getElementById('players-list');
     playersList.innerHTML = '';
-    players.forEach((p, i) => {
+    players
+      .slice()
+      .sort((first, second) => Number(first.isBankrupt) - Number(second.isBankrupt))
+      .forEach((p, i) => {
       const card = document.createElement('div');
       card.className = 'player-card';
       card.id = `card-p${p.id}`;
@@ -332,6 +408,11 @@ const cardModal = document.getElementById('card-modal');
       badge.className = 'player-badge';
       badge.style.borderColor = p.color;
       badge.innerText = emoji;
+
+      const pTag = document.createElement('span');
+      pTag.className = `player-order-tag player-order-p${p.id}`;
+      pTag.style.backgroundColor = p.color;
+      pTag.innerText = `P${p.id}`;
 
       const name = document.createElement('span');
       name.className = 'player-name';
@@ -345,10 +426,11 @@ const cardModal = document.getElementById('card-modal');
       money.appendChild(moneySpan);
 
       card.appendChild(badge);
+      card.appendChild(pTag);
       card.appendChild(name);
       card.appendChild(money);
       playersList.appendChild(card);
-    });
+      });
   }
 
   // =========================================================
@@ -366,7 +448,7 @@ const cardModal = document.getElementById('card-modal');
           const remaining = p.disconnectExpiresAt ? Math.max(0, Math.ceil((p.disconnectExpiresAt - Date.now()) / 1000)) : 120;
           moneyEl.innerHTML = `<span class="disconnect-warn-text">🔌 Mất kết nối (${remaining}s)</span>`;
         } else {
-          moneyEl.innerText = p.isBankrupt ? "💀 Phá sản" : (p.money + (p.inJail ? " 🔒" : ""));
+          moneyEl.innerText = p.isBankrupt ? "💀 Phá sản" : (`$${p.money}` + (p.inJail ? " 🔒" : ""));
         }
       }
       const cardEl = document.getElementById(`card-p${p.id}`);
@@ -402,6 +484,17 @@ const cardModal = document.getElementById('card-modal');
         playerTokens[i].style.display = p.isBankrupt ? 'none' : 'flex';
       }
     });
+
+    const playersList = document.getElementById('players-list');
+    if (playersList) {
+      players
+        .slice()
+        .sort((first, second) => Number(first.isBankrupt) - Number(second.isBankrupt))
+        .forEach(player => {
+          const card = document.getElementById(`card-p${player.id}`);
+          if (card) playersList.appendChild(card);
+        });
+    }
 
     // Di chuyển quân cờ & phân bổ vị trí
     const byPosition = {};
@@ -440,7 +533,7 @@ const cardModal = document.getElementById('card-modal');
     });
 
     // Cập nhật ẩn/hiện nút bảo lãnh ra tù
-    if (currentPlayer.inJail && currentPlayer.money >= 50 && !rollBtn.disabled) {
+    if (currentPlayer.inJail && currentPlayer.money >= 100 && !rollBtn.disabled) {
       bailBtn.style.display = 'block';
     } else {
       bailBtn.style.display = 'none';
@@ -454,6 +547,10 @@ const cardModal = document.getElementById('card-modal');
 
       const tileElem = document.getElementById(`tile-${index}`);
       if (tileElem) {
+        tileElem.classList.toggle('tile-frozen', !!tile.frozenTurns);
+        tileElem.classList.toggle('tile-protected', !!tile.protectedTurns || !!tile.permanentProtection);
+        tileElem.classList.toggle('tile-boosted', !!tile.boostTurns || !!tile.rentMultiplier);
+        tileElem.classList.toggle('tile-oil-trap', tile.trap === 'SLIDE_OIL');
         if (tile.rentMultiplier && tile.rentMultiplier > 1) {
           tileElem.classList.add('tile-boosted-rent');
           tileElem.setAttribute('data-rent-multiplier', `${tile.rentMultiplier}x`);
@@ -487,6 +584,31 @@ const cardModal = document.getElementById('card-modal');
     });
     chatBox.scrollTop = chatBox.scrollHeight;
 
+    const notificationList = document.getElementById('game-notification-list');
+    if (notificationList) {
+      notificationList.innerHTML = '';
+      logs.slice().reverse().forEach((message, index) => {
+        const notification = document.createElement('div');
+        notification.className = `game-notification game-notification-${index}`;
+        notification.innerText = message;
+        notificationList.appendChild(notification);
+      });
+
+      const refreshNotificationFade = () => {
+        const listRect = notificationList.getBoundingClientRect();
+        notificationList.querySelectorAll('.game-notification').forEach(notification => {
+          const relativeTop = notification.getBoundingClientRect().top - listRect.top;
+          const opacity = Math.max(0.18, Math.min(1, 1 - (relativeTop / Math.max(1, listRect.height)) * 0.7));
+          notification.style.opacity = opacity.toFixed(2);
+        });
+      };
+      refreshNotificationFade();
+      if (!notificationList.dataset.fadeBound) {
+        notificationList.addEventListener('scroll', refreshNotificationFade, { passive: true });
+        notificationList.dataset.fadeBound = 'true';
+      }
+    }
+
     renderInventory();
     renderTradePanel();
 
@@ -504,6 +626,7 @@ const cardModal = document.getElementById('card-modal');
           }
         }
         endTurnBtn.disabled = true;
+        if (rollBtn.dataset.action === 'end-turn') rollBtn.disabled = true;
       } else {
         debtAlertBanner.classList.add('hidden');
       }
@@ -538,7 +661,7 @@ const cardModal = document.getElementById('card-modal');
     // Hiện/ẩn nút Đấu Giá trong buy-popover dựa vào auctionMode và cập nhật nút Mua
     const buyAuctionBtn = document.getElementById('buy-auction-btn');
     const buyYesBtn = document.getElementById('buy-yes-btn');
-    const isAuctionMode = !!(GameCore.settings && GameCore.settings.auctionMode);
+    const isAuctionMode = GameCore.settings?.auctionMode === true;
     if (buyAuctionBtn) {
       if (isAuctionMode) {
         buyAuctionBtn.classList.remove('hidden');
@@ -554,6 +677,171 @@ const cardModal = document.getElementById('card-modal');
       const canAfford = !!(p && p.money >= effectivePrice);
       buyYesBtn.disabled = !canAfford;
     }
+  }
+
+  function closeTradeDetailModal() {
+    activeDetailRequestId = null;
+    if (tradeDetailModal) tradeDetailModal.classList.add('hidden');
+  }
+
+  function renderTradeDetailProps(container, propertyIds) {
+    container.innerHTML = '';
+    if (!propertyIds || !propertyIds.length) {
+      container.innerHTML = '<div class="trade-prop-mini-empty">📦 Không kèm ô đất nào</div>';
+      return;
+    }
+
+    const groupColors = {
+      BROWN: '#8d5524',
+      LIGHT_BLUE: '#4fc3f7',
+      PINK: '#f06292',
+      ORANGE: '#fb8c00',
+      RED: '#ef5350',
+      YELLOW: '#fdd835',
+      GREEN: '#43a047',
+      DARK_BLUE: '#3949ab',
+      RAILROAD: '#607d8b',
+      UTILITY: '#00b894'
+    };
+
+    propertyIds.forEach(id => {
+      const tile = GameCore.state.board.find(t => t.id === id);
+      if (!tile) return;
+      const color = groupColors[tile.group] || (tile.type === 'RAILROAD' ? '#607d8b' : '#00b894');
+      const icon = tile.type === 'RAILROAD' ? '🚆' : tile.type === 'UTILITY' ? '💡' : '🏠';
+
+      const item = document.createElement('div');
+      item.className = 'trade-detail-prop-item';
+      item.style.borderLeft = `4px solid ${color}`;
+
+      let houseText = '';
+      if (tile.type === 'PROPERTY') {
+        if (tile.houses === 5) houseText = '🏨 Khách sạn';
+        else if (tile.houses > 0) houseText = `🏠 x${tile.houses}`;
+      }
+      const mortgageText = tile.mortgaged ? '🏦 Cầm cố' : '';
+
+      item.innerHTML = `
+        <div class="prop-item-main">
+          <span class="prop-item-icon">${icon}</span>
+          <span class="prop-item-name" title="${tile.name}">${tile.name}</span>
+        </div>
+        <div class="prop-item-sub">
+          <span class="prop-item-price">🏷️ $${tile.price || 0}</span>
+          ${houseText ? `<span class="prop-item-house">${houseText}</span>` : ''}
+          ${mortgageText ? `<span class="prop-item-mortgage">${mortgageText}</span>` : ''}
+        </div>
+      `;
+      container.appendChild(item);
+    });
+  }
+
+  function renderTradeDetailCards(container, cardIds) {
+    if (!container) return;
+    const catalog = window.GameCore.Shop?.cardCatalog || [];
+    const cards = (cardIds || []).map(cardId => catalog.find(card => card.id === cardId)).filter(Boolean);
+    container.innerHTML = cards.length
+      ? cards.map(card => `<div class="trade-detail-card-item"><span>${card.title}</span><small>${card.rarity}</small></div>`).join('')
+      : '<div class="trade-prop-mini-empty">🃏 Không kèm thẻ bài</div>';
+  }
+
+  function openTradeDetailModal(request) {
+    if (!request || !tradeDetailModal) return;
+    activeDetailRequestId = request.id;
+    syncTradeModalWidth(tradeDetailModal);
+
+    const fromP = GameCore.state.players.find(p => p.id === request.fromPlayerId);
+    const toP = GameCore.state.players.find(p => p.id === request.toPlayerId);
+
+    const fromBadgeEl = document.getElementById('trade-detail-from-badge');
+    const fromNameEl = document.getElementById('trade-detail-from-name');
+    const toBadgeEl = document.getElementById('trade-detail-to-badge');
+    const toNameEl = document.getElementById('trade-detail-to-name');
+
+    if (fromBadgeEl) {
+      fromBadgeEl.innerText = fromP?.tokenEmoji || '👤';
+      fromBadgeEl.style.borderColor = fromP?.color || '#ffffff';
+    }
+    if (fromNameEl) {
+      fromNameEl.innerText = `${fromP ? fromP.name : 'Người chơi'} (P${fromP?.id || 1})`;
+    }
+    if (toBadgeEl) {
+      toBadgeEl.innerText = toP?.tokenEmoji || '👤';
+      toBadgeEl.style.borderColor = toP?.color || '#ffffff';
+    }
+    if (toNameEl) {
+      toNameEl.innerText = `${toP ? toP.name : 'Người chơi'} (P${toP?.id || 2})`;
+    }
+
+    const fromCashEl = document.getElementById('trade-detail-from-cash');
+    const toCashEl = document.getElementById('trade-detail-to-cash');
+    if (fromCashEl) fromCashEl.innerHTML = `💰 Tiền đưa: <b>$${request.offerCash || 0}</b>`;
+    if (toCashEl) toCashEl.innerHTML = `💰 Tiền yêu cầu: <b>$${request.requestCash || 0}</b>`;
+
+    const fromPropsEl = document.getElementById('trade-detail-from-props');
+    const toPropsEl = document.getElementById('trade-detail-to-props');
+    renderTradeDetailCards(document.getElementById('trade-detail-from-cards'), request.offerCardIds);
+    renderTradeDetailCards(document.getElementById('trade-detail-to-cards'), request.requestCardIds);
+    if (fromPropsEl) renderTradeDetailProps(fromPropsEl, request.offerPropertyIds);
+    if (toPropsEl) renderTradeDetailProps(toPropsEl, request.requestPropertyIds);
+
+    const actionsContainer = document.getElementById('trade-detail-actions');
+    if (actionsContainer) {
+      actionsContainer.innerHTML = '';
+      const online = !!(window.GameOnline && GameOnline.isOnline());
+      const playerIndex = online ? GameOnline.myIndex : GameCore.state.currentPlayerIndex;
+      const me = GameCore.state.players[playerIndex];
+
+      const isReceiver = me && (request.toPlayerId === me.id || !online);
+      const isSender = me && (request.fromPlayerId === me.id);
+
+      if (isReceiver) {
+        const acceptBtn = document.createElement('button');
+        acceptBtn.className = 'btn btn-buy trade-detail-accept-btn';
+        acceptBtn.innerText = '✅ CHẤP NHẬN TRAO ĐỔI';
+        acceptBtn.addEventListener('click', () => {
+          if (online) {
+            GameOnline.sendAction('ACCEPT_TRADE', { requestId: request.id });
+          } else {
+            GameCore.acceptTrade(request.toPlayerId, request.id);
+            renderUI();
+          }
+          closeTradeDetailModal();
+        });
+        actionsContainer.appendChild(acceptBtn);
+
+        const declineBtn = document.createElement('button');
+        declineBtn.className = 'btn btn-skip trade-detail-decline-btn';
+        declineBtn.innerText = '❌ TỪ CHỐI';
+        declineBtn.addEventListener('click', () => {
+          if (online) {
+            GameOnline.sendAction('DECLINE_TRADE', { requestId: request.id });
+          } else {
+            GameCore.declineTrade(me.id, request.id);
+            renderUI();
+          }
+          closeTradeDetailModal();
+        });
+        actionsContainer.appendChild(declineBtn);
+      } else if (isSender) {
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'btn btn-skip trade-detail-cancel-btn';
+        cancelBtn.innerText = '🗑️ HỦY ĐỀ NGHỊ';
+        cancelBtn.addEventListener('click', () => {
+          if (online) {
+            GameOnline.sendAction('DECLINE_TRADE', { requestId: request.id });
+          } else {
+            GameCore.declineTrade(me.id, request.id);
+            renderUI();
+          }
+          closeTradeDetailModal();
+        });
+        actionsContainer.appendChild(cancelBtn);
+      }
+
+    }
+
+    tradeDetailModal.classList.remove('hidden');
   }
 
   function renderTradePanel() {
@@ -574,52 +862,54 @@ const cardModal = document.getElementById('card-modal');
 
     requestsBox.innerHTML = '';
     const requests = GameCore.state.tradeRequests || [];
+
+    // Nếu đang mở popup chi tiết một đề nghị không còn tồn tại -> tự động đóng
+    if (activeDetailRequestId) {
+      const activeReq = requests.find(r => r.id === activeDetailRequestId);
+      if (!activeReq) {
+        closeTradeDetailModal();
+      }
+    }
+
     if (!requests.length) {
       requestsBox.innerHTML = '<div class="trade-empty">Chưa có đề nghị trao đổi nào.</div>';
       return;
     }
-    const playerName = id => GameCore.state.players.find(player => player.id === id)?.name || 'Người chơi';
-    const propertyNames = ids => ids.map(id => GameCore.state.board.find(tile => tile.id === id)?.name).filter(Boolean).join(', ');
-    requests.forEach(request => {
-      const item = document.createElement('div'); item.className = 'trade-request';
-      const title = document.createElement('div'); title.className = 'trade-request-title';
-      title.innerText = `${playerName(request.fromPlayerId)} ➔ ${playerName(request.toPlayerId)}`;
-      const detail = document.createElement('div'); detail.className = 'trade-request-detail';
-      const offered = [request.offerCash ? `$${request.offerCash}` : '', propertyNames(request.offerPropertyIds)].filter(Boolean).join(' + ') || 'Không có';
-      const wanted = [request.requestCash ? `$${request.requestCash}` : '', propertyNames(request.requestPropertyIds)].filter(Boolean).join(' + ') || 'Không có';
-      detail.innerText = `Đưa: ${offered} | Nhận: ${wanted}`;
-      item.append(title, detail);
 
-      const canAct = online ? (request.toPlayerId === me.id || request.fromPlayerId === me.id) : true;
-      if (canAct) {
-        const actions = document.createElement('div'); actions.className = 'trade-actions';
-        if (request.toPlayerId === me.id || !online) {
-          const accept = document.createElement('button'); accept.className = 'trade-action'; accept.innerText = 'Chấp nhận';
-          accept.addEventListener('click', () => {
-            if (online) {
-              GameOnline.sendAction('ACCEPT_TRADE', { requestId: request.id });
-            } else {
-              GameCore.acceptTrade(request.toPlayerId, request.id);
-              renderUI();
-            }
-          });
-          actions.appendChild(accept);
-        }
-        if (request.toPlayerId === me.id || request.fromPlayerId === me.id || !online) {
-          const decline = document.createElement('button'); decline.className = 'trade-action decline';
-          decline.innerText = (request.fromPlayerId === me.id && online) ? 'Hủy' : 'Từ chối';
-          decline.addEventListener('click', () => {
-            if (online) {
-              GameOnline.sendAction('DECLINE_TRADE', { requestId: request.id });
-            } else {
-              GameCore.declineTrade(me.id, request.id);
-              renderUI();
-            }
-          });
-          actions.appendChild(decline);
-        }
-        item.appendChild(actions);
-      }
+    requests.forEach(request => {
+      const fromP = GameCore.state.players.find(player => player.id === request.fromPlayerId);
+      const toP = GameCore.state.players.find(player => player.id === request.toPlayerId);
+      const fromName = fromP ? fromP.name : 'Người chơi';
+      const toName = toP ? toP.name : 'Người chơi';
+      const fromEmoji = fromP?.tokenEmoji || '👤';
+      const toEmoji = toP?.tokenEmoji || '👤';
+
+      const isMeTo = (me.id === request.toPlayerId);
+      const isMeFrom = (me.id === request.fromPlayerId);
+
+      const item = document.createElement('div');
+      item.className = 'trade-preview-card';
+      if (isMeTo) item.classList.add('incoming-for-me');
+      else if (isMeFrom) item.classList.add('outgoing-from-me');
+
+      item.innerHTML = `
+        <div class="trade-preview-header">
+          <div class="trade-preview-pair">
+            <span class="preview-user" title="${fromName}">
+              <span class="preview-token">${fromEmoji}</span> ${fromName}
+            </span>
+            <span class="preview-arrow">➔</span>
+            <span class="preview-user" title="${toName}">
+              <span class="preview-token">${toEmoji}</span> ${toName}
+            </span>
+          </div>
+        </div>
+      `;
+
+      item.addEventListener('click', () => {
+        openTradeDetailModal(request);
+      });
+
       requestsBox.appendChild(item);
     });
   }
@@ -644,6 +934,7 @@ const cardModal = document.getElementById('card-modal');
       select.appendChild(option);
     });
     tradeTargetPlayerId = Number(select.value) || null;
+    syncTradeModalWidth(tradePlayerModal);
     tradePlayerModal.classList.remove('hidden');
   }
 
@@ -760,13 +1051,45 @@ const cardModal = document.getElementById('card-modal');
     tradeTargetPlayerId = Number(select && select.value) || null;
     const { me, target } = getTradeParticipants();
     if (!me || !target) return;
+    const offerCashInput = document.getElementById('trade-modal-offer-cash');
+    const requestCashInput = document.getElementById('trade-modal-request-cash');
     document.getElementById('trade-offer-title').innerText = `🤝 Trao đổi với ${target.name}`;
-    document.getElementById('trade-modal-offer-cash').value = '0';
-    document.getElementById('trade-modal-request-cash').value = '0';
+    offerCashInput.value = '0';
+    requestCashInput.value = '0';
+    offerCashInput.max = String(Math.max(0, me.money || 0));
+    requestCashInput.max = String(Math.max(0, target.money || 0));
+    bindTradeCashLimit(offerCashInput, () => me.money);
+    bindTradeCashLimit(requestCashInput, () => target.money);
     addTradePropertyOptions(document.getElementById('trade-modal-offer-properties'), GameCore.state.board.filter(tile => tile.owner === me.id));
     addTradePropertyOptions(document.getElementById('trade-modal-request-properties'), GameCore.state.board.filter(tile => tile.owner === target.id));
+    addTradeCardOptions(document.getElementById('trade-modal-offer-cards'), me.shopCards || []);
+    addTradeCardOptions(document.getElementById('trade-modal-request-cards'), target.shopCards || []);
     tradePlayerModal.classList.add('hidden');
+    syncTradeModalWidth(tradeOfferModal);
     tradeOfferModal.classList.remove('hidden');
+  }
+
+  function addTradeCardOptions(container, cardIds) {
+    if (!container) return;
+    const catalog = window.GameCore.Shop?.cardCatalog || [];
+    container.innerHTML = cardIds.length ? cardIds.map((cardId, index) => {
+      const card = catalog.find(item => item.id === cardId);
+      return card ? `<label class="trade-card-option"><input type="checkbox" value="${card.id}" data-card-index="${index}"><span>${card.title} <small>${card.rarity}</small></span></label>` : '';
+    }).join('') : '<div class="trade-empty">Không có thẻ bài</div>';
+  }
+
+  function bindTradeCashLimit(input, getAvailableCash) {
+    if (!input || input.dataset.tradeCashLimitBound) return;
+    input.dataset.tradeCashLimitBound = 'true';
+    input.addEventListener('input', () => {
+      const availableCash = Math.max(0, Number(getAvailableCash()) || 0);
+      const enteredCash = Number(input.value);
+      if (!Number.isFinite(enteredCash) || enteredCash < 0) {
+        input.value = '0';
+      } else if (enteredCash > availableCash) {
+        input.value = String(availableCash);
+      }
+    });
   }
 
   function submitTradeRequest() {
@@ -777,7 +1100,9 @@ const cardModal = document.getElementById('card-modal');
     const requestCash = Math.max(0, Number(document.getElementById('trade-modal-request-cash').value) || 0);
     const offerPropertyIds = ids('#trade-modal-offer-properties');
     const requestPropertyIds = ids('#trade-modal-request-properties');
-    if (!offerCash && !requestCash && !offerPropertyIds.length && !requestPropertyIds.length) {
+    const offerCardIds = [...document.querySelectorAll('#trade-modal-offer-cards input:checked')].map(input => input.value);
+    const requestCardIds = [...document.querySelectorAll('#trade-modal-request-cards input:checked')].map(input => input.value);
+    if (!offerCash && !requestCash && !offerPropertyIds.length && !requestPropertyIds.length && !offerCardIds.length && !requestCardIds.length) {
       alert('Hãy chọn tiền hoặc tài sản để trao đổi.');
       return;
     }
@@ -787,11 +1112,11 @@ const cardModal = document.getElementById('card-modal');
     }
     if (online) {
       GameOnline.sendAction('CREATE_TRADE', { trade: {
-        toPlayerId: target.id, offerCash, requestCash, offerPropertyIds, requestPropertyIds
+        toPlayerId: target.id, offerCash, requestCash, offerPropertyIds, requestPropertyIds, offerCardIds, requestCardIds
       }});
     } else {
       GameCore.createTrade(me.id, {
-        toPlayerId: target.id, offerCash, requestCash, offerPropertyIds, requestPropertyIds
+        toPlayerId: target.id, offerCash, requestCash, offerPropertyIds, requestPropertyIds, offerCardIds, requestCardIds
       });
       renderUI();
     }
@@ -810,15 +1135,30 @@ const cardModal = document.getElementById('card-modal');
     const properties = player
       ? GameCore.state.board.filter(tile => tile.owner === player.id)
       : [];
+    const ownedCards = player?.shopCards || [];
+    const cardCatalog = window.GameCore.Shop?.cardCatalog || [];
 
     inventoryBox.innerHTML = '';
-    if (!properties.length) {
+    if (!properties.length && !ownedCards.length) {
       const empty = document.createElement('div');
       empty.className = 'inventory-empty';
       empty.innerHTML = '<span>🎒 Chưa sở hữu tài sản nào.</span>';
       inventoryBox.appendChild(empty);
       return;
     }
+
+    ownedCards.forEach(cardId => {
+      const card = cardCatalog.find(item => item.id === cardId);
+      if (!card) return;
+      const item = document.createElement('div');
+      item.className = `inventory-item inventory-card rarity-${card.rarity}`;
+      item.innerHTML = `<div class="inventory-item-header"><div class="inventory-item-name"><span class="inventory-icon">${card.title.split(' ')[0]}</span><span class="inventory-title-text">${card.title.replace(/^\S+\s*/, '')}</span></div></div><div class="inventory-item-details"><span class="inv-detail-chip">${card.rarity}</span><span class="inv-detail-chip price">🪙 $${card.price}</span></div><div class="inventory-card-description">${card.text}</div><button class="inventory-use-card" type="button">Dùng thẻ</button>`;
+      item.querySelector('.inventory-use-card').addEventListener('click', event => {
+        event.stopPropagation();
+        window.GameCore.Shop.useCard(player, cardId);
+      });
+      inventoryBox.appendChild(item);
+    });
 
     const groupColors = {
       BROWN: '#8d5524',
@@ -896,9 +1236,6 @@ const cardModal = document.getElementById('card-modal');
             <span class="inventory-icon">${icon}</span>
             <span class="inventory-title-text">${tile.name}</span>
           </div>
-          <span class="inventory-group-tag" style="background:${color}22; color:${color}; border: 1px solid ${color}66;">
-            ${groupNames[tile.group] || tile.group || tile.type}
-          </span>
         </div>
         <div class="inventory-item-details">
           <span class="inv-detail-chip price">🏷️ $${tile.price || 0}</span>
@@ -1171,6 +1508,8 @@ function updateTileBadgeUI(index, houses) {
     const pos = getGridPosition(index);
     const currentPlayer = GameCore.getCurrentPlayer();
 
+    infoCardModal.classList.remove('weather-info-card');
+
     document.getElementById('info-card-name').innerText = tile.name;
 
     const footerHouse = document.getElementById('info-footer-house');
@@ -1206,23 +1545,81 @@ function updateTileBadgeUI(index, houses) {
       document.getElementById('info-card-house').innerText = '$ 0';
       document.getElementById('info-card-hotel').innerText = '$ 0';
     } else if (isUtility) {
-      const utilityLabels = ['Sở hữu 1 nhà máy', 'Sở hữu 2 nhà máy', '', '', '', ''];
-      const utilityValues = ['x4 tiền xúc xắc', 'x10 tiền xúc xắc', '', '', '', ''];
-      for (let i = 0; i <= 5; i++) {
-        const rentElem = document.getElementById(`info-rent-${i}`);
-        const labelElem = document.getElementById(`info-rent-${i}-label`);
-        const row = rentElem ? rentElem.parentElement : (labelElem ? labelElem.parentElement : null);
-        if (rentElem) rentElem.innerText = utilityValues[i] || '';
-        if (labelElem) labelElem.innerText = utilityLabels[i] || '';
-        if (row) row.style.display = (i >= 2) ? 'none' : '';
+      // Check xem có phải Trạm Khí Tượng không
+      const isWeatherStation = tile.name && (tile.name.includes('Khí Tượng') || tile.name.includes('Dự Báo'));
+
+      if (isWeatherStation) {
+        // === TRẠM KHÍ TƯỢNG: Hiển thị 4 loại thời tiết ===
+        infoCardModal.classList.add('weather-info-card');
+        const weatherTypes = [
+          {
+            emoji: '🌧️',
+            name: 'Mưa Ngập',
+            label: '🌧️ Mưa Ngập (3 lượt)',
+            effects: 'Lùi 1 ô · Được xây'
+          },
+          {
+            emoji: '☀️',
+            name: 'Nắng Nóng',
+            label: '☀️ Nắng Nóng (3 lượt)',
+            effects: 'Chủ đất lời hơn'
+          },
+          {
+            emoji: '🌪️',
+            name: 'Bão Lớn',
+            label: '🌪️ Bão Lớn (2 lượt)',
+            effects: 'Hạ 1 cấp mọi ô · Cấm xây'
+          },
+          {
+            emoji: '🍃',
+            name: 'Gió Nhẹ',
+            label: '🍃 Gió Nhẹ (3 lượt)',
+            effects: 'Cộng 2 ô mỗi lượt'
+          }
+        ];
+
+        for (let i = 0; i <= 5; i++) {
+          const rentElem = document.getElementById(`info-rent-${i}`);
+          const labelElem = document.getElementById(`info-rent-${i}-label`);
+          const row = rentElem ? rentElem.parentElement : (labelElem ? labelElem.parentElement : null);
+          
+          if (i < weatherTypes.length) {
+            const weather = weatherTypes[i];
+            if (rentElem) rentElem.innerText = weather.effects;
+            if (labelElem) labelElem.innerText = weather.label;
+            if (row) row.style.display = '';
+          } else {
+            if (row) row.style.display = 'none';
+          }
+        }
+        
+        document.getElementById('info-table-when').innerText = 'Thời tiết';
+        document.getElementById('info-table-get').innerText = 'Hiệu ứng';
+        if (footerHouse) footerHouse.style.display = 'none';
+        if (footerHotel) footerHotel.style.display = 'none';
+        document.getElementById('info-card-price').innerText = `$ ${tile.price || 0}`;
+        document.getElementById('info-card-house').innerText = 'Kích hoạt';
+        document.getElementById('info-card-hotel').innerText = 'Hiệu ứng';
+      } else {
+        // === NHÂN CỘNG THƯỜNG (Nhà máy) ===
+        const utilityLabels = ['Sở hữu 1 nhà máy', 'Sở hữu 2 nhà máy', '', '', '', ''];
+        const utilityValues = ['x4 tiền xúc xắc', 'x10 tiền xúc xắc', '', '', '', ''];
+        for (let i = 0; i <= 5; i++) {
+          const rentElem = document.getElementById(`info-rent-${i}`);
+          const labelElem = document.getElementById(`info-rent-${i}-label`);
+          const row = rentElem ? rentElem.parentElement : (labelElem ? labelElem.parentElement : null);
+          if (rentElem) rentElem.innerText = utilityValues[i] || '';
+          if (labelElem) labelElem.innerText = utilityLabels[i] || '';
+          if (row) row.style.display = (i >= 2) ? 'none' : '';
+        }
+        document.getElementById('info-table-when').innerText = 'Sở hữu';
+        document.getElementById('info-table-get').innerText = 'Tiền thuê';
+        if (footerHouse) footerHouse.style.display = 'none';
+        if (footerHotel) footerHotel.style.display = 'none';
+        document.getElementById('info-card-price').innerText = `$ ${tile.price || 0}`;
+        document.getElementById('info-card-house').innerText = '$ 0';
+        document.getElementById('info-card-hotel').innerText = '$ 0';
       }
-      document.getElementById('info-table-when').innerText = 'Sở hữu';
-      document.getElementById('info-table-get').innerText = 'Tiền thuê';
-      if (footerHouse) footerHouse.style.display = 'none';
-      if (footerHotel) footerHotel.style.display = 'none';
-      document.getElementById('info-card-price').innerText = `$ ${tile.price || 0}`;
-      document.getElementById('info-card-house').innerText = '$ 0';
-      document.getElementById('info-card-hotel').innerText = '$ 0';
     } else {
       const defaultRent = [
         Math.round((tile.price || 100) * 0.08),
@@ -1257,6 +1654,9 @@ function updateTileBadgeUI(index, houses) {
     const btnSell = document.getElementById('btn-sell-house');
     const btnMortgage = document.getElementById('btn-mortgage');
 
+    const isWeatherStationTile = tile.name && (tile.name.includes('Khí Tượng') || tile.name.includes('Dự Báo'));
+    if (isWeatherStationTile) controlsDiv.classList.add('hidden');
+
     const online = !!(window.GameOnline && GameOnline.isOnline());
     const localPlayerIndex = online ? GameOnline.myIndex : GameCore.state.currentPlayerIndex;
     const isMyTurn = (online ? (GameOnline.myIndex === GameCore.state.currentPlayerIndex) : true);
@@ -1269,7 +1669,9 @@ function updateTileBadgeUI(index, houses) {
       const isMortgaged = !!tile.mortgaged;
       const mortgageVal = Math.round(tile.price / 2);
 
-      const canBuild = (tile.type === "PROPERTY");
+      const canBuild = !!(GameCore.isBuildableProperty
+        ? GameCore.isBuildableProperty(tile)
+        : (tile.type === "PROPERTY" && tile.group && tile.price > 0));
 
       // Nếu đất đang bị CẦM CỐ thì KHÔNG được xây nhà / dỡ nhà nữa
       if (isMortgaged) {
@@ -1344,80 +1746,99 @@ function updateTileBadgeUI(index, houses) {
     }
 
     // ĐỊNH VỊ POP-UP
-    infoCardModal.classList.remove('hidden');
+    positionPopupNearTile(infoCardModal, index);
 
-    const tileElem = document.getElementById(`tile-${index}`);
-    const centerPanel = document.getElementById('center-panel');
-    const centerRect = centerPanel.getBoundingClientRect();
-    const cardRect = infoCardModal.getBoundingClientRect();
+  }
 
-    infoCardModal.style.top = 'auto';
-    infoCardModal.style.bottom = 'auto';
-    infoCardModal.style.left = 'auto';
-    infoCardModal.style.right = 'auto';
-
-    if (window.innerWidth <= 900) {
-      infoCardModal.style.position = 'fixed';
-      infoCardModal.style.left = '50%';
-      infoCardModal.style.top = '50%';
-      infoCardModal.style.transform = 'translate(-50%, -50%)';
-      infoCardModal.style.zIndex = '1000';
-    } else {
-      infoCardModal.style.position = 'absolute';
-      infoCardModal.style.transform = 'none';
-      infoCardModal.style.zIndex = '50';
-
-      if (tileElem) {
-        const tRect = tileElem.getBoundingClientRect();
-        const gap = 8;
-        const cardW = cardRect.width || 190;
-        const cardH = cardRect.height || 200;
-
-        if (pos.side === 'bottom') {
-          infoCardModal.style.left = `${tRect.left - centerRect.left}px`;
-          infoCardModal.style.top = `${tRect.top - centerRect.top - cardH - gap}px`;
-        } else if (pos.side === 'top') {
-          infoCardModal.style.left = `${tRect.left - centerRect.left}px`;
-          infoCardModal.style.top = `${tRect.bottom - centerRect.top + gap}px`;
-        } else if (pos.side === 'left') {
-          infoCardModal.style.left = `${tRect.right - centerRect.left + gap}px`;
-          infoCardModal.style.top = `${tRect.top - centerRect.top}px`;
-        } else if (pos.side === 'right') {
-          infoCardModal.style.left = `${tRect.left - centerRect.left - cardW - gap}px`;
-          infoCardModal.style.top = `${tRect.top - centerRect.top}px`;
-        }
-
-        const boardRect = boardElement.getBoundingClientRect();
-        const cardBox = infoCardModal.getBoundingClientRect();
-
-        let curTop = parseInt(infoCardModal.style.top, 10) || 0;
-        let curLeft = parseInt(infoCardModal.style.left, 10) || 0;
-
-        const overBottom = cardBox.bottom - boardRect.bottom;
-        if (overBottom > 0) curTop -= (overBottom + 8);
-        const overRight = cardBox.right - boardRect.right;
-        if (overRight > 0) curLeft -= (overRight + 8);
-        const overTop = boardRect.top - cardBox.top;
-        if (overTop > 0) curTop += (overTop + 8);
-        const overLeft = boardRect.left - cardBox.left;
-        if (overLeft > 0) curLeft += (overLeft + 8);
-
-        infoCardModal.style.left = `${Math.max(0, curLeft)}px`;
-        infoCardModal.style.top = `${Math.max(0, curTop)}px`;
-      }
+  async function showCrossRouteChoice(choice, dice = 0, startPos = null) {
+    if (!choice) return;
+    let modal = document.getElementById('cross-route-choice');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'cross-route-choice';
+      modal.className = 'cross-route-choice';
+      document.body.appendChild(modal);
     }
 
-    infoCardModal.classList.remove('hidden');
+    if (!modal.classList.contains('hidden') && modal.querySelector('.cross-route-dialog')) return;
+
+    const fromName = GameCore.state.board[choice.from]?.name || `Ga #${choice.from}`;
+    const toName = GameCore.state.board[choice.to]?.name || `Ga #${choice.to}`;
+    modal.innerHTML = `
+      <div class="cross-route-dialog">
+        <div class="cross-route-title">🚉 Đã đến ${fromName}</div>
+        <div class="cross-route-text">Chọn lối đi cho lượt kế tiếp</div>
+        <div class="cross-route-destination">Đường trong sẽ đến ${toName}</div>
+        <div class="cross-route-actions">
+          <button type="button" class="cross-route-inner">✚ Đường trong</button>
+          <button type="button" class="cross-route-outer">↻ Vòng ngoài</button>
+        </div>
+      </div>
+    `;
+    modal.classList.remove('hidden');
+
+    const close = () => modal.classList.add('hidden');
+    modal.querySelector('.cross-route-inner').addEventListener('click', async () => {
+      close();
+      if (window.GameOnline && GameOnline.isOnline && GameOnline.isOnline()) {
+        GameOnline.sendAction('CHOOSE_CROSS_ROUTE', { useInnerRoute: true });
+      } else {
+        const result = GameCore.chooseCrossRoute(GameCore.getCurrentPlayer(), true);
+        if (result && result.movementPath) {
+          const playerIndex = GameCore.state.players.findIndex(player => player.id === result.playerId);
+          await moveTokenStepByStep(playerTokens[playerIndex], startPos ?? result.startPos, dice, result.movementPath);
+        }
+        renderUI();
+        updateTurnActionButton(false);
+        showLandingInteraction(result);
+      }
+    });
+    modal.querySelector('.cross-route-outer').addEventListener('click', async () => {
+      close();
+      if (window.GameOnline && GameOnline.isOnline && GameOnline.isOnline()) {
+        GameOnline.sendAction('CHOOSE_CROSS_ROUTE', { useInnerRoute: false });
+      } else {
+        const result = GameCore.chooseCrossRoute(GameCore.getCurrentPlayer(), false);
+        if (result && result.movementPath) {
+          const playerIndex = GameCore.state.players.findIndex(player => player.id === result.playerId);
+          await moveTokenStepByStep(playerTokens[playerIndex], startPos ?? result.startPos, dice, result.movementPath);
+        }
+        renderUI();
+        updateTurnActionButton(false);
+        showLandingInteraction(result);
+      }
+    });
   }
+
+  function showLandingInteraction(result) {
+    if (!result || result.action !== 'PROMPT_BUY') return;
+    const tile = result.tile;
+    const effectivePrice = result.effectivePrice !== undefined ? result.effectivePrice : tile.price;
+    document.getElementById('modal-tile-name').innerText = tile.name;
+    document.getElementById('modal-tile-price').innerText = result.discount
+      ? `Giá ưu đãi (50%): $${effectivePrice} (Gốc: $${tile.price})`
+      : `Giá: $${tile.price}`;
+    const buyYesBtn = document.getElementById('buy-yes-btn');
+    if (buyYesBtn) buyYesBtn.disabled = !result.canAfford;
+    positionBuyPrompt(tile.id);
+    buyModal.classList.remove('hidden');
+    endTurnBtn.disabled = true;
+  }
+
+  document.addEventListener('game:cross-route-choice', (event) => {
+    const detail = event.detail || {};
+    showCrossRouteChoice(detail.crossRouteChoice, detail.dice, detail.startPos);
+  });
 
   // =========================================================
   // HOẠT ẢNH DI CHUYỂN QUÂN CỜ
   // =========================================================
-async function moveTokenStepByStep(tokenElem, startPos, steps) {
+  async function moveTokenStepByStep(tokenElem, startPos, steps, movementPath = null) {
     tokenElem.classList.add('moving');
-    let currentPos = startPos;
-    for (let i = 0; i < steps; i++) {
-      currentPos = (currentPos + 1) % 40;
+    const path = Array.isArray(movementPath) && movementPath.length > 0
+      ? movementPath
+      : Array.from({ length: steps }, (_, index) => (startPos + index + 1) % 40);
+    for (const currentPos of path) {
       const targetTile = document.getElementById(`tile-${currentPos}`);
       if (targetTile) targetTile.appendChild(tokenElem);
       await new Promise(resolve => setTimeout(resolve, 110));
@@ -1694,8 +2115,7 @@ async function moveTokenStepByStep(tokenElem, startPos, steps) {
   function closeAuctionModal() {
     stopAuctionTimer();
     if (auctionModal) auctionModal.classList.add('hidden');
-    endTurnBtn.disabled = false;
-    rollBtn.disabled = false;
+    updateTurnActionButton(false);
     renderUI();
   }
 
@@ -1809,6 +2229,7 @@ let chosenPlayerCount = 2;
       return;
     }
 
+    const crossBoardEl = document.getElementById('set-cross-board');
     const config = {
       playerCount: chosenPlayerCount,
       initialMoney: parseInt(document.getElementById('set-initial-money').value, 10) || 1500,
@@ -1819,6 +2240,7 @@ let chosenPlayerCount = 2;
       receiveRentWhileJailed: document.getElementById('set-rent-jailed').checked,
       auctionMode: document.getElementById('set-auction').checked,
       freeBuildOnFullGroup: document.getElementById('set-free-build-full-group').checked,
+      boardMode: (crossBoardEl && crossBoardEl.checked) ? 'cross' : 'standard',
       chosenTokens: chosenTokens.slice(0, chosenPlayerCount)
     };
 
@@ -1839,6 +2261,8 @@ let chosenPlayerCount = 2;
 
     GameCore.configure(config);
     GameCore.init();
+    localTurnPlayerIndex = GameCore.state.currentPlayerIndex;
+    localTurnHasRolled = false;
 
     buildBoard();
     buildPlayersUI();
@@ -1856,6 +2280,7 @@ let chosenPlayerCount = 2;
       <li>• Nhận thuê khi ở tù: <b>${config.receiveRentWhileJailed ? 'Bật' : 'Tắt'}</b></li>
       <li>• Chế độ đấu giá: <b>${config.auctionMode ? 'Bật' : 'Tắt'}</b></li>
       <li>• Trọn bộ màu nâng nhà tự do: <b>${config.freeBuildOnFullGroup ? 'Bật' : 'Tắt'}</b></li>
+      <li>• 🗺️ Bản đồ: <b>${config.boardMode === 'cross' ? 'Chữ Thập Mở Rộng (57 ô)' : 'Tiêu Chuẩn (40 ô)'}</b></li>
     </ul>`;
 
     renderUI();
@@ -1864,6 +2289,28 @@ let chosenPlayerCount = 2;
   // =========================================================
   // EVENT LISTENERS TRÒ CHƠI
   // =========================================================
+  function updateTurnActionButton(disabled = false) {
+    const currentPlayerIndex = GameCore.state.currentPlayerIndex;
+    if (localTurnPlayerIndex !== currentPlayerIndex) {
+      localTurnPlayerIndex = currentPlayerIndex;
+      localTurnHasRolled = false;
+    }
+
+    if (!localTurnHasRolled) {
+      rollBtn.innerText = 'GIEO XÚC XẮC';
+      rollBtn.dataset.action = 'roll';
+      rollBtn.disabled = disabled;
+      endTurnBtn.disabled = true;
+      return;
+    }
+
+    const canRollAgain = !!GameCore.state.extraRollPending;
+    rollBtn.innerText = canRollAgain ? 'GIEO XÚC XẮC' : 'KẾT THÚC LƯỢT';
+    rollBtn.dataset.action = canRollAgain ? 'roll' : 'end-turn';
+    rollBtn.disabled = disabled;
+    endTurnBtn.disabled = true;
+  }
+
   document.getElementById('close-info-card-btn').addEventListener('click', (e) => {
     e.stopPropagation();
     infoCardModal.classList.add('hidden');
@@ -1914,7 +2361,7 @@ const landing = cardResult ? cardResult.landing : null;
         cardModal.classList.remove('hidden');
         endTurnBtn.disabled = true;
       } else {
-        endTurnBtn.disabled = false;
+        updateTurnActionButton(false);
       }
       renderUI();
     });
@@ -1925,22 +2372,52 @@ const landing = cardResult ? cardResult.landing : null;
     e.stopPropagation();
     // ONLINE: server là nguồn sự thật -> không chạy logic cục bộ (online.js gửi hành động)
     if (window.GameOnline && window.GameOnline.isOnline && window.GameOnline.isOnline()) return;
+
+    if (rollBtn.dataset.action === 'end-turn') {
+      const curPlayer = GameCore.getCurrentPlayer();
+      if (curPlayer && curPlayer.money < 0) {
+        alert(`⚠️ Bạn đang nợ $${Math.abs(curPlayer.money)}! Hãy bán nhà, cầm cố đất hoặc giao dịch trước khi kết thúc lượt.`);
+        return;
+      }
+      infoCardModal.classList.add('hidden');
+      GameCore.endTurn();
+      updateTurnActionButton(false);
+      renderUI();
+      return;
+    }
+
     rollBtn.disabled = true;
     endTurnBtn.disabled = true;
 
     const res = GameCore.rollDice();
+    localTurnHasRolled = true;
     await playDiceAnimation(GameCore.state.lastRoll, GameCore.state.lastDice);
 
-    const playerIndex = GameCore.state.currentPlayerIndex;
+    const playerIndex = res.playerId
+      ? GameCore.state.players.findIndex(player => player.id === res.playerId)
+      : GameCore.state.currentPlayerIndex;
     const tokenElem = playerTokens[playerIndex];
 
+    // Hỏi tuyến ngay sau khi xúc xắc nếu người chơi đã chọn ga ở lượt trước.
+    if (res.action === 'CHOOSE_CROSS_ROUTE') {
+      rollBtn.disabled = true;
+      endTurnBtn.disabled = true;
+      await showCrossRouteChoice(res.crossRouteChoice, res.dice, res.startPos);
+      return;
+    }
+
     if (res.dice > 0 && res.action !== "STAY_IN_JAIL") {
-      await moveTokenStepByStep(tokenElem, res.startPos, res.dice);
+      await moveTokenStepByStep(tokenElem, res.startPos, res.dice, res.movementPath);
       if (res.action === "GO_TO_JAIL") {
         await new Promise(resolve => setTimeout(resolve, 200));
         const jailTile = document.getElementById('tile-10');
         if (jailTile && tokenElem) jailTile.appendChild(tokenElem);
       }
+    }
+
+    if (res.action === "OPEN_SHOP") {
+      const shopPlayer = GameCore.getCurrentPlayer();
+      if (shopPlayer && GameCore.Shop) GameCore.Shop.openShop(shopPlayer);
     }
 
     if (res.action === "PROMPT_BUY") {
@@ -1950,7 +2427,7 @@ const landing = cardResult ? cardResult.landing : null;
       
       const buyAuctionBtn = document.getElementById('buy-auction-btn');
       if (buyAuctionBtn) {
-        if (GameCore.settings && GameCore.settings.auctionMode) {
+        if (GameCore.settings?.auctionMode === true) {
           buyAuctionBtn.classList.remove('hidden');
         } else {
           buyAuctionBtn.classList.add('hidden');
@@ -1960,7 +2437,10 @@ const landing = cardResult ? cardResult.landing : null;
       if (buyYesBtn) {
         buyYesBtn.disabled = !res.canAfford;
       }
-      positionBuyPrompt(res.startPos + res.dice > 39 ? (res.startPos + res.dice) % 40 : res.startPos + res.dice);
+      const destinationIndex = Array.isArray(res.movementPath) && res.movementPath.length > 0
+        ? res.movementPath[res.movementPath.length - 1]
+        : (res.startPos + res.dice) % 40;
+      positionBuyPrompt(destinationIndex);
       buyModal.classList.remove('hidden');
       endTurnBtn.disabled = true;
     } else if (res.action === "AUCTION") {
@@ -1978,7 +2458,13 @@ const landing = cardResult ? cardResult.landing : null;
       document.getElementById('card-text').innerText = res.card.text;
       cardModal.classList.remove('hidden');
     } else {
-      endTurnBtn.disabled = false;
+      updateTurnActionButton(false);
+    }
+
+    if (res.crossRouteChoice && (res.action === 'CHOOSE_CROSS_ROUTE' || res.crossRouteChoice.nextTurn)) {
+      rollBtn.disabled = true;
+      endTurnBtn.disabled = true;
+      showCrossRouteChoice(res.crossRouteChoice, res.dice, res.startPos);
     }
 
     renderUI();
@@ -1996,6 +2482,10 @@ const landing = cardResult ? cardResult.landing : null;
     e.stopPropagation();
     tradeOfferModal.classList.add('hidden');
   });
+  document.querySelector('.trade-detail-close-btn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeTradeDetailModal();
+  });
   document.getElementById('trade-proceed-btn').addEventListener('click', (e) => {
     e.stopPropagation();
     submitTradeRequest();
@@ -2007,7 +2497,7 @@ const landing = cardResult ? cardResult.landing : null;
     if (window.GameOnline && window.GameOnline.isOnline && window.GameOnline.isOnline()) return;
     GameCore.buyPendingProperty();
     buyModal.classList.add('hidden');
-    endTurnBtn.disabled = false;
+    updateTurnActionButton(false);
     renderUI();
   });
 
@@ -2017,7 +2507,7 @@ const landing = cardResult ? cardResult.landing : null;
     if (window.GameOnline && window.GameOnline.isOnline && window.GameOnline.isOnline()) return;
     GameCore.skipPendingProperty();
     buyModal.classList.add('hidden');
-    endTurnBtn.disabled = false;
+    updateTurnActionButton(false);
     renderUI();
   });
 
