@@ -557,7 +557,10 @@
         }
         markRolled();
         rollBtn.disabled = true;
-        sendAction('ROLL_DICE');
+        const godDiceSelect = document.querySelector('#god-dice-control select');
+        const currentPlayer = GameCore.getCurrentPlayer();
+        const steps = currentPlayer?.godDiceTurns > 0 && godDiceSelect ? Number(godDiceSelect.value) : null;
+        sendAction('ROLL_DICE', steps ? { steps } : {});
       }, true);
     }
 

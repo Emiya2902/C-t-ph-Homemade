@@ -98,6 +98,27 @@ const cardModal = document.getElementById('card-modal');
     return { row: 6, col: 6, side: 'cross-center' }; // fallback
   }
 
+  function updateGodDiceControl(player) {
+    if (!rollBtn || !rollBtn.parentNode) return;
+    let control = document.getElementById('god-dice-control');
+    if (!control) {
+      control = document.createElement('label');
+      control.id = 'god-dice-control';
+      control.innerHTML = '🎯 <span>Chọn bước</span> <select aria-label="Số bước Quyền Năng Thượng Đế"></select>';
+      rollBtn.parentNode.insertBefore(control, rollBtn);
+      const select = control.querySelector('select');
+      for (let steps = 1; steps <= 12; steps++) {
+        const option = document.createElement('option');
+        option.value = steps;
+        option.innerText = steps;
+        select.appendChild(option);
+      }
+    }
+    const active = !!(player && player.godDiceTurns > 0);
+    control.hidden = !active;
+    control.querySelector('span').innerText = active ? `Còn ${player.godDiceTurns} lượt` : 'Chọn bước';
+  }
+
   function positionBuyPrompt(tileIndex) {
     if (!buyModal) return;
     positionPopupNearTile(buyModal, tileIndex);
@@ -439,6 +460,7 @@ const cardModal = document.getElementById('card-modal');
   function renderUI() {
     const { players, currentPlayerIndex, board, logs } = GameCore.state;
     const currentPlayer = players[currentPlayerIndex];
+    updateGodDiceControl(currentPlayer);
 
     // Cập nhật tiền & trạng thái tù cho từng người chơi
     players.forEach((p, i) => {
@@ -465,13 +487,27 @@ const cardModal = document.getElementById('card-modal');
           cardEl.appendChild(buffContainer);
         }
         buffContainer.innerHTML = '';
-        if (p.hasShield) {
+        const shieldCharges = Math.max(0, Math.min(3, Number(p.shieldCharges) || 0));
+        if (shieldCharges > 0) {
           const s = document.createElement('span');
           s.className = 'buff-badge buff-shield';
-          s.title = 'Có Khiên bảo vệ: Miễn 1 lần trả tiền thuê/thuế';
-          s.innerText = '🛡️ Khiên';
+          s.title = `Khiên Tối Thượng: còn ${shieldCharges}/3 lần chặn`;
+          s.innerText = `🛡️ ${shieldCharges}/3`;
           buffContainer.appendChild(s);
         }
+        const activeBuffs = [
+          ['midasCharges', 'buff-midas', `👑 Midas ${p.midasCharges} nhà`, 'Đế Chế Midas'],
+          ['godDiceTurns', 'buff-god-dice', `🎯 Dice ${p.godDiceTurns} lượt`, 'Quyền Năng Thượng Đế'],
+          ['globalTollTurns', 'buff-toll', `💸 Thu phí ${p.globalTollTurns} lượt`, 'Hoàng Tộc Thu Phí']
+        ];
+        activeBuffs.forEach(([key, className, text, title]) => {
+          if (!(Number(p[key]) > 0)) return;
+          const buff = document.createElement('span');
+          buff.className = `buff-badge ${className}`;
+          buff.title = `${title}: còn ${p[key]} lượt`;
+          buff.innerText = text;
+          buffContainer.appendChild(buff);
+        });
         if (p.hasDiscount) {
           const d = document.createElement('span');
           d.className = 'buff-badge buff-discount';
@@ -482,6 +518,15 @@ const cardModal = document.getElementById('card-modal');
       }
       if (playerTokens[i]) {
         playerTokens[i].style.display = p.isBankrupt ? 'none' : 'flex';
+        const hasCenterBuff = p.activeCenterBuff && (
+          (Number(p.shieldCharges) || 0) > 0 ||
+          (Number(p.midasCharges) || 0) > 0 ||
+          (Number(p.godDiceTurns) || 0) > 0 ||
+          (Number(p.globalTollTurns) || 0) > 0 ||
+          p.hasDiscount
+        );
+        playerTokens[i].classList.toggle('shield-aura', !p.isBankrupt && hasCenterBuff);
+        playerTokens[i].classList.toggle('center-buff-aura', !p.isBankrupt && hasCenterBuff);
       }
     });
 
@@ -2389,7 +2434,13 @@ const landing = cardResult ? cardResult.landing : null;
     rollBtn.disabled = true;
     endTurnBtn.disabled = true;
 
-    const res = GameCore.rollDice();
+    const godDiceControl = document.getElementById('god-dice-control');
+    const godDiceSelect = godDiceControl?.querySelector('select');
+    const rollingPlayer = GameCore.getCurrentPlayer();
+    const selectedSteps = rollingPlayer?.godDiceTurns > 0 && godDiceSelect
+      ? Number(godDiceSelect.value)
+      : null;
+    const res = GameCore.rollDice(selectedSteps);
     localTurnHasRolled = true;
     await playDiceAnimation(GameCore.state.lastRoll, GameCore.state.lastDice);
 

@@ -597,6 +597,7 @@ window.GameEnhancements = {
     // Tạo toast element
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
+    if (message.includes('đã chặn đứng đòn tấn công')) toast.classList.add('shield-block-toast');
 
     // Chọn icon dựa trên loại toast
     let icon = '📢';
@@ -662,10 +663,18 @@ window.GameEnhancements = {
     // Cập nhật trạng thái người chơi (shield, frozen)
     if (Array.isArray(gameState.players)) {
       gameState.players.forEach(player => {
-        const playerAvatarElem = document.querySelector(`[data-player-id="${player.id}"] .player-avatar`);
+        const playerAvatarElem = document.querySelector(`[data-player-id="${player.id}"]`);
         if (playerAvatarElem) {
-          playerAvatarElem.classList.remove('has-shield', 'is-frozen');
-          if (player.hasShield) playerAvatarElem.classList.add('has-shield');
+          const hasCenterBuff = player.activeCenterBuff && (
+            (Number(player.shieldCharges) || 0) > 0 ||
+            (Number(player.midasCharges) || 0) > 0 ||
+            (Number(player.godDiceTurns) || 0) > 0 ||
+            (Number(player.globalTollTurns) || 0) > 0 ||
+            player.hasDiscount
+          );
+          playerAvatarElem.classList.remove('has-shield', 'shield-aura', 'center-buff-aura', 'is-frozen');
+          if (hasCenterBuff) playerAvatarElem.classList.add('center-buff-aura');
+          if ((Number(player.shieldCharges) || 0) > 0) playerAvatarElem.classList.add('has-shield', 'shield-aura');
           if (player.inJail && player.jailTurns > 0) playerAvatarElem.classList.add('is-frozen');
         }
       });

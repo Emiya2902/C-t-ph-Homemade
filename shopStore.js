@@ -284,34 +284,41 @@
     const richest = others.slice().sort((a, b) => (b.money || 0) - (a.money || 0))[0];
     const tiles = ownedTiles(player);
     let landing = null;
+    const targetPlayer = target && typeof target.position === 'number'
+      ? target
+      : target && target.owner != null
+        ? core.state.players.find(item => item.id === target.owner)
+        : null;
+    const blocked = (payload) => targetPlayer && core.interceptAttack(player, targetPlayer, payload);
     switch (card.id) {
       case 'WALK_BOOST': player.position = (player.position + 2) % core.state.board.length; break;
-      case 'SLAP_BACK': target.position = (target.position - 2 + core.state.board.length) % core.state.board.length; break;
-      case 'FREEZE_ONE_TURN': target.skipTurns = (target.skipTurns || 0) + 1; break;
+      case 'SLAP_BACK': if (!blocked({ type: 'PUSH' })) target.position = (target.position - 2 + core.state.board.length) % core.state.board.length; break;
+      case 'FREEZE_ONE_TURN': if (!blocked({ type: 'FREEZE' })) target.skipTurns = (target.skipTurns || 0) + 1; break;
       case 'CHEAP_REPAIR': if (tiles.length) { player.money -= 20; tiles[0].houses = Math.max(0, (tiles[0].houses || 0) - 1); } break;
       case 'BUS_TICKET': { const stations = core.state.board.filter(tile => tile.type === 'RAILROAD'); const next = stations.sort((a, b) => ((a.id - player.position + core.state.board.length) % core.state.board.length) - ((b.id - player.position + core.state.board.length) % core.state.board.length))[0]; if (next) player.position = next.id; break; }
       case 'FREE_PARKING': player.shopFreeParking = true; break;
       case 'EVEN_DICE': player.shopEvenDice = true; break;
       case 'INSURANCE_MINI': player.shopRentReduction = 0.3; break;
-      case 'SHIELD': player.hasShield = true; break;
+      case 'SHIELD': core.grantTripleShield(player); break;
       case 'DISCOUNT_50': player.hasDiscount = true; break;
-      case 'PROPERTY_SABOTAGE': if (target.owner !== player.id && target.type === 'PROPERTY' && target.houses > 0) target.houses -= 1; break;
+      case 'PROPERTY_SABOTAGE': if (target.owner !== player.id && target.type === 'PROPERTY' && target.houses > 0 && !blocked({ type: 'SABOTAGE', tile: target })) target.houses -= 1; break;
       case 'TELEPORT_FORWARD': if (target) player.position = target.id; break;
       case 'BOOST_RENT_1_5': { const tile = core.state.board.find(item => item.owner === target.id && item.price); if (tile) tile.boostTurns = 2; break; }
-      case 'FORCE_MORTGAGE': { const tile = core.state.board.find(item => item.owner === richest?.id && item.houses === 0 && !item.mortgaged); if (tile) tile.mortgaged = true; break; }
-      case 'ARREST_WARRANT': target.position = 10; target.inJail = true; break;
-      case 'HIJACK_RENT': { const tile = core.state.board.find(item => item.owner === target.id && item.price); if (tile) tile.hijackPlayerId = player.id; break; }
-      case 'PULL_RICHEST': { const tile = tiles.slice().sort((a, b) => b.price - a.price)[0]; if (tile && richest) richest.position = tile.id; break; }
+      case 'FORCE_MORTGAGE': { const tile = core.state.board.find(item => item.owner === richest?.id && item.houses === 0 && !item.mortgaged); if (tile && richest && !core.interceptAttack(player, richest, { type: 'FORCE_MORTGAGE', tile })) tile.mortgaged = true; break; }
+      case 'ARREST_WARRANT': if (!blocked({ type: 'ARREST' })) { target.position = 10; target.inJail = true; } break;
+      case 'HIJACK_RENT': { const tile = core.state.board.find(item => item.owner === target.id && item.price); if (tile && !blocked({ type: 'HIJACK_RENT', tile })) tile.hijackPlayerId = player.id; break; }
+      case 'PULL_RICHEST': { const tile = tiles.slice().sort((a, b) => b.price - a.price)[0]; if (tile && richest && !core.interceptAttack(player, richest, { type: 'FORCED_MOVE', tile })) richest.position = tile.id; break; }
       case 'PROTECT_LAND_PERMANENT': if (tiles.length) tiles[0].permanentProtection = true; break;
-      case 'SWAP_UNBUILT_TILE': { const mine = tiles.find(item => !item.houses); const theirs = core.state.board.find(item => item.owner === target.id && item.price && !item.houses); if (mine && theirs) { mine.owner = target.id; theirs.owner = player.id; } break; }
-      case 'EARTHQUAKE_STRIKE': core.state.board.filter(item => item.owner === target.id && item.type === 'PROPERTY' && item.houses > 0).forEach(item => { item.houses -= 1; }); break;
-      case 'MIND_CONTROL': { const tile = tiles.slice().sort((a, b) => b.price - a.price)[0]; if (tile) { target.position = tile.id; target.shopRentReduction = 0.3; } break; }
+      case 'SWAP_UNBUILT_TILE': { const mine = tiles.find(item => !item.houses); const theirs = core.state.board.find(item => item.owner === target.id && item.price && !item.houses); if (mine && theirs && !blocked({ type: 'LAND_SWAP', tile: theirs })) { mine.owner = target.id; theirs.owner = player.id; } break; }
+      case 'EARTHQUAKE_STRIKE': if (!blocked({ type: 'EARTHQUAKE' })) core.state.board.filter(item => item.owner === target.id && item.type === 'PROPERTY' && item.houses > 0).forEach(item => { item.houses -= 1; }); break;
+      case 'MIND_CONTROL': { const tile = tiles.slice().sort((a, b) => b.price - a.price)[0]; if (tile && !blocked({ type: 'MIND_CONTROL', tile })) { target.position = tile.id; target.shopRentReduction = 0.3; } break; }
       case 'SHADOW_STEP': player.isGhosting = true; break;
-      case 'SLIDE_OIL': target.trap = 'SLIDE_OIL'; break;
+      case 'SLIDE_OIL': if (!blocked({ type: 'TRAP', tile: target })) target.trap = 'SLIDE_OIL'; break;
       case 'BUILDING_PERMIT': if (target.owner === player.id && target.type === 'PROPERTY') target.houses = Math.min(5, (target.houses || 0) + 1); break;
-      case 'POSITION_SWAP': { const distance = Math.abs(target.position - player.position); if (distance <= 5 || distance >= core.state.board.length - 5) [player.position, target.position] = [target.position, player.position]; break; }
+      case 'POSITION_SWAP': { const distance = Math.abs(target.position - player.position); if ((distance <= 5 || distance >= core.state.board.length - 5) && !blocked({ type: 'POSITION_SWAP' })) [player.position, target.position] = [target.position, player.position]; break; }
       case 'REVERSE_GRAVITY':
         others.forEach(item => {
+          if (core.interceptAttack(player, item, { type: 'REVERSE_GRAVITY' })) return;
           item.position = (item.position - 2 + core.state.board.length) % core.state.board.length;
           item.moveDirection = 1;
           item.reverseTurns = 0;

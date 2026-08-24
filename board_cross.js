@@ -10,7 +10,7 @@ const CROSS_TILES = [
   { id: 43, name: "Cầu Sài Gòn", type: "PROPERTY", group: "CROSS_NORTH", price: 120, rent: [8, 40, 100, 300, 450, 600], housePrice: 50, owner: null, houses: 0 },
 
   // Tâm giao điểm (Cột 6, Hàng 6) — Ô đặc biệt
-  { id: 44, name: "Vòng xoay Dân Chủ", type: "CHANCE" },
+  { id: 44, name: "Vòng xoay Dân Chủ", type: "CHANCE", isCenterHub: true },
 
   // Nhánh Dọc phía Nam
   { id: 45, name: "Cầu Kênh Tẻ", type: "PROPERTY", group: "CROSS_SOUTH", price: 140, rent: [10, 50, 150, 450, 625, 750], housePrice: 100, owner: null, houses: 0 },

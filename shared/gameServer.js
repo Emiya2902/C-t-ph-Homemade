@@ -165,6 +165,7 @@ class GameInstance {
       turnCount: i === 0 ? 1 : 0,
       hasBuiltHouseThisTurn: false,
       lastCreditorId: null,
+      shieldCharges: 0,
       hasShield: false,
       hasDiscount: false,
       shopCards: [],
@@ -215,6 +216,56 @@ class GameInstance {
 
   getCurrentPlayer() {
     return this.state.players[this.state.currentPlayerIndex];
+  }
+
+  activateCenterBuff(player) {
+    const buffTypes = ['TRIPLE_AEGIS_SHIELD', 'MIDAS_EMPIRE', 'GOD_DICE', 'GLOBAL_TOLL_KING', 'DISCOUNT_50'];
+    const buff = buffTypes[Math.floor(Math.random() * buffTypes.length)];
+    const totalPlayers = this.state.players.length;
+    player.shieldCharges = 0;
+    player.hasShield = false;
+    player.midasCharges = 0;
+    player.godDiceTurns = 0;
+    player.globalTollTurns = 0;
+    player.hasDiscount = false;
+    player.activeCenterBuff = buff;
+    if (buff === 'TRIPLE_AEGIS_SHIELD') { player.shieldCharges = 3; player.hasShield = true; }
+    if (buff === 'MIDAS_EMPIRE') player.midasCharges = 3;
+    if (buff === 'GOD_DICE') player.godDiceTurns = 2;
+    if (buff === 'GLOBAL_TOLL_KING') player.globalTollTurns = totalPlayers * 2;
+    if (buff === 'DISCOUNT_50') player.hasDiscount = true;
+    this.addLog(`✨ ${player.name} nhận buff ${buff === 'MIDAS_EMPIRE' ? 'MIDAS_EMPIRE (3 nhà)' : buff === 'GOD_DICE' ? 'GOD_DICE (2 lượt)' : buff}.`);
+    return buff;
+  }
+
+  processMovementPasses(player, movementPath = []) {
+    movementPath.forEach(position => {
+      const tile = this.state.board[position];
+      if (!tile) return;
+      if (player.midasCharges > 0 && tile.owner === player.id && tile.type === 'PROPERTY' && (tile.houses || 0) < 5) {
+        tile.houses = (tile.houses || 0) + 1;
+        player.midasCharges -= 1;
+        if (player.midasCharges <= 0) delete player.midasCharges;
+      }
+      if (tile.owner && tile.owner !== player.id) {
+        this.state.players.forEach(holder => {
+          if (holder.id !== player.id && holder.globalTollTurns > 0) {
+            player.money -= 20;
+            holder.money += 20;
+          }
+        });
+      }
+    });
+  }
+
+  interceptAttack(attacker, targetPlayer, attackPayload = {}) {
+    if (!targetPlayer) return false;
+    if ((Number(targetPlayer.shieldCharges) || 0) <= 0 && targetPlayer.hasShield) targetPlayer.shieldCharges = 1;
+    if (targetPlayer.shieldCharges <= 0) return false;
+    targetPlayer.shieldCharges -= 1;
+    targetPlayer.hasShield = targetPlayer.shieldCharges > 0;
+    this.addLog(`🛡️ ${targetPlayer.name} đã chặn đứng đòn tấn công! (Còn ${targetPlayer.shieldCharges}/3 lần khiên)`);
+    return true;
   }
 
   getPlayersMeta() {
@@ -319,6 +370,7 @@ class GameInstance {
     const movement = this.getMovementPath(player, pendingRoll.dice);
     player.position = movement.position;
     this.state.lastMovementPath = movement.path;
+    this.processMovementPasses(player, movement.path);
     return { ...this.processTileLanding(player, {
       startPos: pendingRoll.startPos,
       dice: pendingRoll.dice,
@@ -379,6 +431,10 @@ class GameInstance {
     (gameState.players || []).forEach(player => {
       if (player.reverseTurns > 0) player.reverseTurns -= 1;
       if (!player.reverseTurns) player.moveDirection = 1;
+      ['godDiceTurns', 'globalTollTurns'].forEach(key => {
+        if (player[key] > 0) player[key] -= 1;
+        if (player[key] <= 0) delete player[key];
+      });
     });
     return gameState;
   }
@@ -488,9 +544,12 @@ class GameInstance {
     const rent = this.calculateRent(tile, owner);
     if (rent <= 0) return 0;
 
-    if (payer.hasShield) {
-      payer.hasShield = false;
-      this.addLog(`🛡️ ${payer.name} đã kích hoạt KHIÊN BẢO VỆ và được miễn phí trả $${rent} tiền thuê cho ${owner.name}!`);
+    if (payer.midasCharges > 0) {
+      this.addLog(`👑 ${payer.name} dùng Đế Chế Midas và được miễn $${rent} tiền thuê cho ${owner.name}.`);
+      return 0;
+    }
+
+    if (this.interceptAttack(owner, payer, { type: 'RENT', tile })) {
       return 0;
     }
 
@@ -610,6 +669,10 @@ class GameInstance {
     const tile = this.state.board[p.position];
     if (!tile) return { action: "END_ROLL", tile: null, ...info };
 
+    if (tile.isCenterHub || tile.id === 44) {
+      this.activateCenterBuff(p);
+    }
+
     if (p.isGhosting) {
       p.isGhosting = false;
       this.addLog(`👻 ${p.name} đi xuyên qua [${tile.name}] mà không kích hoạt hiệu ứng.`);
@@ -617,6 +680,10 @@ class GameInstance {
     }
 
     if (tile.trap === 'SLIDE_OIL') {
+      if (this.interceptAttack(null, p, { type: 'TRAP', tile })) {
+        delete tile.trap;
+        return { action: "END_ROLL", tile, blocked: true, ...info };
+      }
       delete tile.trap;
       p.position = (p.position + 3) % this.state.board.length;
       this.addLog(`🛢️ ${p.name} dẫm bẫy dầu tại [${tile.name}] và trượt thêm 3 ô.`);
@@ -660,9 +727,7 @@ class GameInstance {
     // 3. Ô THUẾ
     if (p.position === 4 || tileType === "TAX") {
       const taxAmount = p.position === 4 ? Math.round(p.money * 0.10) : (tile.amount || 100);
-      if (p.hasShield) {
-        p.hasShield = false;
-        this.addLog(`🛡️ ${p.name} đỗ vào [${tile.name || "Thuế"}] nhưng đã dùng KHIÊN BẢO VỆ để miễn nộp $${taxAmount}!`);
+      if (this.interceptAttack(null, p, { type: 'TAX', tile })) {
         return { action: "PAID_TAX", taxAmount: 0, ...info };
       }
       p.money -= taxAmount;
@@ -717,15 +782,21 @@ class GameInstance {
     return { action: "END_ROLL", tile, ...info };
   }
 
-  rollDice() {
+  rollDice(stepsOverride = null) {
     const p = this.getCurrentPlayer();
     const d1 = Math.floor(Math.random() * 6) + 1;
     const d2 = Math.floor(Math.random() * 6) + 1;
-    const dice = d1 + d2;
-    const isDouble = (d1 === d2);
+    const hasGodDice = p.godDiceTurns > 0 && Number.isFinite(Number(stepsOverride));
+    const dice = hasGodDice ? Math.max(1, Math.min(12, Math.floor(Number(stepsOverride)))) : d1 + d2;
+    const isDouble = !hasGodDice && (d1 === d2);
     const earnsExtraRoll = isDouble || (d1 === 6 && d2 === 1) || (d1 === 1 && d2 === 6);
     this.state.lastRoll = dice;
-    this.state.lastDice = [d1, d2];
+    this.state.lastDice = hasGodDice ? [Math.min(6, dice), Math.max(1, dice - Math.min(6, dice))] : [d1, d2];
+    if (hasGodDice) {
+      p.godDiceTurns -= 1;
+      if (p.godDiceTurns <= 0) delete p.godDiceTurns;
+      this.addLog(`🎯 ${p.name} dùng Quyền Năng Thượng Đế: chọn đi chính xác ${dice} bước.`);
+    }
 
     const startPos = p.position;
 
@@ -776,6 +847,7 @@ class GameInstance {
     const movement = this.getMovementPath(p, dice + (this.state.weatherMoveBonus || 0));
     p.position = movement.position;
     this.state.lastMovementPath = movement.path;
+    this.processMovementPasses(p, movement.path);
 
     if (movement.path.some((position, index) => position < 40 && position < (movement.path[index - 1] ?? oldPos)) && !p.inJail) {
       const goBonus = this.settings.passGoMoney;
@@ -821,6 +893,7 @@ class GameInstance {
         const others = this.state.players.filter(x => x.id !== p.id && !x.isBankrupt);
         let totalCollected = 0;
         others.forEach(other => {
+          if (this.interceptAttack(p, other, { type: 'COLLECT_OTHER', amount })) return;
           other.money -= amount;
           if (other.money < 0) {
             other.lastCreditorId = p.id;
@@ -836,8 +909,7 @@ class GameInstance {
       }
 
       case "SHIELD": {
-        p.hasShield = true;
-        this.addLog(`  -> 🛡️ ${p.name} nhận được KHIÊN BẢO VỆ (Miễn trừ 1 lần trả tiền thuê/tiền phạt)!`);
+        this.grantTripleShield(p);
         break;
       }
 
@@ -864,7 +936,10 @@ class GameInstance {
       case "DEMOLISH_ENEMY_HOUSE": {
         const richest = this.state.players.filter(x => x.id !== p.id && !x.isBankrupt).sort((a, b) => this.netWorth(b) - this.netWorth(a))[0];
         const target = richest && this.state.board.filter(t => t.owner === richest.id && t.type === 'PROPERTY' && t.houses > 0).sort((a, b) => b.price - a.price)[0];
-        if (target && !target.protectedTurns) { target.houses -= 1; this.addLog(`📉 Hạ một cấp nhà trên [${target.name}].`); }
+        if (target && !target.protectedTurns && !this.interceptAttack(p, richest, { type: 'DEMOLISH', tile: target })) {
+          target.houses -= 1;
+          this.addLog(`📉 Hạ một cấp nhà trên [${target.name}].`);
+        }
         break;
       }
 
@@ -893,6 +968,7 @@ class GameInstance {
         if (rivals.length > 0) {
           rivals.sort((a, b) => this.netWorth(b) - this.netWorth(a));
           const richest = rivals[0];
+          if (this.interceptAttack(p, richest, { type: 'STEAL', amount: stealAmount })) break;
           const actualSteal = Math.min(Math.max(0, richest.money), stealAmount);
           richest.money -= actualSteal;
           p.money += actualSteal;
@@ -915,6 +991,7 @@ class GameInstance {
           const targetTileIndex = this.state.board.findIndex(t => t.id === expensiveTile.id);
 
           if (targetTileIndex !== -1) {
+            if (this.interceptAttack(p, richest, { type: 'FORCED_MOVE', tile: expensiveTile })) break;
             const oldPos = richest.position;
             richest.position = targetTileIndex;
             this.addLog(`  -> 🧲 Đã kéo đại gia ${richest.name} từ ô #${oldPos} đến ô [${expensiveTile.name}] (#${targetTileIndex}) của ${p.name}!`);
@@ -934,6 +1011,8 @@ class GameInstance {
           const myTile = mySwappable[Math.floor(Math.random() * mySwappable.length)];
           const rivalTile = rivalSwappable[Math.floor(Math.random() * rivalSwappable.length)];
           const rivalPlayer = this.state.players.find(x => x.id === rivalTile.owner);
+
+          if (this.interceptAttack(p, rivalPlayer, { type: 'LAND_SWAP', tile: rivalTile })) break;
 
           const tempOwner = myTile.owner;
           myTile.owner = rivalTile.owner;
@@ -1430,7 +1509,7 @@ function applyAction(game, playerIdx, action) {
   switch (type) {
     case 'ROLL_DICE':
       if (game.state.currentPlayerIndex !== playerIdx) return null;
-      return game.rollDice();
+      return game.rollDice(action.steps);
 
     case 'BUY_PROPERTY':
       if (game.state.currentPlayerIndex !== playerIdx) return null;
