@@ -21,7 +21,7 @@ const CROSS_TILES = [
   // === Nhánh Ngang Tây - Đông (Hàng 6, Cột 2 -> 10, trừ Cột 6 đã là Tâm) ===
   { id: 49, name: "Cầu Nhị Thiên Đường", type: "PROPERTY", group: "CROSS_WEST", price: 180, rent: [14, 70, 200, 550, 750, 950], housePrice: 100, owner: null, houses: 0 },
   { id: 50, name: "ĐL Võ Văn Kiệt", type: "PROPERTY", group: "CROSS_WEST", price: 180, rent: [14, 70, 200, 550, 750, 950], housePrice: 100, owner: null, houses: 0 },
-  { id: 51, name: "Ngã sáu Cộng Hòa", type: "CHANCE" },
+  { id: 51, name: "Khí vận Cộng Hòa", type: "FORTUNE", icon: "🎁" },
   { id: 52, name: "Chợ Kim Biên", type: "PROPERTY", group: "CROSS_WEST", price: 200, rent: [16, 80, 220, 600, 800, 1000], housePrice: 100, owner: null, houses: 0 },
 
   // Nhánh Ngang phía Đông

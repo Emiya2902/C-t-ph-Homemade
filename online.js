@@ -376,6 +376,12 @@
     const state = GameCore.state;
     const buyModal = $('buy-modal');
     const cardModal = $('card-modal');
+    const currentPlayer = state.players?.[myIndex];
+    const currentTile = currentPlayer ? state.board?.[currentPlayer.position] : null;
+
+    if (currentTile?.type === 'SHOP' && window.GameCore?.Shop && GameCore.Shop.shopSession?.playerId !== currentPlayer.id) {
+      GameCore.Shop.openShop(currentPlayer);
+    }
 
     // Mở bảng chọn tuyến ngay sau state xúc xắc, khi token vẫn ở ga.
     if (state.crossRouteChoice && state.pendingCrossRouteRoll && state.currentPlayerIndex === myIndex) {

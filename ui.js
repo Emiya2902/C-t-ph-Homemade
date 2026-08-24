@@ -226,7 +226,7 @@ const cardModal = document.getElementById('card-modal');
       return { icon: '❓', className: 'tile-icon tile-special-icon' };
     }
 
-    if (tile.type === "CHEST" || (tile.name && tile.name.includes("Khí vận"))) {
+    if (tile.type === "CHEST" || tile.type === "FORTUNE" || (tile.name && tile.name.includes("Khí vận"))) {
       return { icon: '🎁', className: 'tile-icon tile-special-icon' };
     }
 
@@ -265,7 +265,7 @@ const cardModal = document.getElementById('card-modal');
       53: '🚇', 54: '❓', 55: '🛣️', 56: '🌉'
     };
     if (index >= 40 && crossIcons[index]) {
-      const isCrossChance = tile.type === 'CHANCE' || tile.type === 'SHOP';
+      const isCrossChance = tile.type === 'CHANCE' || tile.type === 'SHOP' || tile.type === 'FORTUNE';
       return { icon: crossIcons[index], className: isCrossChance ? 'tile-icon tile-special-icon' : 'tile-icon tile-property-icon' };
     }
     return { icon: propIcon, className: 'tile-icon tile-property-icon' };

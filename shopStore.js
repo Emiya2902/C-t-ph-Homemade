@@ -115,6 +115,25 @@
     return true;
   }
 
+  function handleCardLanding(landing, player) {
+    if (!landing) return;
+    if (landing.action === 'OPEN_SHOP' && player.id === window.GameCore.getCurrentPlayer().id) {
+      Shop.openShop(player);
+    } else if (landing.action === 'DRAW_CARD' && landing.card && player.id === window.GameCore.getCurrentPlayer().id) {
+      const modal = document.getElementById('card-modal');
+      document.getElementById('card-title').innerText = landing.card.title;
+      document.getElementById('card-text').innerText = landing.card.text;
+      document.getElementById('card-type-badge').innerText = landing.card.type;
+      modal?.classList.remove('hidden');
+    } else if (landing.action === 'PROMPT_BUY' && player.id === window.GameCore.getCurrentPlayer().id) {
+      const modal = document.getElementById('buy-modal');
+      document.getElementById('modal-tile-name').innerText = landing.tile.name;
+      document.getElementById('modal-tile-price').innerText = `Giá: $${landing.tile.price}`;
+      window.positionBuyPrompt?.(player.position);
+      modal?.classList.remove('hidden');
+    }
+  }
+
   function animateCardEffect(card, target, player) {
     const targetTile = target?.position !== undefined ? target.position : target?.id;
     const tileElement = targetTile !== undefined ? document.getElementById(`tile-${targetTile}`) : null;
@@ -264,6 +283,7 @@
     const others = core.state.players.filter(item => item.id !== player.id && !item.isBankrupt);
     const richest = others.slice().sort((a, b) => (b.money || 0) - (a.money || 0))[0];
     const tiles = ownedTiles(player);
+    let landing = null;
     switch (card.id) {
       case 'WALK_BOOST': player.position = (player.position + 2) % core.state.board.length; break;
       case 'SLAP_BACK': target.position = (target.position - 2 + core.state.board.length) % core.state.board.length; break;
@@ -300,10 +320,46 @@
         window.GameEnhancements?.showEffectToast?.('🌀 Trọng lực đảo chiều! Tất cả đối thủ lùi 2 ô.', 'warning');
         break;
     }
+    if (['WALK_BOOST', 'TELEPORT_FORWARD', 'POSITION_SWAP'].includes(card.id)) {
+      landing = core.processTileLanding(player, { startPos: player.position });
+    }
+    if (card.id === 'REVERSE_GRAVITY') {
+      others.forEach(opponent => {
+        const startPos = opponent.position;
+        core.processTileLanding(opponent, { startPos, forcedMove: true });
+        core.state.pendingTile = null;
+        core.state.pendingCard = null;
+      });
+    }
       animateCardEffect(card, target, player);
     core.addLog(`🛒 ${player.name} đã dùng thẻ [${card.title}].`);
     closeShop();
     window.GameUI?.renderUI?.();
+    handleCardLanding(landing, player);
+  }
+
+  function handleCardLanding(landing, player) {
+    if (!landing) return;
+    if (landing.action === 'OPEN_SHOP') {
+      Shop.openShop(player);
+      return;
+    }
+    if (landing.action === 'DRAW_CARD' && landing.card) {
+      const cardModal = document.getElementById('card-modal');
+      document.getElementById('card-title').innerText = landing.card.title;
+      document.getElementById('card-text').innerText = landing.card.text;
+      const badge = document.getElementById('card-type-badge');
+      if (badge) badge.innerText = landing.card.type;
+      cardModal?.classList.remove('hidden');
+      return;
+    }
+    if (landing.action === 'PROMPT_BUY' && landing.tile) {
+      const buyModal = document.getElementById('buy-modal');
+      document.getElementById('modal-tile-name').innerText = landing.tile.name;
+      document.getElementById('modal-tile-price').innerText = `Giá: $${landing.tile.price}`;
+      window.positionBuyPrompt?.(player.position);
+      buyModal?.classList.remove('hidden');
+    }
   }
 
   const Shop = {

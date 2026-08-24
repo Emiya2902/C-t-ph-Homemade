@@ -618,8 +618,9 @@ class GameInstance {
 
     if (tile.trap === 'SLIDE_OIL') {
       delete tile.trap;
-      p.position = (p.position + 3) % 40;
+      p.position = (p.position + 3) % this.state.board.length;
       this.addLog(`🛢️ ${p.name} dẫm bẫy dầu tại [${tile.name}] và trượt thêm 3 ô.`);
+      return this.processTileLanding(p, { ...info, slidFrom: tile.id });
     }
 
     // 1. Ô VÀO TÙ
