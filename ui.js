@@ -2442,7 +2442,7 @@ const landing = cardResult ? cardResult.landing : null;
       : null;
     const res = GameCore.rollDice(selectedSteps);
     localTurnHasRolled = true;
-    await playDiceAnimation(GameCore.state.lastRoll, GameCore.state.lastDice);
+    if (!res.godDice) await playDiceAnimation(GameCore.state.lastRoll, GameCore.state.lastDice);
 
     const playerIndex = res.playerId
       ? GameCore.state.players.findIndex(player => player.id === res.playerId)

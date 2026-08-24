@@ -203,6 +203,7 @@ class GameInstance {
       crossRouteChoice: null,
       pendingCrossRouteRoll: null,
       lastMovementPath: [],
+      lastRollWasGodDice: false,
       settings: this.settings
     };
   }
@@ -301,6 +302,7 @@ class GameInstance {
       crossRouteChoice: this.state.crossRouteChoice,
       pendingCrossRouteRoll: this.state.pendingCrossRouteRoll,
       lastMovementPath: this.state.lastMovementPath || [],
+      lastRollWasGodDice: !!this.state.lastRollWasGodDice,
       settings: this.settings
     };
   }
@@ -791,6 +793,7 @@ class GameInstance {
     const isDouble = !hasGodDice && (d1 === d2);
     const earnsExtraRoll = isDouble || (d1 === 6 && d2 === 1) || (d1 === 1 && d2 === 6);
     this.state.lastRoll = dice;
+    this.state.lastRollWasGodDice = hasGodDice;
     this.state.lastDice = hasGodDice ? [Math.min(6, dice), Math.max(1, dice - Math.min(6, dice))] : [d1, d2];
     if (hasGodDice) {
       p.godDiceTurns -= 1;
@@ -856,6 +859,7 @@ class GameInstance {
     }
 
     const result = this.processTileLanding(p, { startPos, dice, movementPath: movement.path });
+    result.godDice = hasGodDice;
     const landedDirectlyOnStation = movement.path.every(position => position < 40) && [5, 15, 25, 35].includes(p.position);
     const crossRoute = landedDirectlyOnStation ? this.getCrossRoute(p.position) : null;
     if (crossRoute) {

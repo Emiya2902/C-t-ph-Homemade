@@ -109,7 +109,8 @@ window.GameCore = {
     weather: 'CLEAR', weatherTurns: 0, weatherMoveBonus: 0, canBuild: true,
     crossRoute: null,
     crossRouteChoice: null,
-    pendingCrossRouteRoll: null
+    pendingCrossRouteRoll: null,
+    lastRollWasGodDice: false
   },
 
   updateTurnCounters(gameState = this.state) {
@@ -702,13 +703,14 @@ window.GameCore = {
 
   rollDice(stepsOverride = null) {
     const p = this.getCurrentPlayer();
-    const d1 = Math.floor(Math.random() * 6) + 1;
-    const d2 = Math.floor(Math.random() * 6) + 1;
     const hasGodDice = p.godDiceTurns > 0 && Number.isFinite(Number(stepsOverride));
+    const d1 = hasGodDice ? 1 : Math.floor(Math.random() * 6) + 1;
+    const d2 = hasGodDice ? 1 : Math.floor(Math.random() * 6) + 1;
     const dice = hasGodDice ? Math.max(1, Math.min(12, Math.floor(Number(stepsOverride)))) : d1 + d2;
     const isDouble = !hasGodDice && (d1 === d2);
     const earnsExtraRoll = isDouble || (d1 === 6 && d2 === 1) || (d1 === 1 && d2 === 6);
     this.state.lastRoll = dice;
+    this.state.lastRollWasGodDice = hasGodDice;
     this.state.lastDice = hasGodDice ? [Math.min(6, dice), Math.max(1, dice - Math.min(6, dice))] : [d1, d2];
     if (hasGodDice) {
       p.godDiceTurns -= 1;
@@ -773,6 +775,7 @@ window.GameCore = {
     }
 
     const result = this.processTileLanding(p, { startPos, dice, movementPath: movement.path });
+    result.godDice = hasGodDice;
     const landedOnStation = movement.path.every(position => position < 40) && [5, 15, 25, 35].includes(p.position);
     const crossRoute = landedOnStation ? this.getCrossRoute(p.position) : null;
     if (crossRoute) {

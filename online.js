@@ -83,6 +83,7 @@
     GameCore.state.lastMovementPath = Array.isArray(serverState.lastMovementPath)
       ? serverState.lastMovementPath.slice()
       : [];
+    GameCore.state.lastRollWasGodDice = !!serverState.lastRollWasGodDice;
 
     // pendingCard (thẻ cơ hội/khí vận)
     GameCore.state.pendingCard = serverState.pendingCard || null;
@@ -348,7 +349,9 @@
         const serverPath = Array.isArray(data.state.lastMovementPath) ? data.state.lastMovementPath : [];
         const steps = serverPath.length || (endPos - startPos + 40) % 40;
         if (steps > 0 && steps <= 12) {
-          await GameUI.playDiceAnimation(GameCore.state.lastRoll, data.state.lastDice || GameCore.state.lastDice);
+          if (!GameCore.state.lastRollWasGodDice) {
+            await GameUI.playDiceAnimation(GameCore.state.lastRoll, data.state.lastDice || GameCore.state.lastDice);
+          }
           await GameUI.moveTokenStepByStep(GameUI.playerTokens[movedIndex], startPos, steps, serverPath);
           if (endPos === 10 && GameCore.state.players[movedIndex].inJail) {
             await new Promise(resolve => setTimeout(resolve, 200));
