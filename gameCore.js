@@ -427,14 +427,12 @@ window.GameCore = {
         }
       }
 
-      if (tile.owner && tile.owner !== player.id) {
-        this.state.players.forEach(holder => {
-          if (holder.id === player.id || holder.globalTollTurns <= 0) return;
-          player.money -= 20;
-          holder.money += 20;
-          this.addLog(`💸 ${player.name} trả $20 phí đường cho ${holder.name} khi đi qua [${tile.name}].`);
-        });
-      }
+      this.state.players.forEach(holder => {
+        if (holder.id === player.id || holder.globalTollTurns <= 0) return;
+        player.money -= 20;
+        holder.money += 20;
+        this.addLog(`💸 ${player.name} trả $20 phí đường cho ${holder.name} khi đi qua [${tile.name}].`);
+      });
     });
   },
 

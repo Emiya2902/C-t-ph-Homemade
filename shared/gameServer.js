@@ -248,14 +248,12 @@ class GameInstance {
         player.midasCharges -= 1;
         if (player.midasCharges <= 0) delete player.midasCharges;
       }
-      if (tile.owner && tile.owner !== player.id) {
-        this.state.players.forEach(holder => {
-          if (holder.id !== player.id && holder.globalTollTurns > 0) {
-            player.money -= 20;
-            holder.money += 20;
-          }
-        });
-      }
+      this.state.players.forEach(holder => {
+        if (holder.id !== player.id && holder.globalTollTurns > 0) {
+          player.money -= 20;
+          holder.money += 20;
+        }
+      });
     });
   }
 
