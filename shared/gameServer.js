@@ -233,6 +233,7 @@ class GameInstance {
     player.godDiceTurns = 0;
     player.globalTollTurns = 0;
     player.hasDiscount = false;
+    player.specialShop = null;
     player.activeCenterBuff = buff;
     if (buff === 'TRIPLE_AEGIS_SHIELD') { player.shieldCharges = 3; player.hasShield = true; }
     if (buff === 'MIDAS_EMPIRE') player.midasCharges = 3;
@@ -249,13 +250,13 @@ class GameInstance {
     movementPath.forEach(position => {
       const tile = this.state.board[position];
       if (!tile) return;
-      if (player.midasCharges > 0 && tile.owner === player.id && tile.type === 'PROPERTY' && (tile.houses || 0) < 5) {
+      if (player.activeCenterBuff === 'MIDAS_EMPIRE' && player.midasCharges > 0 && tile.owner === player.id && tile.type === 'PROPERTY' && (tile.houses || 0) < 5) {
         tile.houses = (tile.houses || 0) + 1;
         player.midasCharges -= 1;
         if (player.midasCharges <= 0) delete player.midasCharges;
       }
       this.state.players.forEach(holder => {
-        if (holder.id !== player.id && holder.globalTollTurns > 0) {
+        if (holder.id !== player.id && holder.activeCenterBuff === 'GLOBAL_TOLL_KING' && holder.globalTollTurns > 0) {
           player.money -= 20;
           holder.money += 20;
         }
@@ -280,6 +281,15 @@ class GameInstance {
 
   canActivateCenterBuff(player, tile) {
     return !!player && !!tile && !player.isGhosting && tile.isCenterHub === true && this.state.board[player.position] === tile;
+  }
+
+  isCenterBuffActive(player) {
+    if (!player) return false;
+    return player.activeCenterBuff === 'TRIPLE_AEGIS_SHIELD' && (Number(player.shieldCharges) || 0) > 0
+      || player.activeCenterBuff === 'MIDAS_EMPIRE' && (Number(player.midasCharges) || 0) > 0
+      || player.activeCenterBuff === 'GOD_DICE' && (Number(player.godDiceTurns) || 0) > 0
+      || player.activeCenterBuff === 'GLOBAL_TOLL_KING' && (Number(player.globalTollTurns) || 0) > 0
+      || player.activeCenterBuff === 'SPECIAL_SHOP' && (Number(player.specialShop?.purchasesRemaining) || 0) > 0;
   }
 
   getPlayersMeta() {
@@ -451,6 +461,7 @@ class GameInstance {
         if (player[key] > 0) player[key] -= 1;
         if (player[key] <= 0) delete player[key];
       });
+      if (player.activeCenterBuff && !this.isCenterBuffActive(player)) delete player.activeCenterBuff;
     });
     return gameState;
   }
@@ -832,7 +843,7 @@ class GameInstance {
       if ((d1 + d2) % 2 !== 0) d2 = d2 < 6 ? d2 + 1 : d2 - 1;
       delete p.shopEvenDice;
     }
-    const hasGodDice = p.godDiceTurns > 0 && Number.isFinite(Number(stepsOverride));
+    const hasGodDice = p.activeCenterBuff === 'GOD_DICE' && p.godDiceTurns > 0 && Number.isFinite(Number(stepsOverride));
     const dice = hasGodDice ? Math.max(1, Math.min(12, Math.floor(Number(stepsOverride)))) : d1 + d2;
     const isDouble = !hasGodDice && (d1 === d2);
     const earnsExtraRoll = isDouble || (d1 === 6 && d2 === 1) || (d1 === 1 && d2 === 6);

@@ -529,13 +529,7 @@ const cardModal = document.getElementById('card-modal');
       }
       if (playerTokens[i]) {
         playerTokens[i].style.display = p.isBankrupt ? 'none' : 'flex';
-        const hasActiveCenterBuff = !!p.activeCenterBuff && (
-          (p.activeCenterBuff === 'TRIPLE_AEGIS_SHIELD' && shieldState.hasShield) ||
-          (p.activeCenterBuff === 'MIDAS_EMPIRE' && Number(p.midasCharges) > 0) ||
-          (p.activeCenterBuff === 'GOD_DICE' && Number(p.godDiceTurns) > 0) ||
-          (p.activeCenterBuff === 'GLOBAL_TOLL_KING' && Number(p.globalTollTurns) > 0) ||
-          (p.activeCenterBuff === 'SPECIAL_SHOP' && p.specialShop?.purchasesRemaining > 0)
-        );
+        const hasActiveCenterBuff = GameCore.isCenterBuffActive(p);
         playerTokens[i].classList.toggle('shield-aura', !p.isBankrupt && shieldState.hasShield);
         playerTokens[i].classList.toggle('center-buff-aura', !p.isBankrupt && hasActiveCenterBuff);
         playerTokens[i].classList.toggle('center-shield-aura', !p.isBankrupt && shieldState.isCenterShield);

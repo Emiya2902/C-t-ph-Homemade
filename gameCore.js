@@ -128,6 +128,9 @@ window.GameCore = {
         if (player[key] > 0) player[key] -= 1;
         if (player[key] <= 0) delete player[key];
       });
+      if (player.activeCenterBuff && !this.isCenterBuffActive(player)) {
+        delete player.activeCenterBuff;
+      }
     });
     window.GameEnhancements?.renderWeatherUI?.(gameState);
     return gameState;
@@ -376,6 +379,15 @@ window.GameCore = {
     };
   },
 
+  isCenterBuffActive(player) {
+    if (!player) return false;
+    return player.activeCenterBuff === 'TRIPLE_AEGIS_SHIELD' && (Number(player.shieldCharges) || 0) > 0
+      || player.activeCenterBuff === 'MIDAS_EMPIRE' && (Number(player.midasCharges) || 0) > 0
+      || player.activeCenterBuff === 'GOD_DICE' && (Number(player.godDiceTurns) || 0) > 0
+      || player.activeCenterBuff === 'GLOBAL_TOLL_KING' && (Number(player.globalTollTurns) || 0) > 0
+      || player.activeCenterBuff === 'SPECIAL_SHOP' && (Number(player.specialShop?.purchasesRemaining) || 0) > 0;
+  },
+
   canActivateCenterBuff(player, tile) {
     return !!player && !!tile && !player.isGhosting && tile.isCenterHub === true && this.state.board[player.position] === tile;
   },
@@ -389,6 +401,7 @@ window.GameCore = {
     player.godDiceTurns = 0;
     player.globalTollTurns = 0;
     player.hasDiscount = false;
+    player.specialShop = null;
     player.activeCenterBuff = buff;
     switch (buff) {
       case 'TRIPLE_AEGIS_SHIELD':
@@ -441,7 +454,7 @@ window.GameCore = {
       const tile = this.state.board[position];
       if (!tile) return;
 
-      if (player.midasCharges > 0 && tile.owner === player.id && tile.type === 'PROPERTY') {
+      if (player.activeCenterBuff === 'MIDAS_EMPIRE' && player.midasCharges > 0 && tile.owner === player.id && tile.type === 'PROPERTY') {
         const previousHouses = tile.houses || 0;
         if (previousHouses < 5) {
           tile.houses = previousHouses + 1;
@@ -452,7 +465,7 @@ window.GameCore = {
       }
 
       this.state.players.forEach(holder => {
-        if (holder.id === player.id || holder.globalTollTurns <= 0) return;
+        if (holder.id === player.id || holder.activeCenterBuff !== 'GLOBAL_TOLL_KING' || holder.globalTollTurns <= 0) return;
         player.money -= 20;
         holder.money += 20;
         this.addLog(`💸 ${player.name} trả $20 phí đường cho ${holder.name} khi đi qua [${tile.name}].`);
@@ -740,7 +753,7 @@ window.GameCore = {
       this.endTurn();
       return result;
     }
-    const hasGodDice = p.godDiceTurns > 0 && Number.isFinite(Number(stepsOverride));
+    const hasGodDice = p.activeCenterBuff === 'GOD_DICE' && p.godDiceTurns > 0 && Number.isFinite(Number(stepsOverride));
     const d1 = hasGodDice ? 1 : Math.floor(Math.random() * 6) + 1;
     let d2 = hasGodDice ? 1 : Math.floor(Math.random() * 6) + 1;
     if (!hasGodDice && p.shopEvenDice) {

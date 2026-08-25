@@ -130,3 +130,11 @@ test('xúc xắc chẵn tiêu thụ hiệu ứng và cho tổng chẵn', () => {
   assert.equal(result.dice % 2, 0);
   assert.equal(GameCore.state.players[0].shopEvenDice, undefined);
 });
+
+test('counter rời rạc không tự kích hoạt buff trung tâm khi chưa nhận buff', () => {
+  const player = { id: 1, position: 0, midasCharges: 2, globalTollTurns: 2, godDiceTurns: 2 };
+  GameCore.state.board = [{ id: 0, owner: 1, type: 'PROPERTY', houses: 0 }];
+  GameCore.processMovementPasses(player, [0]);
+  assert.equal(GameCore.state.board[0].houses, 0);
+  assert.equal(GameCore.isCenterBuffActive(player), false);
+});

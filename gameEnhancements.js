@@ -712,13 +712,7 @@ window.GameEnhancements = {
       gameState.players.forEach(player => {
         const playerAvatarElem = document.querySelector(`[data-player-id="${player.id}"]`);
         if (playerAvatarElem) {
-          const hasCenterBuff = player.activeCenterBuff && (
-            (Number(player.shieldCharges) || 0) > 0 ||
-            (Number(player.midasCharges) || 0) > 0 ||
-            (Number(player.godDiceTurns) || 0) > 0 ||
-            (Number(player.globalTollTurns) || 0) > 0 ||
-            player.hasDiscount
-          );
+          const hasCenterBuff = window.GameCore?.isCenterBuffActive?.(player) || false;
           playerAvatarElem.classList.remove('has-shield', 'shield-aura', 'center-buff-aura', 'is-frozen');
           if (hasCenterBuff) playerAvatarElem.classList.add('center-buff-aura');
           if ((Number(player.shieldCharges) || 0) > 0) playerAvatarElem.classList.add('has-shield', 'shield-aura');
