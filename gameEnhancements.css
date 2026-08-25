@@ -657,6 +657,17 @@
   filter: drop-shadow(0 0 6px rgba(255, 215, 0, 1)) drop-shadow(0 0 15px rgba(255, 193, 7, 0.9));
 }
 
+.player-token.center-shield-aura::before {
+  content: '';
+  position: absolute;
+  inset: -9px;
+  border: 2px solid rgba(255, 215, 0, 0.95);
+  border-radius: 50%;
+  box-shadow: 0 0 14px rgba(255, 215, 0, 0.95), inset 0 0 8px rgba(255, 193, 7, 0.7);
+  animation: shieldPulse 1.15s ease-in-out infinite;
+  pointer-events: none;
+}
+
 .player-token.center-shield-aura::after {
   border-color: rgba(255, 215, 0, 0.95);
   box-shadow: 0 0 10px rgba(255, 215, 0, 0.95), inset 0 0 8px rgba(255, 193, 7, 0.7);
@@ -673,6 +684,17 @@
   box-shadow: 0 0 12px rgba(255, 193, 7, 0.95), inset 0 0 8px rgba(255, 111, 0, 0.65);
 }
 
+.player-token.center-midas-aura::after {
+  content: '👑';
+  position: absolute;
+  top: -15px;
+  right: -10px;
+  font-size: 16px;
+  filter: drop-shadow(0 0 5px rgba(255, 193, 7, .95));
+  animation: midasCrownFloat 1.25s ease-in-out infinite;
+  pointer-events: none;
+}
+
 .player-token.center-god-dice-aura {
   filter: drop-shadow(0 0 6px rgba(0, 229, 255, 1)) drop-shadow(0 0 15px rgba(0, 188, 212, 0.9));
   animation: godDiceAuraPulse 0.9s ease-in-out infinite;
@@ -683,6 +705,17 @@
   border-style: dashed;
   box-shadow: 0 0 12px rgba(0, 229, 255, 0.95), inset 0 0 8px rgba(0, 188, 212, 0.65);
   animation: godDiceAuraSpin 2.8s linear infinite;
+}
+
+.player-token.center-god-dice-aura::after {
+  content: '🎲';
+  position: absolute;
+  top: -13px;
+  right: -9px;
+  font-size: 15px;
+  filter: drop-shadow(0 0 5px rgba(0, 229, 255, .95));
+  animation: godDiceIconOrbit 2.8s linear infinite;
+  pointer-events: none;
 }
 
 .player-token.center-toll-aura {
@@ -697,6 +730,17 @@
   animation: tollAuraPulse 1.4s ease-in-out infinite;
 }
 
+.player-token.center-toll-aura::after {
+  content: '💸';
+  position: absolute;
+  top: -14px;
+  right: -10px;
+  font-size: 15px;
+  filter: drop-shadow(0 0 5px rgba(76, 175, 80, .95));
+  animation: tollMoneyFloat 1.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
 .player-token.center-special-shop-aura {
   filter: drop-shadow(0 0 6px rgba(255, 112, 67, 1)) drop-shadow(0 0 15px rgba(233, 30, 99, 0.8));
   animation: discountAuraPulse 1.05s ease-in-out infinite;
@@ -709,9 +753,25 @@
   animation: discountAuraSpin 3.2s linear infinite reverse;
 }
 
+.player-token.center-special-shop-aura::after {
+  content: '🛒';
+  position: absolute;
+  top: -14px;
+  right: -10px;
+  font-size: 15px;
+  filter: drop-shadow(0 0 5px rgba(255, 112, 67, .95));
+  animation: shopCartFloat 1.05s ease-in-out infinite;
+  pointer-events: none;
+}
+
 @keyframes midasAuraPulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.08); }
+}
+
+@keyframes midasCrownFloat {
+  0%, 100% { transform: translateY(0) rotate(-5deg); }
+  50% { transform: translateY(-4px) rotate(5deg); }
 }
 
 @keyframes godDiceAuraPulse {
@@ -723,9 +783,20 @@
   to { transform: rotate(360deg); }
 }
 
+@keyframes godDiceIconOrbit {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(-4px, -3px) rotate(180deg); }
+  100% { transform: translate(0, 0) rotate(360deg); }
+}
+
 @keyframes tollAuraPulse {
   0%, 100% { transform: scale(1); opacity: .88; }
   50% { transform: scale(1.1); opacity: 1; }
+}
+
+@keyframes tollMoneyFloat {
+  0%, 100% { transform: translateY(0) rotate(5deg); }
+  50% { transform: translateY(-5px) rotate(-8deg); }
 }
 
 @keyframes discountAuraPulse {
@@ -735,6 +806,11 @@
 
 @keyframes discountAuraSpin {
   to { transform: rotate(-360deg); }
+}
+
+@keyframes shopCartFloat {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-4px) rotate(4deg); }
 }
 
 .buff-midas { background: rgba(255, 193, 7, 0.3); border-color: #ffc107; color: #ffe082; }
