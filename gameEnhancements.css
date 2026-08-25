@@ -18,6 +18,35 @@
   z-index: 100;
 }
 
+/* Trung tâm bàn cờ: nhấn sáng và rung khi buff được kích hoạt */
+#board.center-impact {
+  animation: centerBoardShake 0.52s cubic-bezier(.36, .07, .19, .97);
+}
+
+.tile.center-tile-impact {
+  z-index: 30;
+  animation: centerTileBurst 0.7s ease-out;
+}
+
+@keyframes centerBoardShake {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  20% { transform: translate3d(-5px, 2px, 0) rotate(-0.35deg); }
+  40% { transform: translate3d(5px, -2px, 0) rotate(0.35deg); }
+  60% { transform: translate3d(-3px, 1px, 0) rotate(-0.2deg); }
+  80% { transform: translate3d(3px, -1px, 0) rotate(0.2deg); }
+}
+
+@keyframes centerTileBurst {
+  0% { filter: brightness(1); box-shadow: 0 0 0 rgba(255, 215, 0, 0); }
+  35% { filter: brightness(1.7); box-shadow: 0 0 32px rgba(255, 215, 0, .95), 0 0 70px rgba(255, 193, 7, .65); }
+  100% { filter: brightness(1); box-shadow: 0 0 10px rgba(255, 215, 0, .35); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #board.center-impact,
+  .tile.center-tile-impact { animation: none; }
+}
+
 /* FLOOD - Mưa Ngập (Blue Tint - 30% rent reduction) */
 .weather-overlay.weather-flood {
   background-color: rgba(0, 150, 200, 0.04);
@@ -624,9 +653,94 @@
   pointer-events: none;
 }
 
+.player-token.center-shield-aura {
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 1)) drop-shadow(0 0 15px rgba(255, 193, 7, 0.9));
+}
+
+.player-token.center-shield-aura::after {
+  border-color: rgba(255, 215, 0, 0.95);
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.95), inset 0 0 8px rgba(255, 193, 7, 0.7);
+}
+
+.player-token.center-midas-aura {
+  filter: drop-shadow(0 0 6px rgba(255, 193, 7, 1)) drop-shadow(0 0 15px rgba(255, 111, 0, 0.85));
+  animation: midasAuraPulse 1.25s ease-in-out infinite;
+}
+
+.player-token.center-midas-aura::before {
+  border-color: rgba(255, 193, 7, 0.95);
+  border-style: double;
+  box-shadow: 0 0 12px rgba(255, 193, 7, 0.95), inset 0 0 8px rgba(255, 111, 0, 0.65);
+}
+
+.player-token.center-god-dice-aura {
+  filter: drop-shadow(0 0 6px rgba(0, 229, 255, 1)) drop-shadow(0 0 15px rgba(0, 188, 212, 0.9));
+  animation: godDiceAuraPulse 0.9s ease-in-out infinite;
+}
+
+.player-token.center-god-dice-aura::before {
+  border-color: rgba(0, 229, 255, 0.95);
+  border-style: dashed;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.95), inset 0 0 8px rgba(0, 188, 212, 0.65);
+  animation: godDiceAuraSpin 2.8s linear infinite;
+}
+
+.player-token.center-toll-aura {
+  filter: drop-shadow(0 0 6px rgba(76, 175, 80, 1)) drop-shadow(0 0 15px rgba(0, 150, 136, 0.85));
+  animation: tollAuraPulse 1.4s ease-in-out infinite;
+}
+
+.player-token.center-toll-aura::before {
+  border-color: rgba(76, 175, 80, 0.95);
+  border-style: dotted;
+  box-shadow: 0 0 12px rgba(76, 175, 80, 0.95), inset 0 0 8px rgba(0, 150, 136, 0.65);
+  animation: tollAuraPulse 1.4s ease-in-out infinite;
+}
+
+.player-token.center-special-shop-aura {
+  filter: drop-shadow(0 0 6px rgba(255, 112, 67, 1)) drop-shadow(0 0 15px rgba(233, 30, 99, 0.8));
+  animation: discountAuraPulse 1.05s ease-in-out infinite;
+}
+
+.player-token.center-special-shop-aura::before {
+  border-color: rgba(255, 112, 67, 0.95);
+  border-style: dashed;
+  box-shadow: 0 0 12px rgba(255, 112, 67, 0.95), inset 0 0 8px rgba(233, 30, 99, 0.6);
+  animation: discountAuraSpin 3.2s linear infinite reverse;
+}
+
+@keyframes midasAuraPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+@keyframes godDiceAuraPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes godDiceAuraSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes tollAuraPulse {
+  0%, 100% { transform: scale(1); opacity: .88; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+@keyframes discountAuraPulse {
+  0%, 100% { transform: scale(1) rotate(-1deg); }
+  50% { transform: scale(1.07) rotate(1deg); }
+}
+
+@keyframes discountAuraSpin {
+  to { transform: rotate(-360deg); }
+}
+
 .buff-midas { background: rgba(255, 193, 7, 0.3); border-color: #ffc107; color: #ffe082; }
 .buff-god-dice { background: rgba(0, 188, 212, 0.3); border-color: #00bcd4; color: #80deea; }
 .buff-toll { background: rgba(76, 175, 80, 0.3); border-color: #4caf50; color: #a5d6a7; }
+.buff-special-shop { background: rgba(233, 30, 99, 0.3); border-color: #ff7043; color: #ffab91; box-shadow: 0 0 6px rgba(233, 30, 99, 0.5); }
 
 #god-dice-control {
   display: inline-flex;

@@ -171,6 +171,8 @@ window.GameEnhancements = {
       );
     }
 
+    window.GameEnhancements.playWeatherSound(effect.weather);
+
     // Hiển thị tóm tắt thời tiết
     if (window.GameEnhancements.showWeatherSummary) {
       window.GameEnhancements.showWeatherSummary(effect);
@@ -180,6 +182,51 @@ window.GameEnhancements = {
     window.GameEnhancements.renderWeatherUI(gameState);
 
     return effect;
+  },
+
+  playWeatherSound(weather) {
+    if (typeof window === 'undefined' || !window.AudioContext && !window.webkitAudioContext) return;
+    try {
+      const AudioCtor = window.AudioContext || window.webkitAudioContext;
+      const context = window.GameEnhancements._audioContext || new AudioCtor();
+      window.GameEnhancements._audioContext = context;
+      if (context.state === 'suspended') context.resume().catch(() => {});
+      const patterns = {
+        FLOOD: [220, 165, 110],
+        HEATWAVE: [440, 554, 659],
+        STORM: [130, 98, 73],
+        LIGHT_WIND: [392, 494, 587]
+      };
+      (patterns[weather] || [330, 440]).forEach((frequency, index) => {
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        oscillator.type = weather === 'STORM' ? 'sawtooth' : 'sine';
+        oscillator.frequency.value = frequency;
+        const start = context.currentTime + index * 0.09;
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(0.055, start + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.16);
+        oscillator.connect(gain).connect(context.destination);
+        oscillator.start(start);
+        oscillator.stop(start + 0.18);
+      });
+    } catch (error) {
+      // Audio is optional and may be unavailable in restricted browsers.
+    }
+  },
+
+  triggerCenterImpact(message) {
+    const board = document.querySelector('#board');
+    const centerTile = document.querySelector('#tile-44');
+    board?.classList.remove('center-impact');
+    centerTile?.classList.remove('center-tile-impact');
+    requestAnimationFrame(() => {
+      board?.classList.add('center-impact');
+      centerTile?.classList.add('center-tile-impact');
+    });
+    if (navigator.vibrate) navigator.vibrate([45, 35, 70]);
+    this.showEffectToast(message || '✨ Buff ô trung tâm đã kích hoạt!', 'success');
+    this.playWeatherSound('LIGHT_WIND');
   },
 
   /**

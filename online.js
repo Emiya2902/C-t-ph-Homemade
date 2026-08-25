@@ -57,6 +57,10 @@
         const player = GameCore.state.players[myIndex];
         if (player) GameCore.Shop.openShop(player);
       }
+      if (res?.ok && res.result?.action === 'OPEN_SPECIAL_SHOP' && window.GameCore?.Shop) {
+        const player = GameCore.state.players[myIndex];
+        if (player) GameCore.Shop.openShop(player, true);
+      }
     });
   }
 
@@ -65,6 +69,17 @@
   // =========================================================
   function syncState(serverState) {
     if (!GameCore || !GameCore.state) return;
+
+    const announcement = serverState.lastAnnouncement;
+    if (announcement && announcement.id !== GameCore.state.lastAnnouncement?.id) {
+      GameCore.state.lastAnnouncement = announcement;
+      if (announcement.type === 'center') {
+        window.GameEnhancements?.triggerCenterImpact?.(announcement.message);
+      } else {
+        window.GameEnhancements?.showEffectToast?.(announcement.message, announcement.type || 'info');
+      }
+    }
+    const previousWeather = GameCore.state.weather;
 
     // Đồng bộ board (bản sao sâu)
     GameCore.state.board = JSON.parse(JSON.stringify(serverState.board || []));
@@ -84,6 +99,12 @@
       ? serverState.lastMovementPath.slice()
       : [];
     GameCore.state.lastRollWasGodDice = !!serverState.lastRollWasGodDice;
+    GameCore.state.lastAnnouncement = serverState.lastAnnouncement || GameCore.state.lastAnnouncement || null;
+    GameCore.state.weather = serverState.weather || 'CLEAR';
+    GameCore.state.weatherTurns = serverState.weatherTurns || 0;
+    if (previousWeather !== GameCore.state.weather && GameCore.state.weather !== 'CLEAR') {
+      window.GameEnhancements?.playWeatherSound?.(GameCore.state.weather);
+    }
 
     // pendingCard (thẻ cơ hội/khí vận)
     GameCore.state.pendingCard = serverState.pendingCard || null;

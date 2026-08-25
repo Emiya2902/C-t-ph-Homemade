@@ -87,7 +87,7 @@ window.GameCore = {
     'MIDAS_EMPIRE',
     'GOD_DICE',
     'GLOBAL_TOLL_KING',
-    'DISCOUNT_50'
+    'SPECIAL_SHOP'
   ],
 
   state: {
@@ -110,7 +110,8 @@ window.GameCore = {
     crossRoute: null,
     crossRouteChoice: null,
     pendingCrossRouteRoll: null,
-    lastRollWasGodDice: false
+    lastRollWasGodDice: false,
+    lastAnnouncement: null
   },
 
   updateTurnCounters(gameState = this.state) {
@@ -207,6 +208,7 @@ window.GameCore = {
       weatherName: effect.name,
       weatherEmoji: effect.emoji
     });
+    window.GameEnhancements?.playWeatherSound?.(effect.weather);
 
     if (effect.weather === 'STORM') {
       (gameState.board || []).forEach(tile => {
@@ -301,6 +303,8 @@ window.GameCore = {
       money: this.settings.initialMoney,
       inJail: false,
       jailTurns: 0,
+      jailReleaseWait: false,
+      bonusRollStreak: 0,
       isBankrupt: false,
       turnCount: i === 0 ? 1 : 0,
       hasBuiltHouseThisTurn: false,
@@ -311,7 +315,8 @@ window.GameCore = {
       godDiceTurns: 0,
       globalTollTurns: 0,
       hasDiscount: false,
-      shopCards: []
+      shopCards: [],
+      specialShop: null
     }));
 
     this.state.currentPlayerIndex = 0;
@@ -347,14 +352,32 @@ window.GameCore = {
 
   interceptAttack(attacker, targetPlayer, attackPayload = {}) {
     if (!targetPlayer) return false;
-    if ((Number(targetPlayer.shieldCharges) || 0) <= 0 && targetPlayer.hasShield) targetPlayer.shieldCharges = 1;
-    if (targetPlayer.shieldCharges <= 0) return false;
+    if (!Object.prototype.hasOwnProperty.call(targetPlayer, 'shieldCharges') && targetPlayer.hasShield) {
+      targetPlayer.shieldCharges = 1;
+    }
+    if ((Number(targetPlayer.shieldCharges) || 0) <= 0) {
+      targetPlayer.hasShield = false;
+      return false;
+    }
     targetPlayer.shieldCharges -= 1;
     targetPlayer.hasShield = targetPlayer.shieldCharges > 0;
     const message = `🛡️ ${targetPlayer.name} đã chặn đứng đòn tấn công! (Còn ${targetPlayer.shieldCharges}/3 lần khiên)`;
     this.addLog(message);
     window.GameEnhancements?.showEffectToast?.(message, 'success');
     return true;
+  },
+
+  getShieldVisualState(player) {
+    const shieldCharges = Math.max(0, Math.min(3, Number(player?.shieldCharges) || 0));
+    return {
+      shieldCharges,
+      hasShield: shieldCharges > 0,
+      isCenterShield: player?.activeCenterBuff === 'TRIPLE_AEGIS_SHIELD' && shieldCharges > 0
+    };
+  },
+
+  canActivateCenterBuff(player, tile) {
+    return !!player && !!tile && !player.isGhosting && tile.isCenterHub === true && this.state.board[player.position] === tile;
   },
 
   activateCenterBuff(player) {
@@ -381,8 +404,8 @@ window.GameCore = {
       case 'GLOBAL_TOLL_KING':
         player.globalTollTurns = totalPlayers * 2;
         break;
-      case 'DISCOUNT_50':
-        player.hasDiscount = true;
+      case 'SPECIAL_SHOP':
+        player.specialShop = { refreshesRemaining: 2, purchasesRemaining: 2 };
         break;
       default:
         break;
@@ -392,11 +415,12 @@ window.GameCore = {
       MIDAS_EMPIRE: `👑 Đế Chế Midas (3 nhà)`,
       GOD_DICE: `🎯 Quyền Năng Thượng Đế (3 lượt)`,
       GLOBAL_TOLL_KING: `💸 Hoàng Tộc Thu Phí (${totalPlayers * 2} lượt)`,
-      DISCOUNT_50: `🏷️ Phiếu Giảm Giá 50%`
+      SPECIAL_SHOP: `🛒 Cửa hàng đặc biệt (giảm 50%, mua 2 thẻ)`
     };
     const message = `✨ ${player.name} nhận buff ${labels[buff]}!`;
     this.addLog(message);
-    window.GameEnhancements?.showEffectToast?.(message, 'success');
+    this.state.lastAnnouncement = { id: Date.now(), message, type: 'success' };
+    window.GameEnhancements?.triggerCenterImpact?.(message);
     return buff;
   },
 
@@ -407,7 +431,7 @@ window.GameCore = {
       MIDAS_EMPIRE: `👑 Midas ${player.midasCharges || 0} nhà`,
       GOD_DICE: `🎯 Thần Dice ${player.godDiceTurns || 0}`,
       GLOBAL_TOLL_KING: `💸 Thu phí ${player.globalTollTurns || 0}`,
-      DISCOUNT_50: '🏷️ Giảm 50%'
+      SPECIAL_SHOP: `🛒 Shop đặc biệt ${player.specialShop?.purchasesRemaining || 0} thẻ`
     };
     return labels[player.activeCenterBuff] || '';
   },
@@ -568,6 +592,12 @@ window.GameCore = {
     }
     const rent = this.calculateRent(tile, owner);
     if (rent <= 0) return 0;
+    let payableRent = rent;
+    if (payer.shopRentReduction > 0) {
+      payableRent = Math.round(rent * (1 - payer.shopRentReduction));
+      delete payer.shopRentReduction;
+      this.addLog(`🛡️ ${payer.name} dùng Bảo hiểm nhỏ, giảm tiền thuê còn $${payableRent}.`);
+    }
 
     if (payer.midasCharges > 0) {
       this.addLog(`👑 ${payer.name} dùng Đế Chế Midas và được miễn $${rent} tiền thuê cho ${owner.name}.`);
@@ -578,16 +608,16 @@ window.GameCore = {
       return 0;
     }
 
-    payer.money -= rent;
-    owner.money += rent;
+    payer.money -= payableRent;
+    owner.money += payableRent;
     if (payer.money < 0) {
       payer.lastCreditorId = owner.id;
-      this.addLog(`💸 ${payer.name} trả tiền thuê cho ${owner.name} và đang nợ $${Math.abs(payer.money)}! Hãy bán/cầm cố tài sản trước khi kết thúc lượt.`);
+      this.addLog(`💸 ${payer.name} trả $${payableRent} tiền thuê cho ${owner.name} và đang nợ $${Math.abs(payer.money)}! Hãy bán/cầm cố tài sản trước khi kết thúc lượt.`);
     } else {
       payer.lastCreditorId = null;
-      this.addLog(`💸 ${payer.name} trả $${rent} tiền thuê cho ${owner.name}`);
+      this.addLog(`💸 ${payer.name} trả $${payableRent} tiền thuê cho ${owner.name}`);
     }
-    return rent;
+    return payableRent;
   },
 
   startAuction(tile, excludedPlayerId = null) {
@@ -693,6 +723,7 @@ window.GameCore = {
       p.inJail = false;
       p.jailTurns = 0;
       p.jailRolls = 0;
+      p.jailReleaseWait = true;
       this.addLog(`🔓 ${p.name} nộp $100 tiền bảo lãnh và đã RA TÙ! Không được đi tiếp lượt này.`);
       return true;
     }
@@ -701,9 +732,21 @@ window.GameCore = {
 
   rollDice(stepsOverride = null) {
     const p = this.getCurrentPlayer();
+    if (p.jailReleaseWait) {
+      p.jailReleaseWait = false;
+      this.state.extraRollPending = false;
+      this.addLog(`⏳ ${p.name} đã ra tù từ lượt trước và phải chờ hết lượt này mới được di chuyển.`);
+      const result = { action: 'WAIT_AFTER_JAIL', startPos: p.position, dice: 0, playerId: p.id, turnEnded: true };
+      this.endTurn();
+      return result;
+    }
     const hasGodDice = p.godDiceTurns > 0 && Number.isFinite(Number(stepsOverride));
     const d1 = hasGodDice ? 1 : Math.floor(Math.random() * 6) + 1;
-    const d2 = hasGodDice ? 1 : Math.floor(Math.random() * 6) + 1;
+    let d2 = hasGodDice ? 1 : Math.floor(Math.random() * 6) + 1;
+    if (!hasGodDice && p.shopEvenDice) {
+      if ((d1 + d2) % 2 !== 0) d2 = d2 < 6 ? d2 + 1 : d2 - 1;
+      delete p.shopEvenDice;
+    }
     const dice = hasGodDice ? Math.max(1, Math.min(12, Math.floor(Number(stepsOverride)))) : d1 + d2;
     const isDouble = !hasGodDice && (d1 === d2);
     const earnsExtraRoll = isDouble || (d1 === 6 && d2 === 1) || (d1 === 1 && d2 === 6);
@@ -725,6 +768,7 @@ window.GameCore = {
         p.inJail = false;
         p.jailTurns = 0;
         p.jailRolls = 0;
+        p.jailReleaseWait = true;
         this.state.extraRollPending = false;
         this.addLog(`🎲 ${p.name} gieo được đôi (${d1}-${d2}) -> 🔓 RA TÙ MIỄN PHÍ, không di chuyển.`);
         const result = { action: "RELEASE_FROM_JAIL", startPos, dice: 0, playerId: p.id, turnEnded: true };
@@ -743,6 +787,22 @@ window.GameCore = {
       }
     } else {
       this.addLog(`🎲 ${p.name} gieo được ${dice} điểm (${d1} + ${d2})`);
+      if (earnsExtraRoll) {
+        p.bonusRollStreak = (p.bonusRollStreak || 0) + 1;
+        if (p.bonusRollStreak >= 3) {
+          p.position = 10;
+          p.inJail = true;
+          p.jailRolls = 0;
+          p.bonusRollStreak = 0;
+          this.state.extraRollPending = false;
+          this.addLog(`🚔 ${p.name} đạt chuỗi lần thứ 3 (${d1}-${d2}) -> vào thẳng Tù và hết lượt.`);
+          const result = { action: 'THREE_BONUS_ROLLS_JAIL', startPos, dice: 0, playerId: p.id, turnEnded: true };
+          this.endTurn();
+          return result;
+        }
+      } else {
+        p.bonusRollStreak = 0;
+      }
     }
 
     this.state.extraRollPending = earnsExtraRoll;
@@ -791,22 +851,23 @@ window.GameCore = {
 
   processTileLanding(p, info = {}) {
     const tile = this.state.board[p.position];
-    if (!tile) return { action: "END_ROLL", tile: null, ...info };
-
-    if (tile.isCenterHub || tile.id === 44) {
-      this.activateCenterBuff(p);
-    }
+    const finish = result => ({ ...result, finalPos: p.position });
+    if (!tile) return finish({ action: "END_ROLL", tile: null, ...info });
 
     if (p.isGhosting) {
       p.isGhosting = false;
       this.addLog(`👻 ${p.name} đi xuyên qua [${tile.name}] mà không kích hoạt hiệu ứng.`);
-      return { action: "END_ROLL", tile, ghosted: true, ...info };
+      return finish({ action: "END_ROLL", tile, ghosted: true, ...info });
     }
 
+    if (this.canActivateCenterBuff(p, tile)) {
+      this.activateCenterBuff(p);
+      if (p.specialShop) return { action: 'OPEN_SPECIAL_SHOP', tile, finalPos: p.position, ...info };
+    }
     if (tile.trap === 'SLIDE_OIL') {
       if (this.interceptAttack(null, p, { type: 'TRAP', tile })) {
         delete tile.trap;
-        return { action: "END_ROLL", tile, blocked: true, ...info };
+        return { action: "END_ROLL", tile, blocked: true, finalPos: p.position, ...info };
       }
       delete tile.trap;
       p.position = (p.position + 3) % this.state.board.length;
@@ -820,14 +881,15 @@ window.GameCore = {
       p.inJail = true;
       p.jailTurns = 0;
       p.jailRolls = 0;
+      p.jailReleaseWait = true;
       this.state.extraRollPending = false;
       this.addLog(`🚔 ${p.name} đỗ vào ô [Vào Tù]! Bị tống ngay vào Ô Tù (#10).`);
-      return { action: "GO_TO_JAIL", tile, ...info };
+      return { action: "GO_TO_JAIL", tile, finalPos: p.position, ...info };
     }
 
     if (tile.type === 'UTILITY' || tile.name === 'Trạm Dự Báo Thời Tiết') {
       this.triggerWeatherEffect(this.state);
-      return { action: 'WEATHER_CHANGE', weather: this.state.weather, weatherTurns: this.state.weatherTurns, tile, ...info };
+      return { action: 'WEATHER_CHANGE', weather: this.state.weather, weatherTurns: this.state.weatherTurns, tile, finalPos: p.position, ...info };
     }
 
     // 2. Ô CƠ HỘI & KHÍ VẬN
@@ -835,7 +897,7 @@ window.GameCore = {
     const tileType = tile.type ? tile.type.toUpperCase() : "";
 
     if (tileType === "SHOP") {
-      return { action: "OPEN_SHOP", tile, ...info };
+      return { action: "OPEN_SHOP", tile, finalPos: p.position, ...info };
     }
 
     const isChance = tileType === "CHANCE" || tileType === "CO_HOI" || tileName.includes("cơ hội");
@@ -845,12 +907,17 @@ window.GameCore = {
       const deck = isChance ? this.chanceCards : this.fortuneCards;
       const card = deck[Math.floor(Math.random() * deck.length)];
       this.state.pendingCard = { ...card, type: isChance ? "CƠ HỘI" : "KHÍ VẬN" };
-      return { action: "DRAW_CARD", card: this.state.pendingCard, ...info };
+      return { action: "DRAW_CARD", card: this.state.pendingCard, finalPos: p.position, ...info };
     }
 
     // 3. Ô THUẾ — Luôn tích tiền vào jackpot pool (bất kể setting)
     if (p.position === 4 || tileType === "TAX") {
       const taxAmount = p.position === 4 ? Math.round(p.money * 0.10) : 100;
+      if (p.shopFreeParking) {
+        delete p.shopFreeParking;
+        this.addLog(`🅿️ ${p.name} dùng Vé miễn phạt và được hoàn lại $${taxAmount}.`);
+        return { action: "PAID_TAX", taxAmount: 0, refunded: taxAmount, jackpot: this.state.jackpot, finalPos: p.position, ...info };
+      }
       if (this.interceptAttack(null, p, { type: 'TAX', tile })) {
         return { action: "PAID_TAX", taxAmount: 0, jackpot: this.state.jackpot, ...info };
       }
@@ -863,6 +930,11 @@ window.GameCore = {
 
     // 4. Ô BÃI XE TỰ DO — Luôn mất 1 lượt; xả jackpot nếu setting bật
     if (p.position === 20 || tileType === "FREE_PARKING") {
+      if (p.shopFreeParking) {
+        delete p.shopFreeParking;
+        this.addLog(`🅿️ ${p.name} dùng Vé miễn phạt tại Bãi xe và được hoàn tiền.`);
+        return { action: "FREE_PARKING", amount: 0, refunded: true, jackpot: this.state.jackpot, finalPos: p.position, ...info };
+      }
       let winAmount = 0;
       if (this.settings.jackpotOnFreeParking && this.state.jackpot > 0) {
         winAmount = this.state.jackpot;
@@ -892,6 +964,7 @@ window.GameCore = {
           discount: p.hasDiscount,
           effectivePrice,
           canAfford,
+          finalPos: p.position,
           ...info
         };
       } else if (tile.owner !== p.id) {
@@ -908,7 +981,7 @@ window.GameCore = {
       }
     }
 
-    return { action: "END_ROLL", tile, ...info };
+    return { action: "END_ROLL", tile, finalPos: p.position, ...info };
   },
 
   applyCardEffect() {
@@ -1097,6 +1170,7 @@ window.GameCore = {
 
     if (card.action === "MOVE_TO" || card.action === "MOVE_STEPS") {
       resultCard.landing = this.processTileLanding(p, { startPos: resultCard.finalPos });
+      resultCard.finalPos = resultCard.landing.finalPos;
     }
 
     this.state.pendingCard = null;
@@ -1177,10 +1251,12 @@ window.GameCore = {
     const houses = tile.houses || 0;
     if (houses >= 5) return false;
 
-    const houseCost = tile.housePrice || Math.round((tile.price || 100) * 0.75);
+    const baseHouseCost = tile.housePrice || Math.round((tile.price || 100) * 0.75);
+    const houseCost = p.hasDiscount ? Math.round(baseHouseCost * 0.5) : baseHouseCost;
     if (p.money < houseCost) return false;
 
     p.money -= houseCost;
+    if (p.hasDiscount) delete p.hasDiscount;
     tile.houses = houses + 1;
     p.hasBuiltHouseThisTurn = true;
     tile.lastBuiltPlayerTurn = p.turnCount || 1;

@@ -100,7 +100,12 @@ const cardModal = document.getElementById('card-modal');
 
   function updateGodDiceControl(player) {
     if (!rollBtn || !rollBtn.parentNode) return;
+    const active = !!(player && player.godDiceTurns > 0);
     let control = document.getElementById('god-dice-control');
+    if (!active) {
+      control?.remove();
+      return;
+    }
     if (!control) {
       control = document.createElement('label');
       control.id = 'god-dice-control';
@@ -114,9 +119,8 @@ const cardModal = document.getElementById('card-modal');
         select.appendChild(option);
       }
     }
-    const active = !!(player && player.godDiceTurns > 0);
-    control.hidden = !active;
-    control.querySelector('span').innerText = active ? `Còn ${player.godDiceTurns} lượt` : 'Chọn bước';
+    control.hidden = false;
+    control.querySelector('span').innerText = `Còn ${player.godDiceTurns} lượt`;
   }
 
   function positionBuyPrompt(tileIndex) {
@@ -474,6 +478,7 @@ const cardModal = document.getElementById('card-modal');
         }
       }
       const cardEl = document.getElementById(`card-p${p.id}`);
+      const shieldState = GameCore.getShieldVisualState(p);
       if (cardEl) {
         cardEl.classList.toggle('active', p.id === currentPlayer.id && !p.isBankrupt);
         cardEl.classList.toggle('bankrupt', !!p.isBankrupt);
@@ -487,12 +492,11 @@ const cardModal = document.getElementById('card-modal');
           cardEl.appendChild(buffContainer);
         }
         buffContainer.innerHTML = '';
-        const shieldCharges = Math.max(0, Math.min(3, Number(p.shieldCharges) || 0));
-        if (shieldCharges > 0) {
+        if (shieldState.hasShield) {
           const s = document.createElement('span');
-          s.className = 'buff-badge buff-shield';
-          s.title = `Khiên Tối Thượng: còn ${shieldCharges}/3 lần chặn`;
-          s.innerText = `🛡️ ${shieldCharges}/3`;
+          s.className = `buff-badge buff-shield${shieldState.isCenterShield ? ' buff-center-shield' : ''}`;
+          s.title = `${shieldState.isCenterShield ? 'Khiên ô trung tâm' : 'Khiên'}: còn ${shieldState.shieldCharges}/3 lần chặn`;
+          s.innerText = `${shieldState.isCenterShield ? '✨🛡️' : '🛡️'} ${shieldState.shieldCharges}/3`;
           buffContainer.appendChild(s);
         }
         const activeBuffs = [
@@ -508,6 +512,13 @@ const cardModal = document.getElementById('card-modal');
           buff.innerText = text;
           buffContainer.appendChild(buff);
         });
+        if (p.activeCenterBuff === 'SPECIAL_SHOP' && p.specialShop?.purchasesRemaining > 0) {
+          const shopBuff = document.createElement('span');
+          shopBuff.className = 'buff-badge buff-special-shop';
+          shopBuff.title = `Cửa hàng đặc biệt: còn mua ${p.specialShop.purchasesRemaining} thẻ, đổi ${p.specialShop.refreshesRemaining} lần`;
+          shopBuff.innerText = `🛒 Shop ${p.specialShop.purchasesRemaining}/2`;
+          buffContainer.appendChild(shopBuff);
+        }
         if (p.hasDiscount) {
           const d = document.createElement('span');
           d.className = 'buff-badge buff-discount';
@@ -518,15 +529,20 @@ const cardModal = document.getElementById('card-modal');
       }
       if (playerTokens[i]) {
         playerTokens[i].style.display = p.isBankrupt ? 'none' : 'flex';
-        const hasCenterBuff = p.activeCenterBuff && (
-          (Number(p.shieldCharges) || 0) > 0 ||
-          (Number(p.midasCharges) || 0) > 0 ||
-          (Number(p.godDiceTurns) || 0) > 0 ||
-          (Number(p.globalTollTurns) || 0) > 0 ||
-          p.hasDiscount
+        const hasActiveCenterBuff = !!p.activeCenterBuff && (
+          (p.activeCenterBuff === 'TRIPLE_AEGIS_SHIELD' && shieldState.hasShield) ||
+          (p.activeCenterBuff === 'MIDAS_EMPIRE' && Number(p.midasCharges) > 0) ||
+          (p.activeCenterBuff === 'GOD_DICE' && Number(p.godDiceTurns) > 0) ||
+          (p.activeCenterBuff === 'GLOBAL_TOLL_KING' && Number(p.globalTollTurns) > 0) ||
+          (p.activeCenterBuff === 'SPECIAL_SHOP' && p.specialShop?.purchasesRemaining > 0)
         );
-        playerTokens[i].classList.toggle('shield-aura', !p.isBankrupt && hasCenterBuff);
-        playerTokens[i].classList.toggle('center-buff-aura', !p.isBankrupt && hasCenterBuff);
+        playerTokens[i].classList.toggle('shield-aura', !p.isBankrupt && shieldState.hasShield);
+        playerTokens[i].classList.toggle('center-buff-aura', !p.isBankrupt && hasActiveCenterBuff);
+        playerTokens[i].classList.toggle('center-shield-aura', !p.isBankrupt && shieldState.isCenterShield);
+        playerTokens[i].classList.toggle('center-midas-aura', !p.isBankrupt && p.activeCenterBuff === 'MIDAS_EMPIRE' && Number(p.midasCharges) > 0);
+        playerTokens[i].classList.toggle('center-god-dice-aura', !p.isBankrupt && p.activeCenterBuff === 'GOD_DICE' && Number(p.godDiceTurns) > 0);
+        playerTokens[i].classList.toggle('center-toll-aura', !p.isBankrupt && p.activeCenterBuff === 'GLOBAL_TOLL_KING' && Number(p.globalTollTurns) > 0);
+        playerTokens[i].classList.toggle('center-special-shop-aura', !p.isBankrupt && p.activeCenterBuff === 'SPECIAL_SHOP' && p.specialShop?.purchasesRemaining > 0);
       }
     });
 
@@ -2469,6 +2485,10 @@ const landing = cardResult ? cardResult.landing : null;
     if (res.action === "OPEN_SHOP") {
       const shopPlayer = GameCore.getCurrentPlayer();
       if (shopPlayer && GameCore.Shop) GameCore.Shop.openShop(shopPlayer);
+    }
+    if (res.action === "OPEN_SPECIAL_SHOP") {
+      const shopPlayer = GameCore.getCurrentPlayer();
+      if (shopPlayer && GameCore.Shop) GameCore.Shop.openShop(shopPlayer, true);
     }
 
     if (res.action === "PROMPT_BUY") {

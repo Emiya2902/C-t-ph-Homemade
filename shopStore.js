@@ -1,6 +1,6 @@
 /* GACHA CARD SHOP - 26 cards, one refresh per shop visit */
 (function () {
-  const rarityWeights = { COMMON: 45, UNCOMMON: 30, EPIC: 20, LEGENDARY: 5 };
+  const rarityWeights = { COMMON: 20, UNCOMMON: 30, EPIC: 35, LEGENDARY: 15 };
   const rarityNames = { COMMON: 'COMMON', UNCOMMON: 'UNCOMMON', EPIC: 'EPIC', LEGENDARY: 'LEGENDARY' };
   const catalog = [
     { id: 'WALK_BOOST', rarity: 'COMMON', price: 25, title: '👟 Bước nhanh', text: 'Tiến thêm 2 bước.' },
@@ -16,10 +16,10 @@
     { id: 'PROPERTY_SABOTAGE', rarity: 'UNCOMMON', price: 140, requireTarget: true, targetType: 'TILE', title: '🎯 Phá nhà', text: 'Hạ 1 cấp nhà trên ô đất bất kỳ của đối thủ.' },
     { id: 'TELEPORT_FORWARD', rarity: 'UNCOMMON', price: 120, requireTarget: true, targetType: 'TILE', title: '🌀 Dịch chuyển', text: 'Chọn một ô bất kỳ trong 6 ô phía trước để dịch chuyển tới.' },
     { id: 'BOOST_RENT_1_5', rarity: 'UNCOMMON', price: 130, requireTarget: true, title: '📈 Tăng thuê', text: 'Nhân 1.5x tiền thuê 1 ô đất trong 2 lượt.' },
-    { id: 'FORCE_MORTGAGE', rarity: 'UNCOMMON', price: 140, requireTarget: true, title: '🏦 Ép giải chấp', text: 'Ép người giàu nhất giải chấp 1 ô chưa xây.' },
+    { id: 'FORCE_MORTGAGE', rarity: 'UNCOMMON', price: 140, title: '🏦 Ép giải chấp', text: 'Ép người giàu nhất giải chấp 1 ô chưa xây.' },
     { id: 'ARREST_WARRANT', rarity: 'EPIC', price: 250, requireTarget: true, title: '🎯 Lệnh bắt', text: 'Đưa đối thủ vào Ô Tù.' },
     { id: 'HIJACK_RENT', rarity: 'EPIC', price: 270, requireTarget: true, title: '🎯 Chiếm tiền thuê', text: 'Chiếm tiền thuê 1 ô của đối thủ trong 2 lượt.' },
-    { id: 'PULL_RICHEST', rarity: 'EPIC', price: 300, requireTarget: true, title: '🎯 Kéo đại gia', text: 'Ép đối thủ đến ô đất đắt nhất của bạn.' },
+    { id: 'PULL_RICHEST', rarity: 'EPIC', price: 300, title: '🎯 Kéo đại gia', text: 'Ép đối thủ giàu nhất đến ô đất đắt nhất của bạn.' },
     { id: 'PROTECT_LAND_PERMANENT', rarity: 'EPIC', price: 220, title: '🛡️ Bảo vệ vĩnh viễn', text: 'Khóa 1 ô đất chống tráo hoặc phá.' },
     { id: 'SWAP_UNBUILT_TILE', rarity: 'EPIC', price: 280, requireTarget: true, title: '🔄 Tráo đất', text: 'Tráo ô chưa xây của bạn với đối thủ.' },
     { id: 'EARTHQUAKE_STRIKE', rarity: 'LEGENDARY', price: 420, requireTarget: true, title: '🌋 Động đất', text: 'Hạ 1 cấp nhà trên tất cả ô của đối thủ.' },
@@ -83,6 +83,10 @@
       modal.innerHTML = '';
     }
     clearTileSelection();
+    if (Shop.shopSession?.special) {
+      const player = playerFromId(Shop.shopSession.playerId);
+      if (player) delete player.specialShop;
+    }
     Shop.shopSession = null;
   }
 
@@ -99,8 +103,11 @@
 
   function activateTileSelection(card, player, targets) {
     clearTileSelection();
-    Shop.tileSelection = { card, player, targetIds: new Set(targets.map(tile => tile.id)) };
-    targets.forEach(tile => document.getElementById(`tile-${tile.id}`)?.classList.add('shop-target-tile'));
+    Shop.tileSelection = { card, player, ownedCardIndex: null, targetIds: new Set(targets.map(tile => tile.id)) };
+    targets.forEach(tile => {
+      const index = window.GameCore.state.board.indexOf(tile);
+      document.getElementById(`tile-${index >= 0 ? index : tile.id}`)?.classList.add('shop-target-tile');
+    });
     const modal = ensureModal();
     modal.innerHTML = '';
     modal.classList.add('hidden');
@@ -111,7 +118,10 @@
     const selection = Shop.tileSelection;
     if (!selection || !selection.targetIds.has(tileId)) return false;
     const target = window.GameCore.state.board.find(tile => tile.id === tileId);
-    if (target) executeCard(selection.card, selection.player, target);
+    if (target) {
+      if (selection.ownedCardIndex !== null) selection.player.shopCards.splice(selection.ownedCardIndex, 1);
+      executeCard(selection.card, selection.player, target);
+    }
     return true;
   }
 
@@ -158,51 +168,56 @@
   function renderShop() {
     const session = Shop.shopSession;
     const player = playerFromId(session.playerId);
+    const special = !!session.special;
+    const price = card => special ? Math.ceil(card.price * 0.5) : card.price;
     const modal = ensureModal();
     modal.innerHTML = `
       <div class="shop-dialog">
         <button class="shop-close" type="button" aria-label="Đóng cửa hàng">×</button>
         <div class="shop-heading"><span>🛒</span><div><h2>CỬA HÀNG GACHA</h2><p>Số dư: <b>$${player.money}</b></p></div></div>
         <div class="shop-card-grid">${session.cards.map(card => `
-              <article class="shop-card rarity-${card.rarity} ${player.money < card.price ? 'unavailable' : ''}" data-card-id="${card.id}" role="button" tabindex="0" aria-label="Mua ${card.title}">
+              <article class="shop-card rarity-${card.rarity} ${player.money < price(card) ? 'unavailable' : ''}" data-card-id="${card.id}" role="button" tabindex="0" aria-label="Mua ${card.title}">
             <span class="shop-rarity">${rarityNames[card.rarity]}</span>
             <h3>${card.title}</h3><p>${card.text}</p>
-                <span class="shop-card-price">Mua $${card.price}</span>
+                <span class="shop-card-price">Mua $${price(card)}</span>
           </article>`).join('')}</div>
             <div class="shop-footer">
-              <button class="shop-refresh" type="button" ${session.hasRefreshed || player.money < 30 ? 'disabled' : ''}>↻ Đổi 3 thẻ ($30)</button>
+              <button class="shop-refresh" type="button" ${session.refreshesRemaining <= 0 || player.money < (special ? 15 : 30) ? 'disabled' : ''}>↻ Đổi 3 thẻ ($${special ? 15 : 30})</button>
               <button class="shop-leave" type="button">Rời cửa hàng</button>
             </div>
-        ${session.hasRefreshed ? '<p class="shop-notice">Đã hết lượt đổi cho lần vào cửa hàng này!</p>' : ''}
+        ${special ? `<p class="shop-notice">Cửa hàng đặc biệt: còn mua ${session.purchasesRemaining} thẻ, đổi ${session.refreshesRemaining} lần.</p>` : (session.hasRefreshed ? '<p class="shop-notice">Đã hết lượt đổi cho lần vào cửa hàng này!</p>' : '')}
       </div>`;
     modal.classList.remove('hidden');
     modal.querySelector('.shop-close').onclick = closeShop;
     modal.querySelector('.shop-leave').onclick = closeShop;
     modal.querySelector('.shop-refresh').onclick = () => {
-      if (session.hasRefreshed || player.money < 30) return;
+      const refreshPrice = special ? 15 : 30;
+      if (session.refreshesRemaining <= 0 || player.money < refreshPrice) return;
       const cardGrid = modal.querySelector('.shop-card-grid');
       if (cardGrid) {
         cardGrid.classList.add('shop-refreshing');
         modal.querySelector('.shop-refresh').disabled = true;
         setTimeout(() => {
-          player.money -= 30;
+          player.money -= refreshPrice;
           session.cards = drawCards();
-          session.hasRefreshed = true;
+          if (special) session.refreshesRemaining -= 1;
+          else session.hasRefreshed = true;
           session.selectedCardId = null;
           renderShop();
         }, 520);
         return;
       }
-      player.money -= 30;
+      player.money -= refreshPrice;
       session.cards = drawCards();
-      session.hasRefreshed = true;
+      if (special) session.refreshesRemaining -= 1;
+      else session.hasRefreshed = true;
       session.selectedCardId = null;
       renderShop();
     };
     modal.querySelectorAll('.shop-card').forEach(cardElement => {
       const purchase = () => {
         const card = catalog.find(item => item.id === cardElement.dataset.cardId);
-        if (!card || player.money < card.price || cardElement.classList.contains('card-purchased')) return;
+        if (!card || player.money < price(card) || cardElement.classList.contains('card-purchased')) return;
         cardElement.classList.add('card-purchased');
         setTimeout(() => buyCard(card.id), 360);
       };
@@ -220,17 +235,38 @@
     const session = Shop.shopSession;
     const player = playerFromId(session.playerId);
     const card = catalog.find(item => item.id === cardId);
-    if (!card || player.money < card.price) return;
-    player.money -= card.price;
+    const special = !!session.special;
+    if (!card || !player) return;
+    const cardPrice = special ? Math.ceil(card.price * 0.5) : card.price;
+    if (player.money < cardPrice) return;
+    player.money -= cardPrice;
+    if (special) {
+      session.purchasesRemaining -= 1;
+      player.specialShop = { ...player.specialShop, purchasesRemaining: session.purchasesRemaining, refreshesRemaining: session.refreshesRemaining };
+    }
+    if (special) {
+      player.shopCards = Array.isArray(player.shopCards) ? player.shopCards : [];
+      player.shopCards.push(card.id);
+      window.GameCore.addLog(`🛒 ${player.name} mua thẻ [${card.title}] với giá đặc biệt và cất vào kho để dùng sau.`);
+      if (session.purchasesRemaining <= 0) return closeShop();
+      return renderShop();
+    }
     if (card.category === 'ATTACK') {
       window.GameCore.addLog(`⚔️ ${player.name} mua và kích hoạt ngay thẻ [${card.title}].`);
-      closeShop();
       if (card.requireTarget) return renderTargetSelector(card, player);
+      if (special && session.purchasesRemaining > 0) {
+        executeCard(card, player, null);
+        renderShop();
+        return;
+      }
+      closeShop();
       return executeCard(card, player, null);
     }
     player.shopCards = Array.isArray(player.shopCards) ? player.shopCards : [];
     player.shopCards.push(card.id);
     window.GameCore.addLog(`🛒 ${player.name} mua thẻ [${card.title}] và cất vào kho.`);
+    if (special && session.purchasesRemaining <= 0) return closeShop();
+    if (special) return renderShop();
     closeShop();
     window.GameUI?.renderUI?.();
   }
@@ -239,12 +275,15 @@
     const cardIndex = (player.shopCards || []).indexOf(cardId);
     const card = catalog.find(item => item.id === cardId);
     if (cardIndex < 0 || !card) return;
+    if (card.requireTarget) {
+      renderTargetSelector(card, player, cardIndex);
+      return;
+    }
     player.shopCards.splice(cardIndex, 1);
-    if (card.requireTarget) return renderTargetSelector(card, player);
     executeCard(card, player, null);
   }
 
-  function renderTargetSelector(card, player) {
+  function renderTargetSelector(card, player, ownedCardIndex = null) {
     const modal = ensureModal();
     if (!modal.querySelector('.shop-dialog')) modal.innerHTML = '<div class="shop-dialog"></div>';
     const dialog = modal.querySelector('.shop-dialog');
@@ -254,6 +293,7 @@
       : (window.GameCore.state.players || []).filter(target => target.id !== player.id && !target.isBankrupt);
     if (isTileTarget) {
       activateTileSelection(card, player, targets);
+        if (Shop.tileSelection) Shop.tileSelection.ownedCardIndex = ownedCardIndex;
       return;
     }
     dialog.innerHTML = `
@@ -269,6 +309,7 @@
         const target = isTileTarget
           ? window.GameCore.state.board.find(tile => tile.id === Number(button.dataset.targetId))
           : playerFromId(Number(button.dataset.targetId));
+        if (ownedCardIndex !== null) player.shopCards.splice(ownedCardIndex, 1);
         executeCard(card, player, target);
       };
     });
@@ -319,9 +360,11 @@
       case 'REVERSE_GRAVITY':
         others.forEach(item => {
           if (core.interceptAttack(player, item, { type: 'REVERSE_GRAVITY' })) return;
+          const startPos = item.position;
           item.position = (item.position - 2 + core.state.board.length) % core.state.board.length;
           item.moveDirection = 1;
           item.reverseTurns = 0;
+          item.lastEffectMove = { startPos, endPos: item.position, steps: -2 };
         });
         core.addLog(`🌀 Tất cả đối thủ bị kéo lùi ngay lập tức 2 ô.`);
         window.GameEnhancements?.showEffectToast?.('🌀 Trọng lực đảo chiều! Tất cả đối thủ lùi 2 ô.', 'warning');
@@ -332,14 +375,16 @@
     }
     if (card.id === 'REVERSE_GRAVITY') {
       others.forEach(opponent => {
-        const startPos = opponent.position;
-        core.processTileLanding(opponent, { startPos, forcedMove: true });
         core.state.pendingTile = null;
         core.state.pendingCard = null;
       });
     }
       animateCardEffect(card, target, player);
     core.addLog(`🛒 ${player.name} đã dùng thẻ [${card.title}].`);
+    if (Shop.shopSession?.special && Shop.shopSession.purchasesRemaining > 0) {
+      renderShop();
+      return;
+    }
     closeShop();
     window.GameUI?.renderUI?.();
     handleCardLanding(landing, player);
@@ -373,7 +418,7 @@
     cardCatalog: catalog,
     shopSession: null,
     tileSelection: null,
-    openShop(player) { this.shopSession = { playerId: player.id, cards: drawCards(), hasRefreshed: false, selectedCardId: null }; renderShop(); },
+    openShop(player, special = false) { this.shopSession = { playerId: player.id, cards: drawCards(), hasRefreshed: false, special, refreshesRemaining: special ? 2 : 1, purchasesRemaining: special ? 2 : Infinity, selectedCardId: null }; renderShop(); },
     refreshShop(player) { if (!this.shopSession || this.shopSession.playerId !== player.id || this.shopSession.hasRefreshed || player.money < 30) return false; player.money -= 30; this.shopSession.cards = drawCards(); this.shopSession.hasRefreshed = true; renderShop(); return true; },
     useCard: useOwnedCard,
     closeShop,
