@@ -178,6 +178,7 @@
   text-align: center;
 }
 
+<<<<<<< HEAD
 .tile.station-route-glow {
   position: relative;
   z-index: 35;
@@ -210,6 +211,8 @@
 .money-delta-positive { color: #55efc4; text-shadow: 0 0 7px rgba(85, 239, 196, .7); }
 .money-delta-negative { color: #ff7675; text-shadow: 0 0 7px rgba(255, 118, 117, .7); }
 
+=======
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
 .cross-route-title {
   font-weight: 800;
   font-size: 15px;
@@ -580,18 +583,31 @@
 
 /* FROZEN TILE - Ô đất bị đóng băng */
 .tile-frozen {
+<<<<<<< HEAD
   border: 1px solid #00d2ff !important;
   box-shadow: 0 0 7px rgba(0, 210, 255, 0.65), inset 0 0 5px rgba(0, 210, 255, 0.12) !important;
   animation: frozenGlow 1.4s infinite ease-in-out;
+=======
+  border: 2px solid #00d2ff !important;
+  box-shadow: 0 0 15px #00d2ff, inset 0 0 10px rgba(0, 210, 255, 0.2) !important;
+  animation: frozenGlow 1s infinite ease-in-out;
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
   position: relative;
 }
 
 @keyframes frozenGlow {
   0%, 100% {
+<<<<<<< HEAD
     box-shadow: 0 0 7px rgba(0, 210, 255, 0.65), inset 0 0 5px rgba(0, 210, 255, 0.12);
   }
   50% {
     box-shadow: 0 0 11px rgba(0, 210, 255, 0.8), inset 0 0 7px rgba(0, 210, 255, 0.18);
+=======
+    box-shadow: 0 0 15px #00d2ff, inset 0 0 10px rgba(0, 210, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 25px #00d2ff, inset 0 0 15px rgba(0, 210, 255, 0.3);
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
   }
 }
 
@@ -616,17 +632,30 @@
 
 /* PROTECTED TILE - Ô đất được bảo vệ */
 .tile-protected {
+<<<<<<< HEAD
   border: 1px solid #ffd700 !important;
   box-shadow: 0 0 7px rgba(255, 215, 0, 0.65), inset 0 0 5px rgba(255, 215, 0, 0.12) !important;
   animation: protectedGlow 1.5s infinite ease-in-out;
+=======
+  border: 2px solid #ffd700 !important;
+  box-shadow: 0 0 15px #ffd700, inset 0 0 10px rgba(255, 215, 0, 0.2) !important;
+  animation: protectedGlow 1.2s infinite ease-in-out;
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
 }
 
 @keyframes protectedGlow {
   0%, 100% {
+<<<<<<< HEAD
     box-shadow: 0 0 7px rgba(255, 215, 0, 0.65), inset 0 0 5px rgba(255, 215, 0, 0.12);
   }
   50% {
     box-shadow: 0 0 11px rgba(255, 215, 0, 0.8), inset 0 0 7px rgba(255, 215, 0, 0.18);
+=======
+    box-shadow: 0 0 15px #ffd700, inset 0 0 10px rgba(255, 215, 0, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 25px #ffd700, inset 0 0 15px rgba(255, 215, 0, 0.3);
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
   }
 }
 
@@ -886,17 +915,30 @@
 
 /* BOOSTED RENT TILE - Ô đất tăng giá thuê */
 .tile-boosted {
+<<<<<<< HEAD
   border: 1px solid #ff4500 !important;
   box-shadow: 0 0 7px rgba(255, 69, 0, 0.65), inset 0 0 5px rgba(255, 69, 0, 0.12) !important;
   animation: boostGlow 1s infinite ease-in-out;
+=======
+  border: 2px solid #ff4500 !important;
+  box-shadow: 0 0 15px #ff4500, inset 0 0 10px rgba(255, 69, 0, 0.2) !important;
+  animation: boostGlow 0.8s infinite ease-in-out;
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
 }
 
 @keyframes boostGlow {
   0%, 100% {
+<<<<<<< HEAD
     box-shadow: 0 0 7px rgba(255, 69, 0, 0.65), inset 0 0 5px rgba(255, 69, 0, 0.12);
   }
   50% {
     box-shadow: 0 0 11px rgba(255, 69, 0, 0.8), inset 0 0 7px rgba(255, 69, 0, 0.2);
+=======
+    box-shadow: 0 0 15px #ff4500, inset 0 0 10px rgba(255, 69, 0, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 30px #ff4500, inset 0 0 15px rgba(255, 69, 0, 0.4);
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
   }
 }
 

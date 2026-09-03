@@ -61,7 +61,11 @@ const BOARD_CROSS_LEGACY = [
   { id: 41, name: "Khí vận Trục Bắc", type: "CHANCE" },
   { id: 42, name: "Đường Hoàng Văn Thụ", type: "PROPERTY", group: "TEAL", price: 200, rent: [16, 80, 220, 600, 800, 1000], housePrice: 100, owner: null, houses: 0 },
   { id: 43, name: "Trạm Trung Chuyển Bắc", type: "TAX", amount: 100 },
+<<<<<<< HEAD
   { id: 44, name: "Ngã Tư Trung Tâm Sài Gòn", type: "CENTER_BUFF", isCenterHub: true },
+=======
+  { id: 44, name: "Ngã Tư Trung Tâm Sài Gòn", type: "CHANCE", isCenterHub: true },
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
   { id: 45, name: "Trạm Trung Chuyển Nam", type: "TAX", amount: 100 },
   { id: 46, name: "Đại lộ Nguyễn Văn Linh", type: "PROPERTY", group: "TEAL", price: 220, rent: [18, 90, 250, 700, 875, 1050], housePrice: 100, owner: null, houses: 0 },
   { id: 47, name: "Cơ hội Trục Nam", type: "CHANCE" },

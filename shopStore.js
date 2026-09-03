@@ -15,10 +15,17 @@
     { id: 'DISCOUNT_50', rarity: 'UNCOMMON', price: 110, title: '🏷️ Voucher 50%', text: 'Giảm 50% tiền mua đất/xây nhà lượt tiếp.' },
     { id: 'PROPERTY_SABOTAGE', rarity: 'UNCOMMON', price: 140, requireTarget: true, targetType: 'TILE', title: '🎯 Phá nhà', text: 'Hạ 1 cấp nhà trên ô đất bất kỳ của đối thủ.' },
     { id: 'TELEPORT_FORWARD', rarity: 'UNCOMMON', price: 120, requireTarget: true, targetType: 'TILE', title: '🌀 Dịch chuyển', text: 'Chọn một ô bất kỳ trong 6 ô phía trước để dịch chuyển tới.' },
+<<<<<<< HEAD
     { id: 'BOOST_RENT_1_5', rarity: 'UNCOMMON', price: 130, requireTarget: true, title: '📈 Tăng thuê', text: 'Nhân 1.5x tiền thuê 1 ô đất cho đến khi có người đáp vào.' },
     { id: 'FORCE_MORTGAGE', rarity: 'UNCOMMON', price: 140, title: '🏦 Ép giải chấp', text: 'Ép người giàu nhất giải chấp 1 ô chưa xây.' },
     { id: 'ARREST_WARRANT', rarity: 'EPIC', price: 250, requireTarget: true, title: '🎯 Lệnh bắt', text: 'Đưa đối thủ vào Ô Tù.' },
     { id: 'HIJACK_RENT', rarity: 'EPIC', price: 270, requireTarget: true, title: '🎯 Chiếm tiền thuê', text: 'Chiếm tiền thuê 1 ô của đối thủ cho đến khi có người đáp vào.' },
+=======
+    { id: 'BOOST_RENT_1_5', rarity: 'UNCOMMON', price: 130, requireTarget: true, title: '📈 Tăng thuê', text: 'Nhân 1.5x tiền thuê 1 ô đất trong 2 lượt.' },
+    { id: 'FORCE_MORTGAGE', rarity: 'UNCOMMON', price: 140, title: '🏦 Ép giải chấp', text: 'Ép người giàu nhất giải chấp 1 ô chưa xây.' },
+    { id: 'ARREST_WARRANT', rarity: 'EPIC', price: 250, requireTarget: true, title: '🎯 Lệnh bắt', text: 'Đưa đối thủ vào Ô Tù.' },
+    { id: 'HIJACK_RENT', rarity: 'EPIC', price: 270, requireTarget: true, title: '🎯 Chiếm tiền thuê', text: 'Chiếm tiền thuê 1 ô của đối thủ trong 2 lượt.' },
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
     { id: 'PULL_RICHEST', rarity: 'EPIC', price: 300, title: '🎯 Kéo đại gia', text: 'Ép đối thủ giàu nhất đến ô đất đắt nhất của bạn.' },
     { id: 'PROTECT_LAND_PERMANENT', rarity: 'EPIC', price: 220, title: '🛡️ Bảo vệ vĩnh viễn', text: 'Khóa 1 ô đất chống tráo hoặc phá.' },
     { id: 'SWAP_UNBUILT_TILE', rarity: 'EPIC', price: 280, requireTarget: true, title: '🔄 Tráo đất', text: 'Tráo ô chưa xây của bạn với đối thủ.' },
@@ -36,7 +43,10 @@
     'MIND_CONTROL', 'REVERSE_GRAVITY', 'SLIDE_OIL', 'BUILDING_PERMIT', 'POSITION_SWAP'
   ]);
   catalog.forEach(card => { card.category = attackCardIds.has(card.id) ? 'ATTACK' : 'DEFENSE'; });
+<<<<<<< HEAD
   const categoryNames = { ATTACK: '⚔️ Tấn công', DEFENSE: '🛡️ Phòng thủ' };
+=======
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
 
   function ensureModal() {
     let modal = document.getElementById('shop-modal');
@@ -98,6 +108,7 @@
 
   function getTileTargets(card, player) {
     return card.id === 'TELEPORT_FORWARD'
+<<<<<<< HEAD
       ? Array.from({ length: 6 }, (_, offset) => {
           const position = (Number(player.position) + offset + 1) % Math.min(40, window.GameCore.state.board.length);
           return window.GameCore.state.board[position];
@@ -107,6 +118,10 @@
         (card.id === 'BUILDING_PERMIT' && tile.owner === player.id && (tile.houses || 0) < 5) ||
         (card.id === 'PROPERTY_SABOTAGE' && tile.owner && tile.owner !== player.id && tile.houses > 0)
       ));
+=======
+      ? Array.from({ length: 6 }, (_, offset) => window.GameCore.state.board[(player.position + offset + 1) % window.GameCore.state.board.length])
+      : window.GameCore.state.board.filter(tile => tile.type === 'PROPERTY' && tile.price && (card.id === 'SLIDE_OIL' || card.id === 'BUILDING_PERMIT' && tile.owner === player.id || card.id === 'PROPERTY_SABOTAGE' && tile.owner && tile.owner !== player.id && tile.houses > 0));
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
   }
 
   function activateTileSelection(card, player, targets) {
@@ -124,9 +139,14 @@
 
   function handleTileSelection(tileId) {
     const selection = Shop.tileSelection;
+<<<<<<< HEAD
     const normalizedTileId = Number(tileId);
     if (!selection || !selection.targetIds.has(normalizedTileId)) return false;
     const target = window.GameCore.state.board.find(tile => Number(tile.id) === normalizedTileId);
+=======
+    if (!selection || !selection.targetIds.has(tileId)) return false;
+    const target = window.GameCore.state.board.find(tile => tile.id === tileId);
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
     if (target) {
       if (selection.ownedCardIndex !== null) selection.player.shopCards.splice(selection.ownedCardIndex, 1);
       executeCard(selection.card, selection.player, target);
@@ -187,7 +207,10 @@
         <div class="shop-card-grid">${session.cards.map(card => `
               <article class="shop-card rarity-${card.rarity} ${player.money < price(card) ? 'unavailable' : ''}" data-card-id="${card.id}" role="button" tabindex="0" aria-label="Mua ${card.title}">
             <span class="shop-rarity">${rarityNames[card.rarity]}</span>
+<<<<<<< HEAD
             <span class="shop-category">${categoryNames[card.category]} · THẺ CỬA HÀNG</span>
+=======
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
             <h3>${card.title}</h3><p>${card.text}</p>
                 <span class="shop-card-price">Mua $${price(card)}</span>
           </article>`).join('')}</div>
@@ -227,7 +250,11 @@
     modal.querySelectorAll('.shop-card').forEach(cardElement => {
       const purchase = () => {
         const card = catalog.find(item => item.id === cardElement.dataset.cardId);
+<<<<<<< HEAD
         if (!card || session.purchasesRemaining <= 0 || player.money < price(card) || cardElement.classList.contains('card-purchased')) return;
+=======
+        if (!card || player.money < price(card) || cardElement.classList.contains('card-purchased')) return;
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
         cardElement.classList.add('card-purchased');
         setTimeout(() => buyCard(card.id), 360);
       };
@@ -246,13 +273,18 @@
     const player = playerFromId(session.playerId);
     const card = catalog.find(item => item.id === cardId);
     const special = !!session.special;
+<<<<<<< HEAD
     if (!card || !player || session.purchasesRemaining <= 0) return;
+=======
+    if (!card || !player) return;
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
     const cardPrice = special ? Math.ceil(card.price * 0.5) : card.price;
     if (player.money < cardPrice) return;
     player.money -= cardPrice;
     if (special) {
       session.purchasesRemaining -= 1;
       player.specialShop = { ...player.specialShop, purchasesRemaining: session.purchasesRemaining, refreshesRemaining: session.refreshesRemaining };
+<<<<<<< HEAD
       session.cards = session.cards.filter(item => item.id !== card.id);
       window.GameUI?.renderUI?.();
 
@@ -269,6 +301,13 @@
       player.shopCards = Array.isArray(player.shopCards) ? player.shopCards : [];
       player.shopCards.push(card.id);
       window.GameCore.addLog(`🛒 ${player.name} mua thẻ [${card.title}] với giá đặc biệt và cất vào kho.`);
+=======
+    }
+    if (special) {
+      player.shopCards = Array.isArray(player.shopCards) ? player.shopCards : [];
+      player.shopCards.push(card.id);
+      window.GameCore.addLog(`🛒 ${player.name} mua thẻ [${card.title}] với giá đặc biệt và cất vào kho để dùng sau.`);
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
       if (session.purchasesRemaining <= 0) return closeShop();
       return renderShop();
     }
@@ -337,7 +376,11 @@
   }
 
   function ownedTiles(player) {
+<<<<<<< HEAD
     return window.GameCore.state.board.filter(tile => tile.type === 'PROPERTY' && tile.owner === player.id && tile.price);
+=======
+    return window.GameCore.state.board.filter(tile => tile.owner === player.id && tile.price);
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
   }
 
   function executeCard(card, player, target) {
@@ -353,6 +396,7 @@
         : null;
     const blocked = (payload) => targetPlayer && core.interceptAttack(player, targetPlayer, payload);
     switch (card.id) {
+<<<<<<< HEAD
       case 'WALK_BOOST': {
         const movement = core.movePlayerOuter(player, player.position + 2);
         landing = { startPos: movement.startPos, movementPath: movement.movementPath };
@@ -423,6 +467,33 @@
         if (distance <= 5 && !blocked({ type: 'POSITION_SWAP' })) [player.position, target.position] = [target.position, player.position];
         break;
       }
+=======
+      case 'WALK_BOOST': player.position = (player.position + 2) % core.state.board.length; break;
+      case 'SLAP_BACK': if (!blocked({ type: 'PUSH' })) target.position = (target.position - 2 + core.state.board.length) % core.state.board.length; break;
+      case 'FREEZE_ONE_TURN': if (!blocked({ type: 'FREEZE' })) target.skipTurns = (target.skipTurns || 0) + 1; break;
+      case 'CHEAP_REPAIR': if (tiles.length) { player.money -= 20; tiles[0].houses = Math.max(0, (tiles[0].houses || 0) - 1); } break;
+      case 'BUS_TICKET': { const stations = core.state.board.filter(tile => tile.type === 'RAILROAD'); const next = stations.sort((a, b) => ((a.id - player.position + core.state.board.length) % core.state.board.length) - ((b.id - player.position + core.state.board.length) % core.state.board.length))[0]; if (next) player.position = next.id; break; }
+      case 'FREE_PARKING': player.shopFreeParking = true; break;
+      case 'EVEN_DICE': player.shopEvenDice = true; break;
+      case 'INSURANCE_MINI': player.shopRentReduction = 0.3; break;
+      case 'SHIELD': core.grantTripleShield(player); break;
+      case 'DISCOUNT_50': player.hasDiscount = true; break;
+      case 'PROPERTY_SABOTAGE': if (target.owner !== player.id && target.type === 'PROPERTY' && target.houses > 0 && !blocked({ type: 'SABOTAGE', tile: target })) target.houses -= 1; break;
+      case 'TELEPORT_FORWARD': if (target) player.position = target.id; break;
+      case 'BOOST_RENT_1_5': { const tile = core.state.board.find(item => item.owner === target.id && item.price); if (tile) tile.boostTurns = 2; break; }
+      case 'FORCE_MORTGAGE': { const tile = core.state.board.find(item => item.owner === richest?.id && item.houses === 0 && !item.mortgaged); if (tile && richest && !core.interceptAttack(player, richest, { type: 'FORCE_MORTGAGE', tile })) tile.mortgaged = true; break; }
+      case 'ARREST_WARRANT': if (!blocked({ type: 'ARREST' })) { target.position = 10; target.inJail = true; } break;
+      case 'HIJACK_RENT': { const tile = core.state.board.find(item => item.owner === target.id && item.price); if (tile && !blocked({ type: 'HIJACK_RENT', tile })) tile.hijackPlayerId = player.id; break; }
+      case 'PULL_RICHEST': { const tile = tiles.slice().sort((a, b) => b.price - a.price)[0]; if (tile && richest && !core.interceptAttack(player, richest, { type: 'FORCED_MOVE', tile })) richest.position = tile.id; break; }
+      case 'PROTECT_LAND_PERMANENT': if (tiles.length) tiles[0].permanentProtection = true; break;
+      case 'SWAP_UNBUILT_TILE': { const mine = tiles.find(item => !item.houses); const theirs = core.state.board.find(item => item.owner === target.id && item.price && !item.houses); if (mine && theirs && !blocked({ type: 'LAND_SWAP', tile: theirs })) { mine.owner = target.id; theirs.owner = player.id; } break; }
+      case 'EARTHQUAKE_STRIKE': if (!blocked({ type: 'EARTHQUAKE' })) core.state.board.filter(item => item.owner === target.id && item.type === 'PROPERTY' && item.houses > 0).forEach(item => { item.houses -= 1; }); break;
+      case 'MIND_CONTROL': { const tile = tiles.slice().sort((a, b) => b.price - a.price)[0]; if (tile && !blocked({ type: 'MIND_CONTROL', tile })) { target.position = tile.id; target.shopRentReduction = 0.3; } break; }
+      case 'SHADOW_STEP': player.isGhosting = true; break;
+      case 'SLIDE_OIL': if (!blocked({ type: 'TRAP', tile: target })) target.trap = 'SLIDE_OIL'; break;
+      case 'BUILDING_PERMIT': if (target.owner === player.id && target.type === 'PROPERTY') target.houses = Math.min(5, (target.houses || 0) + 1); break;
+      case 'POSITION_SWAP': { const distance = Math.abs(target.position - player.position); if ((distance <= 5 || distance >= core.state.board.length - 5) && !blocked({ type: 'POSITION_SWAP' })) [player.position, target.position] = [target.position, player.position]; break; }
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
       case 'REVERSE_GRAVITY':
         others.forEach(item => {
           if (core.interceptAttack(player, item, { type: 'REVERSE_GRAVITY' })) return;
@@ -437,10 +508,14 @@
         break;
     }
     if (['WALK_BOOST', 'TELEPORT_FORWARD', 'POSITION_SWAP'].includes(card.id)) {
+<<<<<<< HEAD
       landing = core.processTileLanding(player, {
         startPos: landing?.startPos ?? player.position,
         movementPath: landing?.movementPath || []
       });
+=======
+      landing = core.processTileLanding(player, { startPos: player.position });
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
     }
     if (card.id === 'REVERSE_GRAVITY') {
       others.forEach(opponent => {

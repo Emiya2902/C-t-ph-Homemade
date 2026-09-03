@@ -74,7 +74,10 @@
 .shop-card h3 { margin: 22px 0 12px; font-size: 18px; }
 .shop-card p { flex: 1; color: var(--text-sub, #a89bc9); font-size: 14px; line-height: 1.55; max-width: 220px; }
 .shop-rarity { position: absolute; top: 8px; right: 10px; font-size: 9px; font-weight: 800; letter-spacing: .7px; }
+<<<<<<< HEAD
 .shop-category { position: absolute; top: 24px; left: 10px; font-size: 9px; font-weight: 700; color: #81ecec; letter-spacing: .3px; }
+=======
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
 .rarity-COMMON { border-color: #c7cedb; box-shadow: 0 0 10px rgba(199, 206, 219, .15); }
 .rarity-UNCOMMON { border-color: #2ed573; box-shadow: 0 0 14px rgba(46, 213, 115, .22); }
 .rarity-EPIC { border-color: #a29bfe; box-shadow: 0 0 16px rgba(162, 155, 254, .28); }

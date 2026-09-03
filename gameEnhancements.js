@@ -164,12 +164,23 @@ window.GameEnhancements = {
     }
 
     // Hiển thị toast thông báo
+<<<<<<< HEAD
     gameState.pendingWeatherNotification = {
       emoji: effect.emoji,
       name: effect.name,
       turns: effect.turns,
       weather: effect.weather
     };
+=======
+    if (window.GameEnhancements.showEffectToast) {
+      window.GameEnhancements.showEffectToast(
+        `${effect.emoji} ${effect.name}\n⏱️ ${effect.turns} lượt`,
+        'warning'
+      );
+    }
+
+    window.GameEnhancements.playWeatherSound(effect.weather);
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
 
     // Hiển thị tóm tắt thời tiết
     if (window.GameEnhancements.showWeatherSummary) {

@@ -166,7 +166,10 @@ class GameInstance {
       isBankrupt: false,
       turnCount: i === 0 ? 1 : 0,
       hasBuiltHouseThisTurn: false,
+<<<<<<< HEAD
       hasBoughtPropertyThisTurn: false,
+=======
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
       lastCreditorId: null,
       shieldCharges: 0,
       hasShield: false,
@@ -206,9 +209,12 @@ class GameInstance {
       crossRoute: null,
       crossRouteChoice: null,
       pendingCrossRouteRoll: null,
+<<<<<<< HEAD
       lastStationRoll: null,
       lastStationRoutePath: [],
       stationEvents: [],
+=======
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
       lastMovementPath: [],
       lastRollWasGodDice: false,
       lastAnnouncement: null,
@@ -268,6 +274,7 @@ class GameInstance {
     });
   }
 
+<<<<<<< HEAD
   movePlayerOuter(player, targetPosition) {
     const boardLength = Math.min(40, this.state.board.length);
     const startPos = Number(player.position) || 0;
@@ -283,6 +290,8 @@ class GameInstance {
     return { startPos, movementPath: path };
   }
 
+=======
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
   interceptAttack(attacker, targetPlayer, attackPayload = {}) {
     if (!targetPlayer) return false;
     if (!Object.prototype.hasOwnProperty.call(targetPlayer, 'shieldCharges') && targetPlayer.hasShield) {
@@ -343,10 +352,14 @@ class GameInstance {
       crossRoute: this.state.crossRoute,
       crossRouteChoice: this.state.crossRouteChoice,
       pendingCrossRouteRoll: this.state.pendingCrossRouteRoll,
+<<<<<<< HEAD
       lastStationRoll: this.state.lastStationRoll,
       lastMovementPath: this.state.lastMovementPath || [],
       lastStationRoutePath: this.state.lastStationRoutePath || [],
       stationEvents: this.state.stationEvents || [],
+=======
+      lastMovementPath: this.state.lastMovementPath || [],
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
       lastRollWasGodDice: !!this.state.lastRollWasGodDice,
       lastAnnouncement: this.state.lastAnnouncement,
       settings: this.settings
@@ -374,6 +387,7 @@ class GameInstance {
     return routes[station] || null;
   }
 
+<<<<<<< HEAD
   applyStationRoute(player, station, path, remaining, stationEvents = []) {
     const route = this.getCrossRoute(station);
     if (!route) return remaining;
@@ -405,12 +419,17 @@ class GameInstance {
     return remaining;
   }
 
+=======
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
   getMovementPath(player, steps) {
     const path = [];
     let remaining = steps;
     let position = player.position;
+<<<<<<< HEAD
     const stationEvents = [];
     const handledStations = new Set();
+=======
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
 
     if (this.state.crossRoute && this.state.crossRoute.playerId === player.id) {
       const route = this.state.crossRoute.path;
@@ -423,7 +442,10 @@ class GameInstance {
       }
       this.state.crossRoute.cursor = cursor;
       if (cursor >= route.length - 1) this.state.crossRoute = null;
+<<<<<<< HEAD
       if (cursor >= route.length - 1) handledStations.add(route[route.length - 1]);
+=======
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
     }
 
     while (remaining > 0) {
@@ -431,6 +453,7 @@ class GameInstance {
       position = (position + direction + 40) % 40;
       path.push(position);
       remaining -= 1;
+<<<<<<< HEAD
       if (this.state.board.length > 40 && [5, 15, 25, 35].includes(position) && !handledStations.has(position)) {
         handledStations.add(position);
         remaining = this.applyStationRoute(player, position, path, remaining, stationEvents);
@@ -439,6 +462,11 @@ class GameInstance {
     }
 
     return { path, position, stationEvents };
+=======
+    }
+
+    return { path, position };
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
   }
 
   chooseCrossRoute(player, useInnerRoute) {
@@ -483,6 +511,7 @@ class GameInstance {
     }
 
     // Nếu ô bị đóng băng, không thu tiền thuê
+<<<<<<< HEAD
     if (tile.frozenTurns) return 0;
 
     // Nếu ô được bảo vệ, không thu tiền thuê
@@ -490,6 +519,15 @@ class GameInstance {
 
     // Áp dụng boost (tăng 1.5x)
     if (tile.boostTurns) {
+=======
+    if (tile.frozenTurns && tile.frozenTurns > 0) return 0;
+
+    // Nếu ô được bảo vệ, không thu tiền thuê
+    if (tile.protectedTurns && tile.protectedTurns > 0) return 0;
+
+    // Áp dụng boost (tăng 1.5x)
+    if (tile.boostTurns && tile.boostTurns > 0) {
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
       rent = Math.round(rent * 1.5);
     }
     if (tile.rentMultiplier && tile.rentMultiplier !== 1) {
@@ -511,6 +549,13 @@ class GameInstance {
   updateTurnCounters(gameState = this.state) {
     if (gameState.weatherTurns > 0) gameState.weatherTurns -= 1;
     if (gameState.weatherTurns <= 0) { gameState.weather = 'CLEAR'; gameState.canBuild = true; gameState.weatherTurns = 0; gameState.weatherMoveBonus = 0; }
+<<<<<<< HEAD
+=======
+    (gameState.board || []).forEach(tile => ['frozenTurns', 'protectedTurns', 'boostTurns'].forEach(key => {
+      if (tile[key] > 0) tile[key] -= 1;
+      if (tile[key] <= 0) delete tile[key];
+    }));
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
     (gameState.players || []).forEach(player => {
       if (player.reverseTurns > 0) player.reverseTurns -= 1;
       if (!player.reverseTurns) player.moveDirection = 1;
@@ -540,7 +585,10 @@ class GameInstance {
           '🏠 Vẫn có thể xây dựng thêm nhà'
         ]
       },
+<<<<<<< HEAD
 
+=======
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
       {
         weather: 'HEATWAVE',
         emoji: '☀️',
@@ -622,11 +670,16 @@ class GameInstance {
   collectRent(payer, tile) {
     const owner = this.state.players.find(pl => pl.id === tile.owner);
     if (!owner) return 0;
+<<<<<<< HEAD
     const recipient = tile.hijackPlayerId
       ? this.state.players.find(pl => pl.id === tile.hijackPlayerId) || owner
       : owner;
     if (recipient.inJail && !this.settings.receiveRentWhileJailed) {
       this.addLog(`🏛️ ${recipient.name} đang ở tù nên không thể thu tiền thuê.`);
+=======
+    if (owner.inJail && !this.settings.receiveRentWhileJailed) {
+      this.addLog(`🏛️ ${owner.name} đang ở tù nên không thể thu tiền thuê.`);
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
       return 0;
     }
     const rent = this.calculateRent(tile, owner);
@@ -639,15 +692,24 @@ class GameInstance {
     }
 
     if (payer.midasCharges > 0) {
+<<<<<<< HEAD
       this.addLog(`👑 ${payer.name} dùng Đế Chế Midas và được miễn $${rent} tiền thuê cho ${recipient.name}.`);
       return 0;
     }
 
     if (this.interceptAttack(recipient, payer, { type: 'RENT', tile })) {
+=======
+      this.addLog(`👑 ${payer.name} dùng Đế Chế Midas và được miễn $${rent} tiền thuê cho ${owner.name}.`);
+      return 0;
+    }
+
+    if (this.interceptAttack(owner, payer, { type: 'RENT', tile })) {
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
       return 0;
     }
 
     payer.money -= payableRent;
+<<<<<<< HEAD
     recipient.money += payableRent;
     if (payer.money < 0) {
       payer.lastCreditorId = recipient.id;
@@ -655,6 +717,15 @@ class GameInstance {
     } else {
       payer.lastCreditorId = null;
       this.addLog(`💸 ${payer.name} trả $${payableRent} tiền thuê cho ${recipient.name}`);
+=======
+    owner.money += payableRent;
+    if (payer.money < 0) {
+      payer.lastCreditorId = owner.id;
+      this.addLog(`💸 ${payer.name} trả tiền thuê cho ${owner.name} và đang nợ $${Math.abs(payer.money)}! Hãy bán/cầm cố tài sản trước khi kết thúc lượt.`);
+    } else {
+      payer.lastCreditorId = null;
+      this.addLog(`💸 ${payer.name} trả $${payableRent} tiền thuê cho ${owner.name}`);
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
     }
     return payableRent;
   }
@@ -771,9 +842,14 @@ class GameInstance {
     }
 
     if (this.canActivateCenterBuff(p, tile)) {
+<<<<<<< HEAD
       const buff = this.activateCenterBuff(p);
       if (p.specialShop) return { action: 'OPEN_SPECIAL_SHOP', tile, finalPos: p.position, ...info };
       return { action: 'CENTER_BUFF', buff, tile, finalPos: p.position, ...info };
+=======
+      this.activateCenterBuff(p);
+      if (p.specialShop) return { action: 'OPEN_SPECIAL_SHOP', tile, finalPos: p.position, ...info };
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
     }
     if (tile.trap === 'SLIDE_OIL') {
       if (this.interceptAttack(null, p, { type: 'TRAP', tile })) {
@@ -816,12 +892,16 @@ class GameInstance {
     if (isChance || isFortune) {
       const deck = isChance ? CHANCE_CARDS : FORTUNE_CARDS;
       const card = deck[Math.floor(Math.random() * deck.length)];
+<<<<<<< HEAD
       this.state.pendingCard = {
         ...card,
         type: isChance ? "CƠ HỘI" : "KHÍ VẬN",
         source: isChance ? 'CHANCE' : 'FORTUNE',
         category: isChance ? 'THẺ CƠ HỘI' : 'THẺ KHÍ VẬN'
       };
+=======
+      this.state.pendingCard = { ...card, type: isChance ? "CƠ HỘI" : "KHÍ VẬN" };
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
       return { action: "DRAW_CARD", card: this.state.pendingCard, finalPos: p.position, ...info };
     }
 
@@ -862,12 +942,15 @@ class GameInstance {
 
     // 5. Ô ĐẤT / GA / NHÀ MÁY
     if (tile.price && tile.type !== "TAX") {
+<<<<<<< HEAD
       const clearTileEffects = () => {
         delete tile.frozenTurns;
         delete tile.protectedTurns;
         delete tile.boostTurns;
         delete tile.hijackPlayerId;
       };
+=======
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
       if (tile.owner === null || tile.owner === undefined) {
         const effectivePrice = p.hasDiscount ? Math.round(tile.price * 0.5) : tile.price;
         this.state.pendingTile = tile;
@@ -875,7 +958,11 @@ class GameInstance {
         if (!canAfford) {
           this.addLog(`💡 ${p.name} đỗ vào [${tile.name}] (Giá: $${effectivePrice} - Số dư: $${p.money}).`);
         }
+<<<<<<< HEAD
         const result = {
+=======
+        return {
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
           action: "PROMPT_BUY",
           tile,
           discount: p.hasDiscount,
@@ -884,12 +971,18 @@ class GameInstance {
           finalPos: p.position,
           ...info
         };
+<<<<<<< HEAD
         clearTileEffects();
         return result;
       } else if (tile.owner !== p.id) {
         if (tile.mortgaged) {
           this.addLog(`🏦 [${tile.name}] đang bị cầm cố nên ${p.name} không phải trả tiền thuê.`);
           clearTileEffects();
+=======
+      } else if (tile.owner !== p.id) {
+        if (tile.mortgaged) {
+          this.addLog(`🏦 [${tile.name}] đang bị cầm cố nên ${p.name} không phải trả tiền thuê.`);
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
           return { action: "END_ROLL", tile, ...info };
         }
         this.collectRent(p, tile);
@@ -898,7 +991,10 @@ class GameInstance {
         delete tile.rentMultiplier;
         this.addLog(`📈 Hiệu ứng tăng 1.5x trên [${tile.name}] đã được sử dụng.`);
       }
+<<<<<<< HEAD
       clearTileEffects();
+=======
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
     }
 
     return { action: "END_ROLL", tile, finalPos: p.position, ...info };
@@ -906,7 +1002,10 @@ class GameInstance {
 
   rollDice(stepsOverride = null) {
     const p = this.getCurrentPlayer();
+<<<<<<< HEAD
     this.state.lastStationRoll = null;
+=======
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
     if (p.jailReleaseWait) {
       p.jailReleaseWait = false;
       this.state.extraRollPending = false;
@@ -982,11 +1081,31 @@ class GameInstance {
 
     this.state.extraRollPending = earnsExtraRoll;
 
+<<<<<<< HEAD
+=======
+    if (this.state.crossRouteChoice && this.state.crossRouteChoice.playerId === p.id) {
+      this.state.pendingCrossRouteRoll = { playerId: p.id, startPos, dice: dice + (this.state.weatherMoveBonus || 0) };
+      return {
+        action: 'CHOOSE_CROSS_ROUTE',
+        playerId: p.id,
+        startPos,
+        dice: dice + (this.state.weatherMoveBonus || 0),
+        crossRouteChoice: {
+          from: this.state.crossRouteChoice.station,
+          to: this.state.crossRouteChoice.path[this.state.crossRouteChoice.path.length - 1]
+        }
+      };
+    }
+
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
     const oldPos = p.position;
     const movement = this.getMovementPath(p, dice + (this.state.weatherMoveBonus || 0));
     p.position = movement.position;
     this.state.lastMovementPath = movement.path;
+<<<<<<< HEAD
     this.state.stationEvents = movement.stationEvents || [];
+=======
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
     this.processMovementPasses(p, movement.path);
 
     if (movement.path.some((position, index) => position < 40 && position < (movement.path[index - 1] ?? oldPos)) && !p.inJail) {
@@ -997,9 +1116,19 @@ class GameInstance {
 
     const result = this.processTileLanding(p, { startPos, dice, movementPath: movement.path });
     result.godDice = hasGodDice;
+<<<<<<< HEAD
     result.stationRoll = this.state.lastStationRoll;
     result.stationRoutePath = this.state.lastStationRoutePath;
     result.stationEvents = movement.stationEvents || [];
+=======
+    const landedDirectlyOnStation = movement.path.every(position => position < 40) && [5, 15, 25, 35].includes(p.position);
+    const crossRoute = landedDirectlyOnStation ? this.getCrossRoute(p.position) : null;
+    if (crossRoute) {
+      this.state.crossRouteChoice = { playerId: p.id, station: p.position, path: crossRoute };
+      result.crossRouteChoice = { from: p.position, to: crossRoute[crossRoute.length - 1] };
+      this.addLog(`🚉 ${p.name} đáp đúng ga #${p.position}. Hãy chọn đường trong hoặc vòng ngoài cho lượt kế tiếp.`);
+    }
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
     if (result.action === "GO_TO_JAIL") {
       result.playerId = p.id;
       result.turnEnded = true;
@@ -1013,8 +1142,11 @@ class GameInstance {
     if (!card) return null;
 
     const p = this.getCurrentPlayer();
+<<<<<<< HEAD
     let cardMovementStart = p.position;
     let cardMovementPath = [];
+=======
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
     this.addLog(`🎴 ${p.name} rút thẻ [${card.type}]: ${card.title}`);
 
     switch (card.action) {
@@ -1053,6 +1185,7 @@ class GameInstance {
       }
 
       case "FREEZE_ENEMY_TILE": {
+<<<<<<< HEAD
         const target = this.state.board.filter(t => t.type === 'PROPERTY' && t.owner && t.owner !== p.id && t.price).sort((a, b) => b.price - a.price)[0];
         if (target) { target.frozenTurns = true; this.addLog(`❄️ [${target.name}] bị đóng băng cho đến khi có người đáp vào ô.`); }
         break;
@@ -1065,6 +1198,20 @@ class GameInstance {
       case "BOOST_RENT_TEMP": {
         const target = this.state.board.filter(t => t.type === 'PROPERTY' && t.owner === p.id && t.price).sort((a, b) => b.price - a.price)[0];
         if (target) { target.boostTurns = true; this.addLog(`🔥 [${target.name}] tăng tiền thuê cho đến khi có người đáp vào ô.`); }
+=======
+        const target = this.state.board.filter(t => t.owner && t.owner !== p.id && t.price).sort((a, b) => b.price - a.price)[0];
+        if (target) { target.frozenTurns = 2; this.addLog(`❄️ [${target.name}] bị đóng băng 2 lượt.`); }
+        break;
+      }
+      case "PROTECT_MY_LAND": {
+        const target = this.state.board.filter(t => t.owner === p.id && t.price).sort((a, b) => b.price - a.price)[0];
+        if (target) { target.protectedTurns = 2; this.addLog(`🛡️ [${target.name}] được bảo vệ 2 lượt.`); }
+        break;
+      }
+      case "BOOST_RENT_TEMP": {
+        const target = this.state.board.filter(t => t.owner === p.id && t.price).sort((a, b) => b.price - a.price)[0];
+        if (target) { target.boostTurns = 2; this.addLog(`🔥 [${target.name}] tăng tiền thuê 2 lượt.`); }
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
         break;
       }
       case "UPGRADE_MY_TILE": {
@@ -1074,7 +1221,11 @@ class GameInstance {
       }
       case "DEMOLISH_ENEMY_HOUSE": {
         const richest = this.state.players.filter(x => x.id !== p.id && !x.isBankrupt).sort((a, b) => this.netWorth(b) - this.netWorth(a))[0];
+<<<<<<< HEAD
         const target = richest && this.state.board.filter(t => t.type === 'PROPERTY' && t.owner === richest.id && t.houses > 0).sort((a, b) => b.price - a.price)[0];
+=======
+        const target = richest && this.state.board.filter(t => t.owner === richest.id && t.type === 'PROPERTY' && t.houses > 0).sort((a, b) => b.price - a.price)[0];
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
         if (target && !target.protectedTurns && !this.interceptAttack(p, richest, { type: 'DEMOLISH', tile: target })) {
           target.houses -= 1;
           this.addLog(`📉 Hạ một cấp nhà trên [${target.name}].`);
@@ -1089,7 +1240,11 @@ class GameInstance {
       }
 
       case "MULTIPLY_LAND_RENT": {
+<<<<<<< HEAD
         const myTiles = this.state.board.filter(t => t.type === 'PROPERTY' && t.owner === p.id && t.price);
+=======
+        const myTiles = this.state.board.filter(t => t.owner === p.id && t.price);
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
         if (myTiles.length > 0) {
           myTiles.sort((a, b) => (b.price || 0) - (a.price || 0));
           const targetTile = myTiles[0];
@@ -1120,7 +1275,11 @@ class GameInstance {
       }
 
       case "PULL_RICHEST_TO_MY_LAND": {
+<<<<<<< HEAD
         const myTiles = this.state.board.filter(t => t.type === 'PROPERTY' && t.owner === p.id && t.price);
+=======
+        const myTiles = this.state.board.filter(t => t.owner === p.id && t.price);
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
         const rivals = this.state.players.filter(x => x.id !== p.id && !x.isBankrupt);
         if (myTiles.length > 0 && rivals.length > 0) {
           myTiles.sort((a, b) => (b.price || 0) - (a.price || 0));
@@ -1175,15 +1334,21 @@ class GameInstance {
       }
 
       case "MOVE_TO": {
+<<<<<<< HEAD
         const movement = this.movePlayerOuter(p, card.target);
         cardMovementStart = movement.startPos;
         cardMovementPath = movement.movementPath;
         if (card.getGoBonus && !movement.movementPath.includes(0)) p.money += this.settings.passGoMoney;
+=======
+        p.position = card.target;
+        if (card.getGoBonus) p.money += this.settings.passGoMoney;
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
         this.addLog(`  -> ${p.name} di chuyển đến ô #${card.target}`);
         break;
       }
 
       case "MOVE_STEPS": {
+<<<<<<< HEAD
         const steps = Number(card.steps) || 0;
         if (steps > 0) {
           const movement = this.movePlayerOuter(p, p.position + steps);
@@ -1191,6 +1356,9 @@ class GameInstance {
           cardMovementPath = movement.movementPath;
         }
         else p.position = (p.position + steps + 40) % 40;
+=======
+        p.position = (p.position + card.steps + 40) % 40;
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
         this.addLog(`  -> ${p.name} dịch chuyển ${card.steps} bước (về ô #${p.position})`);
         break;
       }
@@ -1200,6 +1368,7 @@ class GameInstance {
         break;
     }
 
+<<<<<<< HEAD
     const resultCard = { ...card, finalPos: p.position, startPos: cardMovementStart, movementPath: cardMovementPath };
 
     if (card.action === "MOVE_TO" || card.action === "MOVE_STEPS") {
@@ -1207,6 +1376,12 @@ class GameInstance {
         startPos: resultCard.startPos,
         movementPath: resultCard.movementPath
       });
+=======
+    const resultCard = { ...card, finalPos: p.position };
+
+    if (card.action === "MOVE_TO" || card.action === "MOVE_STEPS") {
+      resultCard.landing = this.processTileLanding(p, { startPos: resultCard.finalPos });
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
       resultCard.finalPos = resultCard.landing.finalPos;
     }
 
@@ -1224,7 +1399,10 @@ class GameInstance {
       p.money -= price;
       tile.owner = p.id;
       tile.lastBuiltPlayerTurn = null;
+<<<<<<< HEAD
       p.hasBoughtPropertyThisTurn = true;
+=======
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
       if (p.hasDiscount) {
         this.addLog(`🛒 ${p.name} dùng PHIẾU GIẢM GIÁ 50% mua [${tile.name}] với giá $${price} (giá gốc: $${tile.price})`);
         p.hasDiscount = false;
@@ -1266,11 +1444,14 @@ class GameInstance {
 
     const isFullGroup = this.ownsFullGroup(tile);
 
+<<<<<<< HEAD
     if (p.hasBoughtPropertyThisTurn) {
       this.addLog(`⚠️ ${p.name} không được xây nhà trong lượt vừa mua đất!`);
       return false;
     }
 
+=======
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
     if (this.settings.freeBuildOnFullGroup) {
       if (!isFullGroup) {
         this.addLog(`⚠️ ${p.name} cần sở hữu trọn bộ màu mới được phép xây nhà!`);
@@ -1471,7 +1652,10 @@ class GameInstance {
       if (nextP && !nextP.isBankrupt) {
         nextP.turnCount = (nextP.turnCount || 0) + 1;
         nextP.hasBuiltHouseThisTurn = false;
+<<<<<<< HEAD
         nextP.hasBoughtPropertyThisTurn = false;
+=======
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
         this.addLog(`🔄 Chuyển lượt sang ${nextP.name}`);
       }
     }
@@ -1518,7 +1702,10 @@ class GameInstance {
     const p = this.getCurrentPlayer();
     p.turnCount = (p.turnCount || 0) + 1;
     p.hasBuiltHouseThisTurn = false;
+<<<<<<< HEAD
     p.hasBoughtPropertyThisTurn = false;
+=======
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
     this.addLog(`🔄 Chuyển lượt sang ${p.name}`);
     return true;
   }

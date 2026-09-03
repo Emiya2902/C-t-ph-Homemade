@@ -74,7 +74,11 @@
     if (announcement && announcement.id !== GameCore.state.lastAnnouncement?.id) {
       GameCore.state.lastAnnouncement = announcement;
       if (announcement.type === 'center') {
+<<<<<<< HEAD
         GameCore.state.pendingCenterBuffNotification = announcement.message;
+=======
+        window.GameEnhancements?.triggerCenterImpact?.(announcement.message);
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
       } else {
         window.GameEnhancements?.showEffectToast?.(announcement.message, announcement.type || 'info');
       }
@@ -98,6 +102,7 @@
     GameCore.state.lastMovementPath = Array.isArray(serverState.lastMovementPath)
       ? serverState.lastMovementPath.slice()
       : [];
+<<<<<<< HEAD
     GameCore.state.lastStationRoll = serverState.lastStationRoll || null;
     GameCore.state.lastStationRoutePath = Array.isArray(serverState.lastStationRoutePath)
       ? serverState.lastStationRoutePath.slice()
@@ -105,13 +110,21 @@
     GameCore.state.stationEvents = Array.isArray(serverState.stationEvents)
       ? serverState.stationEvents.slice()
       : [];
+=======
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
     GameCore.state.lastRollWasGodDice = !!serverState.lastRollWasGodDice;
     GameCore.state.lastAnnouncement = serverState.lastAnnouncement || GameCore.state.lastAnnouncement || null;
     GameCore.state.weather = serverState.weather || 'CLEAR';
     GameCore.state.weatherTurns = serverState.weatherTurns || 0;
+<<<<<<< HEAD
     GameCore.state.weatherName = serverState.weatherName || GameCore.state.weatherName;
     GameCore.state.weatherEmoji = serverState.weatherEmoji || GameCore.state.weatherEmoji;
     const weatherChanged = previousWeather !== GameCore.state.weather && GameCore.state.weather !== 'CLEAR';
+=======
+    if (previousWeather !== GameCore.state.weather && GameCore.state.weather !== 'CLEAR') {
+      window.GameEnhancements?.playWeatherSound?.(GameCore.state.weather);
+    }
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
 
     // pendingCard (thẻ cơ hội/khí vận)
     GameCore.state.pendingCard = serverState.pendingCard || null;
@@ -380,6 +393,7 @@
           if (!GameCore.state.lastRollWasGodDice) {
             await GameUI.playDiceAnimation(GameCore.state.lastRoll, data.state.lastDice || GameCore.state.lastDice);
           }
+<<<<<<< HEAD
             await GameUI.moveTokenWithStationPauses(
               GameUI.playerTokens[movedIndex],
               startPos,
@@ -393,6 +407,9 @@
               );
               window.GameEnhancements?.playWeatherSound?.(GameCore.state.weather);
             }
+=======
+          await GameUI.moveTokenStepByStep(GameUI.playerTokens[movedIndex], startPos, steps, serverPath);
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
           if (endPos === 10 && GameCore.state.players[movedIndex].inJail) {
             await new Promise(resolve => setTimeout(resolve, 200));
             const jailTile = document.getElementById('tile-10');
@@ -476,7 +493,11 @@
     // Nếu có pendingCard -> hiện modal thẻ (nếu là lượt mình)
     if (state.pendingCard && state.currentPlayerIndex === myIndex) {
       if (cardModal) {
+<<<<<<< HEAD
         $('card-type-badge').innerText = state.pendingCard.category || state.pendingCard.type || 'CƠ HỘI';
+=======
+        $('card-type-badge').innerText = state.pendingCard.type || 'CƠ HỘI';
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
         $('card-title').innerText = state.pendingCard.title || '';
         $('card-text').innerText = state.pendingCard.text || '';
         cardModal.classList.remove('hidden');

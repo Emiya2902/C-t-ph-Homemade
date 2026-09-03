@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 {"name":"co-ti-phu-nha-lam","version":"1.0.0","description":"Cờ Tỉ Phú Nhà Làm - Monopoly online multiplayer game","main":"server.js","type":"commonjs","scripts":{"start":"node server.js","dev":"node server.js","test":"node --test"},"dependencies":{"express":"^4.19.2","socket.io":"^4.7.5"},"engines":{"node":">=18.0.0"}}
+=======
+{"name":"co-ti-phu-nha-lam","version":"1.0.0","description":"Cờ Tỉ Phú Nhà Làm - Monopoly online multiplayer game","main":"server.js","type":"commonjs","scripts":{"start":"node server.js","dev":"node server.js","test":"node --test"},"dependencies":{"express":"^4.19.2","socket.io":"^4.7.5"},"engines":{"node":">=18.0.0"}}
+>>>>>>> 814147eb7059fe1f3a8102216959befd1818b784
